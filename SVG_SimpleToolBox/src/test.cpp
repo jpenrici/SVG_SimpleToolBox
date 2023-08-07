@@ -63,6 +63,9 @@ void basic()
     assert(smalltoolbox::round(0.0101, 3) == 0.010);
     assert(smalltoolbox::round(0.0109, 3) == 0.011);
 
+    assert(smalltoolbox::area(0, 0, 5, 0, 0, 10) == 25.0);    // Triangle
+    assert(smalltoolbox::height(0, 0, 5, 0, 0, 10) == 10.0);  // Triangle
+
     std::cout << "Basic test finished!\n";
 }
 
@@ -101,6 +104,10 @@ void point()
     p1.reset();
     assert(p1 == Origin);
 
+    p1 = Origin;
+    p1 = p1.position(90, 10);
+    assert(p1.round() == Point(0, 10));
+
     // Output
     view(1);
     view(0.5);
@@ -134,6 +141,9 @@ void line()
     assert(line.length() == std::sqrt(2));
     assert(line.middle().round().equal(Point(0.5, 0.5)));
 
+    line.setup(Origin, 90, 10);
+    assert(line.second.round() == Point(0, 10));
+
     std::cout << "Line test finished!\n";
 }
 
@@ -144,6 +154,22 @@ void triangle()
     assert(triangle.first == Origin);
     assert(triangle.second == Origin);
     assert(triangle.third == Origin);
+
+    triangle.setup(Point(-1,0), Point(1,0), 10);
+    assert(triangle.third.round() == Point(0, 10));
+
+    Line side;
+    side.setup(Point(-1, 0), 0, 2);
+    triangle.setup(side, 10);
+    assert(triangle.third.round() == Point(0, 10));
+
+    // Base 2, height 10 : Area (2 * 10 / 2)
+    triangle.setup(Point(-2,0), Point(0,0), Point(0, 10));
+    assert(triangle.area() == (2 * 10 / 2.0));
+    assert(triangle.height() == 10.0);
+
+    // Scale Triangle
+    // TO DO
 
     std::cout << "Triangle test finished!\n";
 }

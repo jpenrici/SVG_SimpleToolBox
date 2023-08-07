@@ -30,7 +30,7 @@ double angle(double radians)
     return radians * 180.0 / std::numbers::pi;
 }
 
-// Returns the angle between two points.
+// Returns the angle of the line (x0,y0)(x1,y1).
 double angle(double x0, double y0, double x1, double y1)
 {
     double result = angle(std::atan((y1 - y0) / (x1 - x0)));
@@ -86,6 +86,29 @@ double round(double value, unsigned digits = 2)
 {
     digits = digits > 10 ? 10 : digits;
     return std::round(value * std::pow(10, digits)) / std::pow(10, digits);
+}
+
+// Triangle area
+double area(double x0, double y0, double x1, double y1, double x2, double y2)
+{
+    // Heron's formula
+    auto a = smalltoolbox::distance(x0, y0, x1, y1);
+    auto b = smalltoolbox::distance(x1, y1, x2, y2);
+    auto c = smalltoolbox::distance(x2, y2, x0, y0);
+    auto s = (a + b + c) / 2.0;
+
+    return std::sqrt(s * (s - a) * (s - b) * (s - c));
+}
+
+// Triangle height
+double height(double x0, double y0, double x1, double y1, double x2, double y2)
+{
+    auto triangleArea = area(x0, y0, x1, y1, x2, y2);
+    auto h0 = 2 * triangleArea / smalltoolbox::distance(x0, y0, x1, y1);
+    auto h1 = 2 * triangleArea / smalltoolbox::distance(x1, y1, x2, y2);
+    auto h2 = 2 * triangleArea / smalltoolbox::distance(x2, y2, x0, y0);
+
+    return std::max(std::max(h0, h1), h2);
 }
 
 // (x,y)
@@ -218,6 +241,14 @@ public:
                          std::pow(Y.value - point.Y.value, 2));
     }
 
+    // Position from angle and radius.
+    // Current point as origin.
+    Point position(double angle, double radius)
+    {
+        return Point(smalltoolbox::cos(X.value, radius, angle),
+                     smalltoolbox::sin(Y.value, radius, angle));
+    }
+
     // Returns the rounded current coordinates.
     Point round()
     {
@@ -241,6 +272,7 @@ public:
 // Special point.
 const Point Origin = Point(0, 0);
 
+// (x1,y1)(x2,y2)
 class Line {
 
     // Store the last configuration.
@@ -259,11 +291,21 @@ public:
     ~Line() {};
 
     // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
-    // Returns points or vertices.
+    // Returns vertices.
     std::vector<Point> setup(Point first, Point second = Origin)
     {
         this->first = first;
         this->second = second;
+
+        return points();
+    }
+
+    // Line : Point (x,y), angle and length.
+    // Returns vertices.
+    std::vector<Point> setup(Point origin, double angle, double length)
+    {
+        first = origin;
+        second = origin.position(angle, length);
 
         return points();
     }
@@ -283,10 +325,10 @@ public:
     // Midpoint
     Point middle()
     {
-        return Point(smalltoolbox::cos(first.X.value, length() / 2, angle()),
-                     smalltoolbox::sin(first.Y.value, length() / 2, angle()));
+        return first.position(angle(), length() / 2);
     }
 
+    // Returns the current vertices.
     std::vector<Point> points()
     {
         update();
@@ -294,6 +336,7 @@ public:
     }
 };
 
+// (x1,y1)(x2,y2)(x3,y3)
 class Triangle {
 
     // Store the last configuration.
@@ -323,22 +366,35 @@ public:
     // Triangle: Points (x1,y1),(x2,y2) and height
     std::vector<Point> setup(Point first, Point second, double height)
     {
-        Point result = Point();
-        return setup(first, second, result);
+        Line side;
+        side.setup(first, second);
+
+        return setup(first,
+                     second,
+                     Point(side.middle()).position(90 + side.angle(), height));
+    }
+
+    // Triangle: Line and height
+    std::vector<Point> setup(Line side, double height)
+    {
+        return setup(side.first, side.second, height);
     }
 
     double height()
     {
-        // TO DO
-        return -1;
+        return smalltoolbox::height(first.X.value, first.Y.value,
+                                    second.X.value, second.Y.value,
+                                    third.X.value, third.Y.value);
     }
 
     double area()
     {
-        // TO DO
-        return -1;
+        return smalltoolbox::area(first.X.value, first.Y.value,
+                                  second.X.value, second.Y.value,
+                                  third.X.value, third.Y.value);
     }
 
+    // Returns the current vertices.
     std::vector<Point> points()
     {
         update();
@@ -346,6 +402,7 @@ public:
     }
 };
 
+// (x1,y1)(x2,y2)(x3,y3)(x4,y4)
 class Rectangle {
 
     // Store the last configuration.
@@ -358,14 +415,22 @@ public:
     Rectangle() {};
     ~Rectangle() {};
 
-    std::vector<Point> setup(Point first, double width, double heigth)
+    std::vector<Point> setup(Point first, Point second, Point third, Point fourth)
     {
         this->first = first;
-        second = first + Point(width, 0);
-        third = first + Point(width, heigth);
-        fourth = first + Point(0, heigth);
+        this->second = second;
+        this->third = third;
+        this->fourth = fourth;
 
         return points();
+    }
+
+    std::vector<Point> setup(Point first, double width, double heigth)
+    {
+        return setup(first,
+                     first + Point(width, 0),
+                     first + Point(width, heigth),
+                     first + Point(0, heigth));
     }
 
     double area()
@@ -374,6 +439,7 @@ public:
         return -1;
     }
 
+    // Returns the current vertices.
     std::vector<Point> points()
     {
         return {first, second, third, fourth};
@@ -425,7 +491,7 @@ public:
         return vertices;
     }
 
-    // Return last vertices or points.
+    // Returns the current vertices.
     std::vector<Point> points()
     {
         return vertices;
