@@ -4,6 +4,7 @@
 #include <array>
 #include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <math.h>
 #include <random>
@@ -29,9 +30,10 @@ double angle(double radians)
     return radians * 180.0 / std::numbers::pi;
 }
 
+// Returns the angle between two points.
 double angle(double x0, double y0, double x1, double y1)
 {
-    double result = angle(atan((y1 - y0) / (x1 - x0)));
+    double result = angle(std::atan((y1 - y0) / (x1 - x0)));
 
     if (x0 == x1 && y0 == y1) {
         result = 0;
@@ -61,19 +63,29 @@ double angle(double x0, double y0, double x1, double y1)
     return result;
 }
 
+// Return: value + radius * cos(angle).
 double cos(double value, double radius, double angle)
 {
     return value + radius * std::cos(radians(angle));
 }
 
+// Return: value + radius * sin(angle).
 double sin(double value, double radius, double angle)
 {
     return value + radius * std::sin(radians(angle));
 }
 
+// Returns the distance between two points.
 double distance(double x0, double y0, double x1, double y1)
 {
-    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
+    return std::sqrt(std::pow(x0 - x1, 2) + std::pow(y0 - y1, 2));
+}
+
+// Rounds value to N digits after decimal point.
+double round(double value, unsigned digits = 2)
+{
+    digits = digits > 10 ? 10 : digits;
+    return std::round(value * std::pow(10, digits)) / std::pow(10, digits);
 }
 
 // (x,y)
@@ -81,61 +93,6 @@ class Point {
 
     struct Coordinate {
         double value;
-
-        double operator+(double value)
-        {
-            return this->value + value;
-        }
-
-        void operator+=(double value)
-        {
-            this->value += value;
-        }
-
-        double operator-(double value)
-        {
-            return this->value - value;
-        }
-
-        void operator-=(double value)
-        {
-            this->value -= value;
-        }
-
-        double operator*(double value)
-        {
-            return this->value * value;
-        }
-
-        void operator*=(double value)
-        {
-            this->value *= value;
-        }
-
-        bool operator==(Coordinate coordinate)
-        {
-            return value == coordinate.value;
-        }
-
-        bool operator>(Coordinate coordinate)
-        {
-            return value > coordinate.value;
-        }
-
-        bool operator>=(Coordinate coordinate)
-        {
-            return value >= coordinate.value;
-        }
-
-        bool operator<(Coordinate coordinate)
-        {
-            return value < coordinate.value;
-        }
-
-        bool operator<=(Coordinate coordinate)
-        {
-            return value <= coordinate.value;
-        }
 
         std::string toStr()
         {
@@ -150,6 +107,7 @@ public:
 
     // Point (0, 0)
     Point() : X{0}, Y{0} {};
+
     // Point (x, y)
     Point(double x, double y) : X{x}, Y{y} {};
 
@@ -220,29 +178,54 @@ public:
         return equal(point);
     }
 
+    // X += x, Y += y
     void sum(double x, double y)
     {
         X.value += x;
         Y.value += y;
     }
 
+    // X *= x; Y *= y
     void multiply(double x, double y)
     {
         X.value *= x;
         Y.value *= y;
     }
 
+    // X = 0; Y = 0
+    void reset()
+    {
+        X.value = 0;
+        Y.value = 0;
+    }
+
+    // Checks if coordinates are equal.
     bool equal(Point point)
     {
         return X.value == point.X.value && Y.value == point.Y.value;
     }
 
+    // Angle of the imaginary line between the current point and the other.
+    double angle(Point point)
+    {
+        return smalltoolbox::angle(X.value, Y.value, point.X.value, point.Y.value);
+    }
+
+    // Distance between the current point and another.
     double distance(Point point)
     {
         return std::sqrt(std::pow(X.value - point.X.value, 2) +
                          std::pow(Y.value - point.Y.value, 2));
     }
 
+    // Returns the rounded current coordinates.
+    Point round()
+    {
+        return Point(smalltoolbox::round(X.value),
+                     smalltoolbox::round(Y.value));
+    }
+
+    // Returns Array[2] with X and Y values.
     std::array<double, 2> XY()
     {
         return {{X.value, Y.value}};
@@ -255,36 +238,157 @@ public:
 
 };
 
+// Special point.
+const Point Origin = Point(0, 0);
+
 class Line {
+
+    // Store the last configuration.
+    std::vector<Point> vertices;
+
+    void update()
+    {
+        vertices = {first, second};
+    }
 
 public:
 
     Point first, second;
 
-    // Line : Origin (0,0) to Point (x,y)
-    Line(Point point) : first(Point()), second(point) {};
-    // Line : Point 1 (x1,y1) to Point 2 (x2,y2)
-    Line(Point first, Point second) : first(first), second(second) {};
-
+    Line() {};
     ~Line() {};
 
+    // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
+    // Returns points or vertices.
+    std::vector<Point> setup(Point first, Point second = Origin)
+    {
+        this->first = first;
+        this->second = second;
+
+        return points();
+    }
+
+    // Distance between the two points.
     double length()
     {
         return first.distance(second);
     }
 
+    // Line angle.
+    double angle()
+    {
+        return first.angle(second);
+    }
+
+    // Midpoint
+    Point middle()
+    {
+        return Point(smalltoolbox::cos(first.X.value, length() / 2, angle()),
+                     smalltoolbox::sin(first.Y.value, length() / 2, angle()));
+    }
+
     std::vector<Point> points()
     {
-        return {first, second};
+        update();
+        return vertices;
+    }
+};
+
+class Triangle {
+
+    // Store the last configuration.
+    std::vector<Point> vertices;
+
+    void update()
+    {
+        vertices = {first, second, third};
+    }
+
+public:
+    Point first, second, third;
+
+    Triangle() {};
+    ~Triangle() {};
+
+    // Triangle: Points (x1,y1),(x2,y2),(x3,y3)
+    std::vector<Point> setup(Point first, Point second, Point third)
+    {
+        this->first = first;
+        this->second = second;
+        this->third = third;
+
+        return points();
+    }
+
+    // Triangle: Points (x1,y1),(x2,y2) and height
+    std::vector<Point> setup(Point first, Point second, double height)
+    {
+        Point result = Point();
+        return setup(first, second, result);
+    }
+
+    double height()
+    {
+        // TO DO
+        return -1;
+    }
+
+    double area()
+    {
+        // TO DO
+        return -1;
+    }
+
+    std::vector<Point> points()
+    {
+        update();
+        return vertices;
+    }
+};
+
+class Rectangle {
+
+    // Store the last configuration.
+    std::vector<Point> vertices;
+
+public:
+
+    Point first, second, third, fourth;
+
+    Rectangle() {};
+    ~Rectangle() {};
+
+    std::vector<Point> setup(Point first, double width, double heigth)
+    {
+        this->first = first;
+        second = first + Point(width, 0);
+        third = first + Point(width, heigth);
+        fourth = first + Point(0, heigth);
+
+        return points();
+    }
+
+    double area()
+    {
+        // TO DO
+        return -1;
+    }
+
+    std::vector<Point> points()
+    {
+        return {first, second, third, fourth};
     }
 };
 
 class Polygon {
 
+    // Store the last configuration.
     Point center;
     double angle;
-    double radius;
+    double horizontalRadius;
+    double verticalRadius;
     unsigned sides;
+
     std::vector<Point> vertices;
 
 public:
@@ -293,7 +397,8 @@ public:
     ~Polygon() {};
 
     // Center : polygon center point (x,y),
-    // radius : distance from the center (>= 1),
+    // horizontalRadius : distance from the center on X axis (>= 1),
+    // verticalRadius   : distance from the center on Y axis (>= 1),
     // angle  : starting point angle,
     // sides  : divisions of a circle (>= 3).
     std::vector<Point> setup(Point center, double radius, double angle, unsigned sides)
@@ -307,7 +412,8 @@ public:
         // Update
         this->center = center;
         this->angle = angle;
-        this->radius = radius;
+        this->horizontalRadius = radius;
+        this->verticalRadius = radius;
         this->sides = sides;
 
         vertices.clear();
@@ -332,7 +438,8 @@ public:
 
     double diagonalLength()
     {
-        return 2 * radius;
+        // TO DO
+        return -1;
     }
 
 };
@@ -361,24 +468,24 @@ public:
 
         Shape()
             : name("Shape"), fill(WHITE), stroke(BLACK), strokeWidth(1.0),
-            fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
+              fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
 
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
+              fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               std::vector<Point> points)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(255.0), strokeOpacity(255.0), points(points) {}
+              fillOpacity(255.0), strokeOpacity(255.0), points(points) {}
 
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points({}) {}
+              fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points({}) {}
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity, std::vector<Point> points)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points(points) {}
+              fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points(points) {}
     };
 
     static const std::string INT2HEX(unsigned value)
@@ -414,6 +521,18 @@ public:
         return elements.empty() ? "" : id + elements + "</g>\n";
     }
 
+private:
+
+    static const void check(Shape &shape, std::string name)
+    {
+        shape.name = name.empty() ? "Shape" : name;
+        shape.stroke = shape.stroke.empty() ? "#000000" : shape.stroke;
+        shape.fillOpacity = shape.fillOpacity < 0 ? 0 : std::min(shape.fillOpacity / 255, 1.0);
+        shape.strokeOpacity = shape.strokeOpacity < 0 ? 0 : std::min(shape.strokeOpacity / 255, 1.0);
+    }
+
+public:
+
     static const std::string polyline(Shape shape)
     {
 
@@ -425,10 +544,8 @@ public:
         for (unsigned i = 0; i < shape.points.size(); i++) {
             values += shape.points[i].toStr() + " ";
         }
-        shape.name = shape.name.empty() ? "polyline" : shape.name;
-        shape.stroke = shape.stroke.empty() ? "#000000" : shape.stroke;
-        shape.fillOpacity = shape.fillOpacity < 0 ? 0 : std::min(shape.fillOpacity / 255, 1.0);
-        shape.strokeOpacity = shape.strokeOpacity < 0 ? 0 : std::min(shape.strokeOpacity / 255, 1.0);
+
+        check(shape, "polyline");
         std::string opacity = std::to_string(shape.fillOpacity);
         std::string strokeOpacity = std::to_string(shape.strokeOpacity);
         std::string strokeWidth = std::to_string(shape.strokeWidth);
@@ -456,14 +573,12 @@ public:
             values += shape.points[i].toStr() + " L ";
         }
         values += shape.points[shape.points.size() - 1].toStr();
-        shape.name = shape.name.empty() ? "polygon" : shape.name;
-        shape.fill = shape.fill.empty() ? "#FFFFFF" : shape.fill;
-        shape.stroke = shape.stroke.empty() ? "#000000" : shape.stroke;
-        shape.fillOpacity = shape.fillOpacity < 0 ? 0 : std::min(shape.fillOpacity / 255, 1.0);
-        shape.strokeOpacity = shape.strokeOpacity < 0 ? 0 : std::min(shape.strokeOpacity / 255, 1.0);
+
+        check(shape, "polygon");
         std::string opacity = std::to_string(shape.fillOpacity);
         std::string strokeOpacity = std::to_string(shape.strokeOpacity);
         std::string strokeWidth = std::to_string(shape.strokeWidth);
+
         return {
             "     <path\n"
             "        id=\"" + shape.name + "\"\n" +
@@ -564,8 +679,6 @@ public:
 };
 
 // Generic
-
-
 void view(double value)
 {
     std::cout << std::to_string(value) << '\n';

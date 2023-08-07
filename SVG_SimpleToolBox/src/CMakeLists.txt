@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
     test.cpp
-    svgToolBox.h svgToolBox.cpp
+    svgToolBox.hpp
 )
 
 add_executable(test ${SOURCES})
