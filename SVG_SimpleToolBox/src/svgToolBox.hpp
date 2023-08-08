@@ -89,7 +89,7 @@ double round(double value, unsigned digits = 2)
 }
 
 // Triangle area
-double area(double x0, double y0, double x1, double y1, double x2, double y2)
+double triangleArea(double x0, double y0, double x1, double y1, double x2, double y2)
 {
     // Heron's formula
     auto a = smalltoolbox::distance(x0, y0, x1, y1);
@@ -101,14 +101,42 @@ double area(double x0, double y0, double x1, double y1, double x2, double y2)
 }
 
 // Triangle height
-double height(double x0, double y0, double x1, double y1, double x2, double y2)
+double triangleHeight(double x0, double y0, double x1, double y1, double x2, double y2)
 {
-    auto triangleArea = area(x0, y0, x1, y1, x2, y2);
-    auto h0 = 2 * triangleArea / smalltoolbox::distance(x0, y0, x1, y1);
-    auto h1 = 2 * triangleArea / smalltoolbox::distance(x1, y1, x2, y2);
-    auto h2 = 2 * triangleArea / smalltoolbox::distance(x2, y2, x0, y0);
+    auto area = triangleArea(x0, y0, x1, y1, x2, y2);
+    auto h0 = 2 * area / smalltoolbox::distance(x0, y0, x1, y1);
+    auto h1 = 2 * area / smalltoolbox::distance(x1, y1, x2, y2);
+    auto h2 = 2 * area / smalltoolbox::distance(x2, y2, x0, y0);
 
     return std::max(std::max(h0, h1), h2);
+}
+
+// Calculates the point of intersection between two lines.
+// Returns false if the lines are parallel or coincident.
+// Line 1 (x0, y0) - (x1, y1),
+// Line 2 (x2, y2) - (x3, y4).
+bool lineIntersect(double x0, double y0, double x1, double y1,
+                   double x2, double y2, double x3, double y3,
+                   std::array<double, 2> &xy)
+{
+    double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
+    if (d == 0) {   // Two lines are parallel or coincident ...
+        xy = {std::numeric_limits<double>::max(),
+              std::numeric_limits<double>::max()
+        };
+        return false;
+    }
+
+    double t = ((x3 - x2) * (y0 - y2) - (y3 - y2) * (x0 - x2)) / d;
+    double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
+
+    if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
+        xy = {(x0 + t * (x1 - x0)), (y0 + t * (y1 - y0))};
+        return true;
+    }
+
+    // Lines do not intersect
+    return false;
 }
 
 // (x,y)
@@ -288,7 +316,21 @@ public:
     Point first, second;
 
     Line() {};
+
+    Line(Point first, Point second)
+        : first(first), second(second) {};
+
+    Line(Point origin, double angle, double length)
+    {
+        setup(origin, angle, length);
+    }
+
     ~Line() {};
+
+    bool operator==(Line line)
+    {
+        return equal(line);
+    }
 
     // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
     // Returns vertices.
@@ -328,6 +370,40 @@ public:
         return first.position(angle(), length() / 2);
     }
 
+    // Returns the intersection point with another line.
+    bool intersection(Line line, Point &point)
+    {
+        std::array<double, 2> xy;
+        auto result = smalltoolbox::lineIntersect(first.X.value, first.Y.value,
+                      second.X.value, second.Y.value,
+                      line.first.X.value, line.first.Y.value,
+                      line.second.X.value, line.second.Y.value,
+                      xy);
+        point.X.value = xy[0];
+        point.Y.value = xy[1];
+
+        return result;
+    }
+
+    // Perpendicular line passing through the point.
+    Line perpendicular(Point point)
+    {
+        // TO DO
+        return {};
+    }
+
+    // Line 1 == Line 2
+    bool equal(Line line)
+    {
+        if (!first.equal(line.first) && !first.equal(line.second)) {
+            return false;
+        }
+        if (!second.equal(line.first) && !second.equal(line.second)) {
+            return false;
+        }
+        return true;
+    }
+
     // Returns the current vertices.
     std::vector<Point> points()
     {
@@ -363,35 +439,37 @@ public:
         return points();
     }
 
-    // Triangle: Points (x1,y1),(x2,y2) and height
-    std::vector<Point> setup(Point first, Point second, double height)
-    {
-        Line side;
-        side.setup(first, second);
-
-        return setup(first,
-                     second,
-                     Point(side.middle()).position(90 + side.angle(), height));
-    }
-
     // Triangle: Line and height
     std::vector<Point> setup(Line side, double height)
     {
-        return setup(side.first, side.second, height);
+        return setup(side.first,
+                     side.second,
+                     Point(side.middle()).position(90 + side.angle(), height));
+    }
+
+    // Triangle: Points (x1,y1),(x2,y2) and height
+    std::vector<Point> setup(Point first, Point second, double height)
+    {
+        return setup(Line(first, second), height);
     }
 
     double height()
     {
-        return smalltoolbox::height(first.X.value, first.Y.value,
-                                    second.X.value, second.Y.value,
-                                    third.X.value, third.Y.value);
+        return smalltoolbox::triangleHeight(first.X.value, first.Y.value,
+                                            second.X.value, second.Y.value,
+                                            third.X.value, third.Y.value);
     }
 
     double area()
     {
-        return smalltoolbox::area(first.X.value, first.Y.value,
-                                  second.X.value, second.Y.value,
-                                  third.X.value, third.Y.value);
+        return smalltoolbox::triangleArea(first.X.value, first.Y.value,
+                                          second.X.value, second.Y.value,
+                                          third.X.value, third.Y.value);
+    }
+
+    double perimeter()
+    {
+        return first.distance(second) + second.distance(third) + third.distance(first);
     }
 
     // Returns the current vertices.

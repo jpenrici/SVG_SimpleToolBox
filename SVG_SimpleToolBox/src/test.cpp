@@ -31,7 +31,9 @@ int main()
 void basic()
 {
     // Math
-    for (auto &a : {0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 225, 270, 315, 360}) {
+    for (auto &a : {
+                0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 225, 270, 315, 360
+            }) {
         assert(std::sin(a * std::numbers::pi / 180.0) == smalltoolbox::sin(0, 1, a));
         assert(std::cos(a * std::numbers::pi / 180.0) == smalltoolbox::cos(0, 1, a));
     }
@@ -63,8 +65,14 @@ void basic()
     assert(smalltoolbox::round(0.0101, 3) == 0.010);
     assert(smalltoolbox::round(0.0109, 3) == 0.011);
 
-    assert(smalltoolbox::area(0, 0, 5, 0, 0, 10) == 25.0);    // Triangle
-    assert(smalltoolbox::height(0, 0, 5, 0, 0, 10) == 10.0);  // Triangle
+    assert(smalltoolbox::triangleArea(0, 0, 5, 0, 0, 10) == 25.0);    // Triangle
+    assert(smalltoolbox::triangleHeight(0, 0, 5, 0, 0, 10) == 10.0);  // Triangle
+
+    std::array<double, 2> xy;
+    assert(!lineIntersect(1, 2, 5, 5, 2, 1, 6, 4, xy));     // Parallel
+    assert(!lineIntersect(0, 0, 5, 5, 1, 1, 4, 4, xy));     // Coincident
+    assert(lineIntersect(1, 1, -1, -1, 2, -2, -2, 2, xy));  // Intersection at Origin
+    assert(lineIntersect(2, 2, 2, 10, 0, 4, 10, 4, xy));    // Intersection at (2,4)
 
     std::cout << "Basic test finished!\n";
 }
@@ -144,6 +152,25 @@ void line()
     line.setup(Origin, 90, 10);
     assert(line.second.round() == Point(0, 10));
 
+    Point p;
+    Line line1;
+    line.setup(Point(2, 2), Point(2, 10));  // Line (2,2)(2,10)
+    line1.setup(Point(0, 4), 0, 10);        // Line (0,4)(0,10)
+    view(line.points());
+    view(line1.points());
+    assert(line.intersection(line1, p));    // Intersect
+    assert(p == Point(2, 4));               // at (2,4)
+
+    Point a(1, 1), b(2, 2), c(3, 3);
+    assert(Line(a, b) == Line(a, b));           // equal
+    assert(Line(b, a).equal(Line(a, b)));       // equal
+    assert(Line(a, b).equal(Line(b, a)));       // equal
+    assert(Line(a, a).equal(Line(a, a)));       // equal
+    assert(Line(a + b, a).equal(Line(c, a)));   // equal
+    assert(!Line(a, b).equal(Line(c, b)));      // not equal
+
+    view(Line(Point(-1, 0), Point(10, 0)).perpendicular(Point(0, 10)).points());
+    view(Line(Point( 0, 1), Point(0, 10)).perpendicular(Point(5,  5)).points());
     std::cout << "Line test finished!\n";
 }
 
@@ -155,7 +182,7 @@ void triangle()
     assert(triangle.second == Origin);
     assert(triangle.third == Origin);
 
-    triangle.setup(Point(-1,0), Point(1,0), 10);
+    triangle.setup(Point(-1, 0), Point(1, 0), 10);
     assert(triangle.third.round() == Point(0, 10));
 
     Line side;
@@ -164,12 +191,12 @@ void triangle()
     assert(triangle.third.round() == Point(0, 10));
 
     // Base 2, height 10 : Area (2 * 10 / 2)
-    triangle.setup(Point(-2,0), Point(0,0), Point(0, 10));
+    triangle.setup(Point(-2, 0), Point(0, 0), Point(0, 10));
     assert(triangle.area() == (2 * 10 / 2.0));
     assert(triangle.height() == 10.0);
 
-    // Scale Triangle
-    // TO DO
+    triangle.setup(Origin, Point(10, 0), Point(0, 10));
+    assert(triangle.perimeter() == 10 + 10 + std::sqrt(200));
 
     std::cout << "Triangle test finished!\n";
 }
