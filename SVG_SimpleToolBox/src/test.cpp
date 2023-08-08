@@ -21,8 +21,8 @@ int main()
     point();
     line();
     triangle();
-    //    rectangle();
-    //    polygons();
+    rectangle();
+    polygons();
     //    svg();
 
     return 0;
@@ -31,9 +31,10 @@ int main()
 void basic()
 {
     // Math
-    for (auto &a : {
-                0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 225, 270, 315, 360
-            }) {
+    std::vector<unsigned> angles {
+        0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 225, 270, 315, 360
+    };
+    for (auto &a : angles) {
         assert(std::sin(a * std::numbers::pi / 180.0) == smalltoolbox::sin(0, 1, a));
         assert(std::cos(a * std::numbers::pi / 180.0) == smalltoolbox::cos(0, 1, a));
     }
@@ -117,13 +118,13 @@ void point()
     assert(p1.round() == Point(0, 10));
 
     // Output
-    view(1);
-    view(0.5);
-    view(1.5f);
+    // view(1);
+    // view(0.5);
+    // view(1.5f);
 
-    view(p1);
-    view(p2);
-    view(p1.XY());
+    // view(p1);
+    // view(p2);
+    // view(p1.XY());
 
     std::cout << "Point test finished!\n";
 }
@@ -135,7 +136,7 @@ void line()
     assert(line.first == Origin);
     assert(line.second.equal(Origin));
 
-    view(line.setup(Point(1, 1), Point(2, 2)));
+    line.setup(Point(1, 1), Point(2, 2));
     assert(line.first == Point(1, 1));
     assert(line.second.equal(Point(2, 2)));
 
@@ -155,22 +156,27 @@ void line()
     Point p;
     Line line1;
     line.setup(Point(2, 2), Point(2, 10));  // Line (2,2)(2,10)
-    line1.setup(Point(0, 4), 0, 10);        // Line (0,4)(0,10)
-    view(line.points());
-    view(line1.points());
+    line1.setup(0, 4, 10, 4);               // Line (0,4)(10,4)
+    // view(line.points());
+    // view(line1.points());
     assert(line.intersection(line1, p));    // Intersect
     assert(p == Point(2, 4));               // at (2,4)
 
     Point a(1, 1), b(2, 2), c(3, 3);
-    assert(Line(a, b) == Line(a, b));           // equal
-    assert(Line(b, a).equal(Line(a, b)));       // equal
-    assert(Line(a, b).equal(Line(b, a)));       // equal
-    assert(Line(a, a).equal(Line(a, a)));       // equal
-    assert(Line(a + b, a).equal(Line(c, a)));   // equal
-    assert(!Line(a, b).equal(Line(c, b)));      // not equal
+    assert(Line(a, b) == Line(a, b));           // Equal
+    assert(Line(b, a).equal(Line(a, b)));       // Equal
+    assert(Line(a, b).equal(Line(b, a)));       // Equal
+    assert(Line(a, a).equal(Line(a, a)));       // Equal
+    assert(Line(a + b, a).equal(Line(c, a)));   // Equal
+    assert(!Line(a, b).equal(Line(c, b)));      // Not equal
 
-    view(Line(Point(-1, 0), Point(10, 0)).perpendicular(Point(0, 10)).points());
-    view(Line(Point( 0, 1), Point(0, 10)).perpendicular(Point(5,  5)).points());
+    assert(Line(0, 0, 0, 10).length() == 10.0);
+
+    assert(Line(Point(-1, 0), Point(10, 0)).perpendicular(Point(0, 10)).round() ==
+           Line(Point(0, 0), Point(0, 10)).round());
+    assert(Line(Point(0, 1), Point(0, 10)).perpendicular(Point(5, 5)).round() ==
+           Line(Point(0, 5), Point(5, 5)).round());
+
     std::cout << "Line test finished!\n";
 }
 
@@ -198,6 +204,13 @@ void triangle()
     triangle.setup(Origin, Point(10, 0), Point(0, 10));
     assert(triangle.perimeter() == 10 + 10 + std::sqrt(200));
 
+    Point a(1, 1), b(2, 2), c(3, 3), d(4, 4);
+    assert(Triangle(a, b, c) == Triangle(b, a, c));         // Equal
+    assert(Triangle(a, b, a + b) == Triangle(c, b, a));     // Equal
+    assert(!Triangle(a, b, c).equal(Triangle(a, b, d)));    // Not Equal
+    // view(Triangle(a, b, c).points());
+    // view(Triangle(a, b, c).lengthOfSides());
+
     std::cout << "Triangle test finished!\n";
 }
 
@@ -210,6 +223,28 @@ void rectangle()
     assert(rectangle.third == Origin);
     assert(rectangle.fourth == Origin);
 
+    rectangle.setup(Point(0, 0), 10, 10);
+    assert(rectangle.second.round() == Point(10, 0));
+    assert(rectangle.third.round() == Point(10, 10));
+    assert(rectangle.fourth.round() == Point(0, 10));
+    assert(rectangle.area() == 100);
+    assert(rectangle.perimeter() == 40);
+
+    rectangle.setup(Point(0, 0), 20, 10);
+    // view(rectangle.points());
+    // view(rectangle.lengthOfSides());
+
+    Point a(1, 1), b(5, 1), c(5, 5), d(1, 5), e(5, 5);
+    assert(Rectangle(a, b, c, d) == Rectangle(d, a, b, c));             // Equal
+    assert(Rectangle(a, b, c, e) == Rectangle(a, b, c, a + a + c));     // Equal
+    assert(Rectangle(a, b, c, e) == Rectangle(a, b, c, a * 4.0 + 1.0)); // Equal
+    assert(Rectangle(a, b, c, d).round().area() ==
+           Rectangle(d, a, b, c).round().area());
+    assert(Rectangle(a, b, c, d).round().perimeter() ==
+           Rectangle(d, a, b, c).round().perimeter());
+    // view(Rectangle(a, b, c, d).points());
+    // view(Rectangle(d, a, b, c).points());
+
     std::cout << "Rectangle test finished!\n";
 }
 
@@ -217,10 +252,15 @@ void polygons()
 {
     // Polygon
     Polygon polygon;
-    view(polygon.setup(Point(0, 0), -1,  0,  0)); // Return empty
-    view(polygon.setup(Point(0, 0),  0,  0, -1)); // Return empty
-    view(polygon.setup(Point(1, 1),  0,  0,  0)); // Return empty
-    view(polygon.setup(Point(0, 0),  1,  0,  1)); // Return empty
+    polygon.setup(Point(0, 0), -1,  0,  0); // Return empty
+    assert(polygon.points().empty());
+    polygon.setup(Point(0, 0),  0,  0, -1); // Return empty
+    assert(polygon.points().empty());
+    polygon.setup(Point(1, 1),  0,  0,  0); // Return empty
+    assert(polygon.points().empty());
+    polygon.setup(Point(0, 0),  1,  0,  1); // Return empty
+    assert(polygon.points().empty());
+
     view(polygon.setup(Point(0, 0),  1,  0,  3)); // Triangle
     view(polygon.setup(Point(0, 0),  1,  0,  4)); // Rectangle
     view(polygon.setup(Point(0, 0),  1, 45,  4)); // Rectangle
@@ -230,12 +270,9 @@ void polygons()
 
     // Rectangle (1,0)(0,1)(-1,0)(0,-1)
     polygon.setup(Point(0, 0),  1,  0,  4);
-    auto a = polygon.sideLength();
-    auto b = Point(1, 0).distance(Point(0, 1));
-    view(std::to_string(a) == std::to_string(b) ? "true" : "false"); // true
-    view(a == b ? "true" : "false");                                 // false
-    view(polygon.diagonalLength() == 2.0 ? "true" : "false");        // true
-    view(polygon.points());
+    assert(smalltoolbox::round(polygon.sideLength()) ==
+           smalltoolbox::round(Point(1, 0).distance(Point(0, 1))));
+    //assert(smalltoolbox::round(polygon.diagonalLength()) == 2.0); // TO DO
 
     std::cout << "Polygon test finished!\n";
 }

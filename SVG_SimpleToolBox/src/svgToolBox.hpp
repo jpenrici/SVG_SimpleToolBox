@@ -85,6 +85,7 @@ double distance(double x0, double y0, double x1, double y1)
 double round(double value, unsigned digits = 2)
 {
     digits = digits > 10 ? 10 : digits;
+
     return std::round(value * std::pow(10, digits)) / std::pow(10, digits);
 }
 
@@ -123,7 +124,7 @@ bool lineIntersect(double x0, double y0, double x1, double y1,
     if (d == 0) {   // Two lines are parallel or coincident ...
         xy = {std::numeric_limits<double>::max(),
               std::numeric_limits<double>::max()
-        };
+             };
         return false;
     }
 
@@ -317,20 +318,21 @@ public:
 
     Line() {};
 
+    // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
     Line(Point first, Point second)
         : first(first), second(second) {};
 
+    // Line : Point (x,y), angle and length.
     Line(Point origin, double angle, double length)
     {
         setup(origin, angle, length);
     }
 
-    ~Line() {};
+    // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
+    Line(double x1, double y1, double x2, double y2)
+        : first(Point(x1, y1)), second(Point(x2, y2)) {};
 
-    bool operator==(Line line)
-    {
-        return equal(line);
-    }
+    ~Line() {};
 
     // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
     // Returns vertices.
@@ -350,6 +352,18 @@ public:
         second = origin.position(angle, length);
 
         return points();
+    }
+
+    // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
+    // Returns vertices.
+    std::vector<Point> setup(double x1, double y1, double x2, double y2)
+    {
+        return setup(Point(x1, y1), Point(x2, y2));
+    }
+
+    bool operator==(Line line)
+    {
+        return equal(line);
     }
 
     // Distance between the two points.
@@ -388,8 +402,17 @@ public:
     // Perpendicular line passing through the point.
     Line perpendicular(Point point)
     {
-        // TO DO
-        return {};
+        // Dummy triangle area.
+        double area = smalltoolbox::triangleArea(first.X.value, first.Y.value,
+                      second.X.value, second.Y.value,
+                      point.X.value, point.Y.value);
+        // Pythagorean theorem : a^2 + b^2 = c^2
+        double c = first.distance(point);               // hypotenuse
+        double b = 2 * area / first.distance(second);   // area = base * height / 2
+        double a = std::sqrt(std::pow(c, 2) - std::pow(b, 2));
+
+        // Line with base slope.
+        return Line(first.position(angle(), a), point);
     }
 
     // Line 1 == Line 2
@@ -404,10 +427,17 @@ public:
         return true;
     }
 
+    // Returns the rounded current coordinates.
+    Line round()
+    {
+        return Line(first.round(), second.round());
+    }
+
     // Returns the current vertices.
     std::vector<Point> points()
     {
         update();
+
         return vertices;
     }
 };
@@ -424,12 +454,19 @@ class Triangle {
     }
 
 public:
+
     Point first, second, third;
 
     Triangle() {};
+
+    // Triangle: Points (x1,y1),(x2,y2),(x3,y3)
+    Triangle(Point first, Point second, Point third)
+        : first(first), second(second), third(third) {};
+
     ~Triangle() {};
 
     // Triangle: Points (x1,y1),(x2,y2),(x3,y3)
+    // Returns vertices.
     std::vector<Point> setup(Point first, Point second, Point third)
     {
         this->first = first;
@@ -440,6 +477,7 @@ public:
     }
 
     // Triangle: Line and height
+    // Returns vertices.
     std::vector<Point> setup(Line side, double height)
     {
         return setup(side.first,
@@ -448,9 +486,15 @@ public:
     }
 
     // Triangle: Points (x1,y1),(x2,y2) and height
+    // Returns vertices.
     std::vector<Point> setup(Point first, Point second, double height)
     {
         return setup(Line(first, second), height);
+    }
+
+    bool operator==(Triangle triangle)
+    {
+        return equal(triangle);
     }
 
     double height()
@@ -472,10 +516,38 @@ public:
         return first.distance(second) + second.distance(third) + third.distance(first);
     }
 
+    bool equal(Triangle triangle)
+    {
+        for (auto point : {
+                    first, second, third
+                }) {
+            if (!point.equal(triangle.first) &&
+                    !point.equal(triangle.second) &&
+                    !point.equal(triangle.third)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Returns the rounded current coordinates.
+    Triangle round()
+    {
+        return Triangle(first.round(), second.round(), third.round());
+    }
+
+    // Return the length of each side
+    std::array<double, 3> lengthOfSides()
+    {
+        return {{first.distance(second), second.distance(third), third.distance(first)}};
+    }
+
     // Returns the current vertices.
     std::vector<Point> points()
     {
         update();
+
         return vertices;
     }
 };
@@ -486,13 +558,25 @@ class Rectangle {
     // Store the last configuration.
     std::vector<Point> vertices;
 
+    void update()
+    {
+        vertices = {first, second, third, fourth};
+    }
+
 public:
 
     Point first, second, third, fourth;
 
     Rectangle() {};
+
+    // Rectangle: Points (x1,y1),(x2,y2),(x3,y3),(x4,y4)
+    Rectangle(Point first, Point second, Point third, Point fourth)
+        : first(first), second(second), third(third), fourth(fourth) {};
+
     ~Rectangle() {};
 
+    // Rectangle: Points (x1,y1),(x2,y2),(x3,y3),(x4,y4)
+    // Returns vertices.
     std::vector<Point> setup(Point first, Point second, Point third, Point fourth)
     {
         this->first = first;
@@ -503,41 +587,110 @@ public:
         return points();
     }
 
-    std::vector<Point> setup(Point first, double width, double heigth)
+    // Rectangle : Point (x,y), width and heigth.
+    // Returns vertices.
+    std::vector<Point> setup(Point origin, double width, double heigth)
     {
-        return setup(first,
-                     first + Point(width, 0),
-                     first + Point(width, heigth),
-                     first + Point(0, heigth));
+        return setup(origin,
+                     origin + Point(width, 0),
+                     origin + Point(width, heigth),
+                     origin + Point(0, heigth));
+    }
+
+    bool operator==(Rectangle rectangle)
+    {
+        return equal(rectangle);
     }
 
     double area()
     {
-        // TO DO
-        return -1;
+        return smalltoolbox::triangleArea(first.X.value, first.Y.value,
+                                          second.X.value, second.Y.value,
+                                          third.X.value, third.Y.value)
+               +
+               smalltoolbox::triangleArea(first.X.value, first.Y.value,
+                                          third.X.value, third.Y.value,
+                                          fourth.X.value, fourth.Y.value);
+    }
+
+    double perimeter()
+    {
+        return first.distance(second) + second.distance(third) +
+               third.distance(fourth) + fourth.distance(first);
+    }
+
+    bool equal(Rectangle rectangle)
+    {
+        for (auto point : {
+                    first, second, third
+                }) {
+            if (!point.equal(rectangle.first) &&
+                    !point.equal(rectangle.second) &&
+                    !point.equal(rectangle.third) &&
+                    !point.equal(rectangle.fourth)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Returns the rounded current coordinates.
+    Rectangle round()
+    {
+        return Rectangle(first.round(), second.round(),
+                         third.round(), fourth.round());
+    }
+
+    // Return the length of each side
+    std::array<double, 4> lengthOfSides()
+    {
+        return {{
+                first.distance(second), second.distance(third),
+                third.distance(fourth), fourth.distance(first)
+            }, };
     }
 
     // Returns the current vertices.
     std::vector<Point> points()
     {
-        return {first, second, third, fourth};
+        update();
+
+        return vertices;
     }
 };
 
 class Polygon {
 
     // Store the last configuration.
+    std::vector<Point> vertices;
+
+    void update()
+    {
+        // TO DO
+        setup(center, horizontalRadius, angle, sides);;
+    }
+
+public:
+
     Point center;
     double angle;
     double horizontalRadius;
     double verticalRadius;
     unsigned sides;
 
-    std::vector<Point> vertices;
-
-public:
-
     Polygon() {};
+
+    // Center : polygon center point (x,y),
+    // horizontalRadius : distance from the center on X axis (>= 1),
+    // verticalRadius   : distance from the center on Y axis (>= 1),
+    // angle  : starting point angle,
+    // sides  : divisions of a circle (>= 3).
+    Polygon(Point center, double radius, double angle, unsigned sides)
+    {
+        setup(center, radius, angle, sides);
+    }
+
     ~Polygon() {};
 
     // Center : polygon center point (x,y),
@@ -545,20 +698,22 @@ public:
     // verticalRadius   : distance from the center on Y axis (>= 1),
     // angle  : starting point angle,
     // sides  : divisions of a circle (>= 3).
+    // Returns vertices.
     std::vector<Point> setup(Point center, double radius, double angle, unsigned sides)
     {
-        // Check
-        sides = sides > 360 ? 360 : sides;
-        if (radius < 1 || sides < 3) {
-            return {};
-        }
-
         // Update
         this->center = center;
         this->angle = angle;
         this->horizontalRadius = radius;
         this->verticalRadius = radius;
         this->sides = sides;
+
+        // Check
+        sides = sides > 360 ? 360 : sides;
+        if (radius < 1 || sides < 3) {
+            vertices.clear();
+            return vertices;
+        }
 
         vertices.clear();
         for (unsigned a = angle; a < 360 + angle; a += (360 / sides)) {
@@ -569,10 +724,34 @@ public:
         return vertices;
     }
 
-    // Returns the current vertices.
-    std::vector<Point> points()
+    bool operator==(Polygon polygon)
     {
-        return vertices;
+        // TO DO
+        return false;
+    }
+
+    double area()
+    {
+        // TO DO
+        return -1;
+    }
+
+    double perimeter()
+    {
+        // TO DO
+        return -1;
+    }
+
+    bool equal(Polygon polygo)
+    {
+        // TO DO
+        return false;
+    }
+
+    Polygon round()
+    {
+        // TO DO
+        return {};
     }
 
     double sideLength()
@@ -584,6 +763,14 @@ public:
     {
         // TO DO
         return -1;
+    }
+
+    // Returns the current vertices.
+    std::vector<Point> points()
+    {
+        update();
+
+        return vertices;
     }
 
 };
@@ -833,11 +1020,16 @@ void view(Point point)
     std::cout << "(" << point.toStr() << ")" << '\n';
 }
 
-void view(std::array<double, 2> arr)
+template<std::size_t SIZE>
+void view(std::array<double, SIZE> arr)
 {
-    std::cout << "x: " << std::to_string(arr[0]) << '\n'
-              << "y: " << std::to_string(arr[1]) << '\n';
+    unsigned i = 0;
+    for (const auto &value : arr) {
+        std::cout << "[" << i << "]: " << smalltoolbox::round(value) << '\n';
+        i++;
+    }
 }
+
 void view(std::vector<Point> points)
 {
     std::string str{};
