@@ -1,11 +1,13 @@
 #ifndef _SMALLTOOLBOX_H_
 #define _SMALLTOOLBOX_H_
 
+#include <algorithm>
 #include <array>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <math.h>
 #include <random>
 #include <string>
@@ -123,8 +125,8 @@ bool lineIntersect(double x0, double y0, double x1, double y1,
     double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
     if (d == 0) {   // Two lines are parallel or coincident ...
         xy = {std::numeric_limits<double>::max(),
-              std::numeric_limits<double>::max()
-             };
+            std::numeric_limits<double>::max()
+        };
         return false;
     }
 
@@ -138,6 +140,18 @@ bool lineIntersect(double x0, double y0, double x1, double y1,
 
     // Lines do not intersect
     return false;
+}
+
+// Sort numbers
+std::vector<double> sort(std::vector<double> numbers, bool ascendingOrder = true)
+{
+    if (ascendingOrder) {
+        std::sort(numbers.begin(), numbers.end(), std::less<double>());
+    } else {
+        std::sort(numbers.begin(), numbers.end(), std::greater<double>());
+    }
+
+    return numbers;
 }
 
 // (x,y)
@@ -279,10 +293,10 @@ public:
     }
 
     // Returns the rounded current coordinates.
-    Point round()
+    Point round(unsigned digits = 2)
     {
-        return Point(smalltoolbox::round(X.value),
-                     smalltoolbox::round(Y.value));
+        return Point(smalltoolbox::round(X.value, digits),
+                     smalltoolbox::round(Y.value, digits));
     }
 
     // Returns Array[2] with X and Y values.
@@ -300,6 +314,117 @@ public:
 
 // Special point.
 const Point Origin = Point(0, 0);
+
+// Compare groups
+template<typename T>
+bool equal(std::vector<T> group1, std::vector<T> group2, bool compareOrder = false)
+{
+    if (group1.size() != group2.size()) {
+        return false;
+    }
+
+    if (compareOrder) {
+        for(unsigned i = 0; i < group1.size(); i++) {
+            if (!(group1[i] == group2[i])) {
+                return false;
+            }
+        }
+    }
+
+    for(auto v1 : group1) {
+        bool differentFromEveryone = true;
+        for(auto v2 : group2) {
+            if (v1 == v2) {
+                differentFromEveryone = false;
+                break;
+            }
+        }
+        if (differentFromEveryone) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Triangle area using points.
+double triangleArea(Point p1, Point p2, Point p3)
+{
+    return smalltoolbox::triangleArea(p1.X.value, p1.Y.value,
+                                      p2.X.value, p2.Y.value,
+                                      p3.X.value, p3.Y.value);
+}
+
+// Triangle height using points.
+double triangleHeight(Point p1, Point p2, Point p3)
+{
+    return smalltoolbox::triangleHeight(p1.X.value, p1.Y.value,
+                                        p2.X.value, p2.Y.value,
+                                        p3.X.value, p3.Y.value);
+}
+
+// Round values
+std::vector<double> round(std::vector<double> values, unsigned digits = 2)
+{
+    for(unsigned i = 0; i < values.size(); i++)
+    {
+        values[i] = smalltoolbox::round(values[i], digits);
+    }
+
+    return values;
+}
+
+// Round points
+std::vector<Point> round(std::vector<Point> points, unsigned digits = 2)
+{
+    for(unsigned i = 0; i < points.size(); i++) {
+        points[i] = points[i].round(digits);
+    }
+
+    return points;
+}
+
+// Sum all the distances, point by point.
+double sumDistances(std::vector<Point> points)
+{
+    if (points.empty()) {
+        return 0;
+    }
+
+    if (points.size() == 1)
+    {
+        return 0;
+    }
+
+    if (points.size() == 2)
+    {
+        return points.front().distance(points.back());
+    }
+
+    double sum = 0;
+    for (unsigned i = 1; i < points.size(); i++) {
+        sum += points[i].distance(points[i - 1]);
+    }
+
+    return sum;
+}
+
+// Sort points
+std::vector<Point> sort(std::vector<Point> points)
+{
+    std::map<double, std::vector<double> > mapPoint;
+
+    for(auto p : points) {
+        if (mapPoint.find(1) == mapPoint.end()) {
+            mapPoint.insert({p.X.value, {p.Y.value}});
+        } else {
+            mapPoint[p.X.value].push_back(p.Y.value);
+        }
+    }
+
+    // TO DO
+    return {};
+}
 
 // (x1,y1)(x2,y2)
 class Line {
@@ -389,10 +514,10 @@ public:
     {
         std::array<double, 2> xy;
         auto result = smalltoolbox::lineIntersect(first.X.value, first.Y.value,
-                      second.X.value, second.Y.value,
-                      line.first.X.value, line.first.Y.value,
-                      line.second.X.value, line.second.Y.value,
-                      xy);
+                                                  second.X.value, second.Y.value,
+                                                  line.first.X.value, line.first.Y.value,
+                                                  line.second.X.value, line.second.Y.value,
+                                                  xy);
         point.X.value = xy[0];
         point.Y.value = xy[1];
 
@@ -404,8 +529,8 @@ public:
     {
         // Dummy triangle area.
         double area = smalltoolbox::triangleArea(first.X.value, first.Y.value,
-                      second.X.value, second.Y.value,
-                      point.X.value, point.Y.value);
+                                                 second.X.value, second.Y.value,
+                                                 point.X.value, point.Y.value);
         // Pythagorean theorem : a^2 + b^2 = c^2
         double c = first.distance(point);               // hypotenuse
         double b = 2 * area / first.distance(second);   // area = base * height / 2
@@ -418,19 +543,13 @@ public:
     // Line 1 == Line 2
     bool equal(Line line)
     {
-        if (!first.equal(line.first) && !first.equal(line.second)) {
-            return false;
-        }
-        if (!second.equal(line.first) && !second.equal(line.second)) {
-            return false;
-        }
-        return true;
+        return smalltoolbox::equal(points(), line.points());
     }
 
     // Returns the rounded current coordinates.
-    Line round()
+    Line round(unsigned digits = 2)
     {
-        return Line(first.round(), second.round());
+        return Line(first.round(digits), second.round(digits));
     }
 
     // Returns the current vertices.
@@ -499,16 +618,12 @@ public:
 
     double height()
     {
-        return smalltoolbox::triangleHeight(first.X.value, first.Y.value,
-                                            second.X.value, second.Y.value,
-                                            third.X.value, third.Y.value);
+        return smalltoolbox::triangleHeight(first, second, third);
     }
 
     double area()
     {
-        return smalltoolbox::triangleArea(first.X.value, first.Y.value,
-                                          second.X.value, second.Y.value,
-                                          third.X.value, third.Y.value);
+        return smalltoolbox::triangleArea(first, second, third);
     }
 
     double perimeter()
@@ -518,23 +633,13 @@ public:
 
     bool equal(Triangle triangle)
     {
-        for (auto point : {
-                    first, second, third
-                }) {
-            if (!point.equal(triangle.first) &&
-                    !point.equal(triangle.second) &&
-                    !point.equal(triangle.third)) {
-                return false;
-            }
-        }
-
-        return true;
+        return smalltoolbox::equal(points(), triangle.points());
     }
 
     // Returns the rounded current coordinates.
-    Triangle round()
+    Triangle round(unsigned digits = 2)
     {
-        return Triangle(first.round(), second.round(), third.round());
+        return Triangle(first.round(digits), second.round(digits), third.round(digits));
     }
 
     // Return the length of each side
@@ -621,34 +726,23 @@ public:
 
     bool equal(Rectangle rectangle)
     {
-        for (auto point : {
-                    first, second, third
-                }) {
-            if (!point.equal(rectangle.first) &&
-                    !point.equal(rectangle.second) &&
-                    !point.equal(rectangle.third) &&
-                    !point.equal(rectangle.fourth)) {
-                return false;
-            }
-        }
-
-        return true;
+        return smalltoolbox::equal(points(), rectangle.points());
     }
 
     // Returns the rounded current coordinates.
-    Rectangle round()
+    Rectangle round(unsigned digits = 2)
     {
-        return Rectangle(first.round(), second.round(),
-                         third.round(), fourth.round());
+        return Rectangle(first.round(digits), second.round(digits),
+                         third.round(digits), fourth.round(digits));
     }
 
     // Return the length of each side
     std::array<double, 4> lengthOfSides()
     {
         return {{
-                first.distance(second), second.distance(third),
-                third.distance(fourth), fourth.distance(first)
-            }, };
+            first.distance(second), second.distance(third),
+            third.distance(fourth), fourth.distance(first)
+        }};
     }
 
     // Returns the current vertices.
@@ -665,10 +759,18 @@ class Polygon {
     // Store the last configuration.
     std::vector<Point> vertices;
 
+    Point last_center;
+    double last_angle;
+    double last_horizontalRadius;
+    double last_verticalRadius;
+    unsigned last_sides;
+
     void update()
     {
-        // TO DO
-        setup(center, horizontalRadius, angle, sides);;
+        // If there has been modification in the parameters.
+        if (state()) {
+            setup(center, horizontalRadius, verticalRadius, angle, sides);
+        }
     }
 
 public:
@@ -679,16 +781,36 @@ public:
     double verticalRadius;
     unsigned sides;
 
+    // Returns true if data changes.
+    bool state()
+    {
+        return !(center == last_center &&
+                 angle == last_angle &&
+                 horizontalRadius == last_horizontalRadius &&
+                 verticalRadius == last_verticalRadius &&
+                 sides == last_sides);
+    }
+
     Polygon() {};
+
+    // Center : polygon center point (x,y),
+    // radius : distance from the center (>= 1),
+    // angle  : starting point angle,
+    // sides  : divisions of a circle (>= 3).
+    Polygon(Point center, double radius, double angle, unsigned sides)
+    {
+        setup(center, radius, radius, angle, sides);
+    }
 
     // Center : polygon center point (x,y),
     // horizontalRadius : distance from the center on X axis (>= 1),
     // verticalRadius   : distance from the center on Y axis (>= 1),
     // angle  : starting point angle,
     // sides  : divisions of a circle (>= 3).
-    Polygon(Point center, double radius, double angle, unsigned sides)
+    Polygon(Point center, double horizontalRadius, double verticalRadius, double angle,
+            unsigned sides)
     {
-        setup(center, radius, angle, sides);
+        setup(center, horizontalRadius, verticalRadius, angle, sides);
     }
 
     ~Polygon() {};
@@ -699,70 +821,91 @@ public:
     // angle  : starting point angle,
     // sides  : divisions of a circle (>= 3).
     // Returns vertices.
-    std::vector<Point> setup(Point center, double radius, double angle, unsigned sides)
+    std::vector<Point> setup(Point center, double horizontalRadius, double verticalRadius,
+                             double angle, unsigned sides)
     {
         // Update
         this->center = center;
         this->angle = angle;
-        this->horizontalRadius = radius;
-        this->verticalRadius = radius;
+        this->horizontalRadius = horizontalRadius;
+        this->verticalRadius = verticalRadius;
         this->sides = sides;
+
+        last_center = center;
+        last_angle = angle;
+        last_horizontalRadius = horizontalRadius;
+        last_verticalRadius = verticalRadius;
+        last_sides = sides;
 
         // Check
         sides = sides > 360 ? 360 : sides;
-        if (radius < 1 || sides < 3) {
+        if (horizontalRadius < 1 || verticalRadius < 1 || sides < 3) {
             vertices.clear();
             return vertices;
         }
 
         vertices.clear();
         for (unsigned a = angle; a < 360 + angle; a += (360 / sides)) {
-            vertices.push_back(Point(smalltoolbox::cos(center.X.value, radius, a),
-                                     smalltoolbox::sin(center.Y.value, radius, a)));
+            vertices.push_back(Point(smalltoolbox::cos(center.X.value, horizontalRadius, a),
+                                     smalltoolbox::sin(center.Y.value, verticalRadius, a)));
         }
 
         return vertices;
     }
 
-    bool operator==(Polygon polygon)
+    // Center : polygon center point (x,y),
+    // radius : distance from the center (>= 1),
+    // angle  : starting point angle,
+    // sides  : divisions of a circle (>= 3).
+    std::vector<Point> setup(Point center, double radius, double angle, unsigned sides)
     {
-        // TO DO
-        return false;
+        return setup(center, radius, radius, angle, sides);
     }
 
+    bool operator==(Polygon polygon)
+    {
+        return equal(polygon);
+    }
+
+    // Calculates the area by triangular subdivisions.
     double area()
     {
-        // TO DO
-        return -1;
+        update();
+        double area = 0;
+        if (vertices.size() > 2) {
+            for (unsigned i = 1; i < vertices.size(); i++) {
+                area += smalltoolbox::triangleArea(center, vertices[i], vertices[i - 1]);
+            }
+            area += smalltoolbox::triangleArea(center, vertices.back(), vertices.front());
+        }
+        return area;
     }
 
     double perimeter()
     {
-        // TO DO
-        return -1;
+        update();
+        double perimeter = smalltoolbox::sumDistances(vertices);
+        perimeter += vertices.back().distance(vertices.front());
+
+        return perimeter;
     }
 
-    bool equal(Polygon polygo)
+    bool equal(Polygon polygon)
     {
-        // TO DO
-        return false;
+        return smalltoolbox::equal(points(), polygon.points());
     }
 
-    Polygon round()
+    Polygon round(unsigned digits = 2)
     {
-        // TO DO
-        return {};
+        Polygon polygon(center, horizontalRadius, verticalRadius, angle, sides);
+        polygon.vertices = smalltoolbox::round(vertices, digits);
+
+        return polygon;
     }
 
     double sideLength()
     {
         return vertices.size() < 2 ? 0 : vertices[0].distance(vertices[1]);
-    }
-
-    double diagonalLength()
-    {
-        // TO DO
-        return -1;
     }
 
     // Returns the current vertices.
@@ -773,6 +916,83 @@ public:
         return vertices;
     }
 
+};
+
+class IrregularPolygon {
+
+    // Store the last configuration.
+    std::vector<Point> vertices;
+
+    void update()
+    {
+        setup(vertices);
+    }
+
+public:
+
+    IrregularPolygon() {};
+
+    IrregularPolygon(std::vector<Point> points)
+    {
+        setup(points);
+    }
+
+    ~IrregularPolygon() {};
+
+    std::vector<Point> setup(std::vector<Point> points)
+    {
+        if (points.size() < 3) {
+            vertices.clear();
+            return vertices;
+        }
+
+        // TO DO
+        vertices = points;
+
+        return vertices;
+    }
+
+    bool operator==(IrregularPolygon polygon)
+    {
+        return equal(polygon);
+    }
+
+    // Calculates the area by triangular subdivisions.
+    double area()
+    {
+        // TO DO
+        return -1;
+    }
+
+    double perimeter()
+    {
+        update();
+        double perimeter = smalltoolbox::sumDistances(vertices);
+        perimeter += vertices.back().distance(vertices.front());
+
+        return perimeter;
+    }
+
+    bool equal(IrregularPolygon polygon)
+    {
+        return smalltoolbox::equal(points(), polygon.points());
+    }
+
+    IrregularPolygon round(unsigned digits = 2)
+    {
+        IrregularPolygon polygon(vertices);
+        polygon.vertices = smalltoolbox::round(vertices, digits);
+
+        return polygon;
+    }
+
+    // Returns the current vertices.
+    std::vector<Point> points()
+    {
+        update();
+
+        return vertices;
+    }
 };
 
 // SVG
@@ -799,24 +1019,24 @@ public:
 
         Shape()
             : name("Shape"), fill(WHITE), stroke(BLACK), strokeWidth(1.0),
-              fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
+            fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
 
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-              fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
+            fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               std::vector<Point> points)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-              fillOpacity(255.0), strokeOpacity(255.0), points(points) {}
+            fillOpacity(255.0), strokeOpacity(255.0), points(points) {}
 
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-              fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points({}) {}
+            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points({}) {}
         Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity, std::vector<Point> points)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-              fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points(points) {}
+            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points(points) {}
     };
 
     static const std::string INT2HEX(unsigned value)
@@ -1035,6 +1255,21 @@ void view(std::vector<Point> points)
     std::string str{};
     for (unsigned i = 0; i < points.size(); i++) {
         str += "(" + points[i].toStr() + ")" + (i < points.size() - 1 ? "," : "");
+    }
+
+    if (str.empty()) {
+        std::cout << "Empty\n";
+    }
+    else {
+        std::cout << str << '\n';
+    }
+}
+
+void view(std::vector<double> values)
+{
+    std::string str{};
+    for (unsigned i = 0; i < values.size(); i++) {
+        str += std::to_string(values[i]) + (i < values.size() - 1 ? "," : "");
     }
 
     if (str.empty()) {
