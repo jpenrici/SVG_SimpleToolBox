@@ -71,11 +71,11 @@ void basic()
     assert(smalltoolbox::triangleArea(0, 0, 5, 0, 0, 10) == 25.0);    // Triangle
     assert(smalltoolbox::triangleHeight(0, 0, 5, 0, 0, 10) == 10.0);  // Triangle
 
-    std::array<double, 2> xy;
-    assert(!lineIntersect(1, 2, 5, 5, 2, 1, 6, 4, xy));     // Parallel
-    assert(!lineIntersect(0, 0, 5, 5, 1, 1, 4, 4, xy));     // Coincident
-    assert(lineIntersect(1, 1, -1, -1, 2, -2, -2, 2, xy));  // Intersection at Origin
-    assert(lineIntersect(2, 2, 2, 10, 0, 4, 10, 4, xy));    // Intersection at (2,4)
+    double x, y;
+    assert(!lineIntersect(1, 2, 5, 5, 2, 1, 6, 4, x, y));     // Parallel
+    assert(!lineIntersect(0, 0, 5, 5, 1, 1, 4, 4, x, y));     // Coincident
+    assert(lineIntersect(1, 1, -1, -1, 2, -2, -2, 2, x, y));  // Intersection at Origin
+    assert(lineIntersect(2, 2, 2, 10, 0, 4, 10, 4, x, y));    // Intersection at (2,4)
 
     std::vector<double> numbers {10, -1, 2};
     std::vector<double> expected {-1, 2, 10};
@@ -184,6 +184,8 @@ void point()
     assert(smalltoolbox::angle(Origin, Point(1, 1), Point(-1, -1)) == 180);
     assert(smalltoolbox::angle(Origin, Point(1, 1), Point( 0, -1)) == 180 + 45);
     assert(smalltoolbox::angle(Origin, Point(1, 1), Point( 1, -1)) == 270);
+    assert(smalltoolbox::angle(Origin, Point(1, 0), Point( 0, 1)) == 90);
+    assert(smalltoolbox::angle(Origin, Point(1, 0), Point(0, 1), true) == -90);
     assert(smalltoolbox::angle(Origin, Origin, Origin) == 0);
     assert(smalltoolbox::angle(Origin, Origin, Point(1, 1)) == 45);
 
@@ -244,10 +246,10 @@ void line()
     assert(Line(0, 0, 1, 1).angle() != Line(1, 1, 0, 0).angle());
 
     // Intersection
-    assert(smalltoolbox::intersection(Line(0, 0, 1, 1), Line(1,0,0,1), p) == true);
+    assert(smalltoolbox::lineIntersect(Line(0, 0, 1, 1), Line(1,0,0,1), p) == true);
     assert(p == Point(0.5, 0.5));
-    assert(smalltoolbox::intersection(Line(0, 0, 1, 1), Line(0,1,1,2), p) == false);
-    assert(smalltoolbox::intersection(Line(0, 0, 1, 1), Line(1,1,0,0), p) == false);
+    assert(smalltoolbox::lineIntersect(Line(0, 0, 1, 1), Line(0,1,1,2), p) == false);
+    assert(smalltoolbox::lineIntersect(Line(0, 0, 1, 1), Line(1,1,0,0), p) == false);
 
     // Perpendicular
     assert(smalltoolbox::perpendicular(Line(-1, 0, 1, 0), Point(0.5, 2)).round() ==
@@ -405,7 +407,6 @@ void irregularPolygon()
     assert(smalltoolbox::round(polygon.area()) == 0.5);
     assert(polygon.perimeter() ==  2 + std::sqrt(2));
 
-
     polygon.setup(Triangle(Origin, Point(0,1), Point(1,1)).points());   // Triangle
     assert(polygon.isConvex());
     assert(smalltoolbox::round(polygon.area()) == 0.5);
@@ -425,8 +426,15 @@ void irregularPolygon()
     assert(IrregularPolygon({Point(1,1)}).points().empty());
     assert(IrregularPolygon(Line(Origin, Point(1,1)).points()).points().empty());
 
+    // Convex polygon
+    polygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(-1, -1),
+                                Point(1, -1), Point(2, 1)});
+    assert(polygon.isConvex());
+
     // Concave polygon
-    // TO DO
+    polygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(1, 0), Point(-1, -1),
+                                Point(1, -1), Point(2, 1)});
+    assert(!polygon.isConvex());
 
     std::cout << "Irregular Polygon test finished!\n";
 }

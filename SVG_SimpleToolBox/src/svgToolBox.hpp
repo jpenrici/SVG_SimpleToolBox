@@ -96,8 +96,7 @@ double round(double value, unsigned digits = 2)
 // Round values
 std::vector<double> round(std::vector<double> values, unsigned digits = 2)
 {
-    for(unsigned i = 0; i < values.size(); i++)
-    {
+    for(unsigned i = 0; i < values.size(); i++) {
         values[i] = smalltoolbox::round(values[i], digits);
     }
 
@@ -133,11 +132,12 @@ double triangleHeight(double x0, double y0, double x1, double y1, double x2, dou
 // Line 2 (x2, y2) - (x3, y4).
 bool lineIntersect(double x0, double y0, double x1, double y1,
                    double x2, double y2, double x3, double y3,
-                   std::array<double, 2> &xy)
+                   double& X, double& Y)
 {
     double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
     if (d == 0) {   // Two lines are parallel or coincident ...
-        xy = { CRITICALNUMBER , CRITICALNUMBER };
+        X = CRITICALNUMBER;
+        Y = CRITICALNUMBER;
         return false;
     }
 
@@ -145,7 +145,8 @@ bool lineIntersect(double x0, double y0, double x1, double y1,
     double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
 
     if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
-        xy = {(x0 + t * (x1 - x0)), (y0 + t * (y1 - y0))};
+        X = x0 + t * (x1 - x0);
+        Y = y0 + t * (y1 - y0);
         return true;
     }
 
@@ -310,10 +311,10 @@ public:
                      smalltoolbox::round(Y.value, digits));
     }
 
-    // Returns Array[2] with X and Y values.
-    std::array<double, 2> XY()
+    // Returns Vector[2] with X and Y values.
+    std::vector<double> XY()
     {
-        return {{X.value, Y.value}};
+        return {X.value, Y.value};
     }
 
     std::string toStr()
@@ -326,12 +327,16 @@ public:
 // Special point.
 const Point Origin = Point(0, 0);
 
-
 // Angle between three points.
-double angle(Point origin, Point first, Point second)
+// Sign : True, respects the order of the vectors.
+double angle(Point origin, Point first, Point second, bool signal = false)
 {
     auto angle1 = origin.angle(first);
     auto angle2 = origin.angle(second);
+
+    if (signal) {
+        return angle1 - angle2;
+    }
 
     return std::max(angle1, angle2) - std::min(angle1, angle2);
 }
@@ -406,6 +411,14 @@ double sumDistances(std::vector<Point> points)
 // Sort points by X or Y axis.
 std::vector<Point> sort(std::vector<Point> points, bool X_axis = true)
 {
+    if (points.empty()) {
+        return {};
+    }
+
+    if (points.size() == 1) {
+        return points;
+    }
+
     std::map<double, std::vector<double> > mapPoint;
 
     for(auto p : points) {
@@ -450,7 +463,7 @@ Point total(std::vector<Point> points)
 bool average(std::vector<Point> points, Point& point)
 {
     if (points.empty()) {
-        point = Point(CRITICALNUMBER, CRITICALNUMBER);
+        point = Origin;
         return false;
     }
 
@@ -466,28 +479,10 @@ std::vector<Point> organize(std::vector<Point> points)
         return points;
     }
 
-    // Map : distance x Point
+    // Map : Angle x Point
     std::map<float, std::vector<Point> > mapPoint;
 
     for(auto value : points) {
-        float key = Point(0,0).distance(value);
-        if (mapPoint.find(key) == mapPoint.end()) {
-            mapPoint.insert(std::make_pair(key, std::vector<Point>{value}));
-        } else {
-            mapPoint[key].push_back(value);
-        }
-    }
-
-    std::vector<Point> result;
-    for(auto item : mapPoint) {
-        for (auto vPoints : item.second) {
-            result.push_back(vPoints);
-        }
-    }
-
-    // Map : angle x Point
-    mapPoint.clear();
-    for(auto value : result) {
         float key = Point(0,0).angle(value);
         if (mapPoint.find(key) == mapPoint.end()) {
             mapPoint.insert(std::make_pair(key, std::vector<Point>{value}));
@@ -496,7 +491,7 @@ std::vector<Point> organize(std::vector<Point> points)
         }
     }
 
-    result.clear();
+    std::vector<Point> result;
     for(auto item : mapPoint) {
         for (auto vPoints : item.second) {
             result.push_back(vPoints);
@@ -614,9 +609,7 @@ public:
                                                   second.X.value, second.Y.value,
                                                   line.first.X.value, line.first.Y.value,
                                                   line.second.X.value, line.second.Y.value,
-                                                  xy);
-        point.X.value = xy[0];
-        point.Y.value = xy[1];
+                                                  point.X.value, point.Y.value);
 
         return result;
     }
@@ -658,8 +651,9 @@ public:
     }
 };
 
-// Returns the point of intersection between two lines.
-bool intersection(Line line1, Line line2, Point &point)
+// Calculates the point of intersection between two lines.
+// Returns false if the lines are parallel or coincident.
+bool lineIntersect(Line line1, Line line2, Point &point)
 {
     return line1.intersection(line2, point);
 }
@@ -712,18 +706,14 @@ public:
 
     ~Polygon() {};
 
-    std::vector<Point> setup(std::vector<Point> points, bool organize = false)
+    std::vector<Point> setup(std::vector<Point> points)
     {
         if (points.size() < 3) {
             vertices.clear();
             return vertices;
         }
 
-        if (organize) {
-            vertices = smalltoolbox::organize(points);
-        } else {
-            vertices = points;
-        }
+        vertices = points;
         this->first = vertices[0];
         this->second = vertices[1];
         this->third = vertices[2];
@@ -744,32 +734,41 @@ public:
 
     bool isConvex()
     {
-        double sum = 0;
-        auto points = vertices;
-        points.push_back(first);
-        points.push_back(second);
-        points.push_back(third);
-        for (unsigned i = 0; i < vertices.size(); i++) {
-            auto origin = points[i];
-            auto first = points[i + 1];
-            auto second = points[i + vertices.size() - 1];
-            int angle = int(smalltoolbox::angle(origin, first, second)) % 180;
-            sum += angle;
-            std::string srt {
-                            "[" + std::to_string(i) +     "] " + origin.toStr() + " " +
-                            "[" + std::to_string(i + 1) + "] " + first.toStr()  + " " +
-                            "[" + std::to_string(i + vertices.size() - 1) + "] " +
-                            std::to_string(angle) + " = " + std::to_string(sum)};
-            //std::cout << srt << "\n";
+        auto sides = vertices.size();
+        if (sides < 3) {
+            return false;
         }
 
-        return sum <= (180 * (vertices.size() - 2));
+        // Cross product of two vectors.
+        auto crossProduct = [](Point origin, Point first, Point second) {
+            int x1 = first.X.value  - origin.X.value;
+            int y1 = first.Y.value  - origin.Y.value;
+            int x2 = second.X.value - origin.X.value;
+            int y2 = second.Y.value - origin.Y.value;
+            return x1 * y2 - y1 * x2;
+        };
+
+        int previous = 0;
+        for(unsigned i = 0; i < sides; i++) {
+            auto product = crossProduct(vertices[i],
+                                        vertices[(i + 1) % sides],
+                                        vertices[(i + 2) % sides]);
+            if (product != 0) {
+                if (product * previous < 0) {
+                    return false;
+                } else {
+                    previous = product;
+                }
+            }
+        }
+
+        return true;
     }
 
     // Rearrange the polygon points.
-    void organize()
+    std::vector<Point> organize()
     {
-        setup(vertices, true);
+        return smalltoolbox::organize(vertices);
     }
 
     // Calculates the Area by triangular subdivisions.
@@ -788,6 +787,9 @@ public:
             for (unsigned i = 2; i < vertices.size(); ++i) {
                 area += smalltoolbox::triangleArea(vertices[0], vertices[i - 1], vertices[i]);
             }
+        } else {
+            // TO DO
+            // Concave
         }
 
         return area;
@@ -812,6 +814,27 @@ public:
         polygon.vertices = smalltoolbox::round(vertices, digits);
 
         return polygon;
+    }
+
+    // Return the length of each side
+    std::vector<double> lengthOfSides()
+    {
+        std::vector<double> sides;
+        for(unsigned i = 0; i < vertices.size(); i++) {
+            sides.push_back(vertices[i].distance(vertices[i % vertices.size()]));
+        }
+
+        return sides;
+    }
+
+    // Average length
+    double averageLength()
+    {
+        if (!vertices.empty()) {
+            return perimeter() / vertices.size();
+        }
+
+        return 0;
     }
 
     // Returns the current vertices.
@@ -871,12 +894,6 @@ public:
         return smalltoolbox::triangleHeight(first, second, third);
     }
 
-    // Return the length of each side
-    std::array<double, 3> lengthOfSides()
-    {
-        return {{first.distance(second), second.distance(third), third.distance(first)}};
-    }
-
 };
 
 // (x1,y1)(x2,y2)(x3,y3)(x4,y4)
@@ -917,15 +934,6 @@ public:
                      origin + Point(width, 0),
                      origin + Point(width, heigth),
                      origin + Point(0, heigth));
-    }
-
-    // Return the length of each side.
-    std::array<double, 4> lengthOfSides()
-    {
-        return {{
-            first.distance(second), second.distance(third),
-            third.distance(fourth), fourth.distance(first)
-        }};
     }
 
 };
