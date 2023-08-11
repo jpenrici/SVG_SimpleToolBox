@@ -383,6 +383,27 @@ std::vector<Point> round(std::vector<Point> points, unsigned digits = 2)
     return points;
 }
 
+// Returns Points updated with the sum.
+std::vector<Point> sum(std::vector<Point> group, double value)
+{
+    for(unsigned i = 0; i < group.size(); i++) {
+        group[i] += value;
+    }
+
+    return group;
+}
+
+// Returns Points updated with the sum.
+std::vector<Point> sum(std::vector<Point> group, Point point)
+{
+    for(unsigned i = 0; i < group.size(); i++) {
+        group[i] += point;
+    }
+
+    return group;
+}
+
+
 // Sum all the distances, point by point.
 double sumDistances(std::vector<Point> points)
 {
@@ -472,7 +493,7 @@ bool average(std::vector<Point> points, Point& point)
     return true;
 }
 
-// Organize points
+// Sort the Points clockwise.
 std::vector<Point> organize(std::vector<Point> points)
 {
     if (points.size() < 2) {
@@ -819,12 +840,12 @@ public:
     // Return the length of each side
     std::vector<double> lengthOfSides()
     {
-        std::vector<double> sides;
+        std::vector<double> lengths;
         for(unsigned i = 0; i < vertices.size(); i++) {
-            sides.push_back(vertices[i].distance(vertices[i % vertices.size()]));
+            lengths.push_back(vertices[i].distance(vertices[(i + 1) % vertices.size()]));
         }
 
-        return sides;
+        return lengths;
     }
 
     // Average length
@@ -861,6 +882,13 @@ public:
     {
         setup(first, second, third);
     };
+
+    // Triangle: Points (x1,y1),(x2,y2) and height
+    // Returns vertices.
+    Triangle(Point first, Point second, double height)
+    {
+        setup(Line(first, second), height);
+    }
 
     ~Triangle() {};
 

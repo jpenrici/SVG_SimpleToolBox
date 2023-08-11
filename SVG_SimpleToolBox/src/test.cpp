@@ -25,7 +25,7 @@ int main()
     rectangle();
     regularPolygons();
     irregularPolygon();
-    //svg();
+    svg();
 
     return 0;
 }
@@ -141,6 +141,11 @@ void point()
     assert(smalltoolbox::equal(std::vector<Point>{a + b, c}, std::vector<Point>{c, c}));
     assert(!smalltoolbox::equal(std::vector<Point>{a, b}, std::vector<Point>{a, c}));
 
+    // Sum
+    assert(smalltoolbox::equal(smalltoolbox::sum({Point(1, 1), Point(2, 2)}, 5),
+                               std::vector<Point>{Point(6, 6), Point(7, 7)}));
+    assert(smalltoolbox::equal(smalltoolbox::sum({Point(1, 1), Point(2, 2)}, Point(1, 2)),
+                               std::vector<Point>{Point(2, 3), Point(3, 4)}));
 
     // Sum of distances
     assert(smalltoolbox::sumDistances({Origin,
@@ -176,6 +181,10 @@ void point()
     assert(smalltoolbox::equal(smalltoolbox::organize({Point(-1, -1), Point(-1, 1),
                                                        Point( 1, -1), Point( 1, 1)}),
                                {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
+    assert(smalltoolbox::equal(smalltoolbox::organize({Point(-1, -1), Point(-1, 1),
+                                                       Point( 1, -1), Point( 1, 1)}),
+                               {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)},
+                               true));
 
     // Angle between three points
     assert(smalltoolbox::angle(Origin, Point(1, 1), Point(0, 1)) == 45);
@@ -388,6 +397,9 @@ void regularPolygons()
     // Polygon
     polygon = RegularPolygon(Origin, 1, 0, 5);
     assert(polygon.isConvex());
+    //view(polygon.averageLength());
+    //view(polygon.sideLength());
+    //view(polygon.lengthOfSides());
 
     polygon = RegularPolygon(Origin, 1, 0, 6);
     assert(polygon.isConvex());
@@ -441,13 +453,23 @@ void irregularPolygon()
 
 void svg()
 {
-    // SVG
-    view("SVG");
-    auto shape = SVG::Shape("Rectangle", RED, GREEN, 1.0,
-                            RegularPolygon().setup(Point(50, 50), 50, 45, 4));
-    auto svg = SVG::svg(100, 100, SVG::polygon(shape), SVG::Metadata());
+    Line line(Point(10, 150), Point(500, 150));
+    Triangle triangle(Point(10, 120), Point(150, 120), -100);
+    Rectangle rectangle(Point(300, 160), 150, 300);
+    Polygon polygon({Point(200, 50), Point(400, 50), Point(500, 150)});
+    RegularPolygon rpolygon(Point(200, 300), 100, 90, 6);
+    IrregularPolygon ipolygon(smalltoolbox::sum(rpolygon.points(), Point(-100, 200)));
+
+    std::vector<Polygon> shapes { triangle, rectangle, polygon, rpolygon, ipolygon };
+    std::string strShape;
+    strShape += SVG::polyline(SVG::Shape("Line", RED, GREEN, 1.0, line.points()));
+    for(auto item : shapes) {
+        strShape += SVG::polygon(SVG::Shape("Poly", RED, GREEN, 1.0, item.points()));
+    }
+
+    auto svg = SVG::svg(600, 600, strShape, SVG::Metadata());
     save(svg, "svgOutput.svg");
-    view(svg);
+    //view(svg);
 
     std::cout << "SVG test finished!\n";
 }
