@@ -1,6 +1,7 @@
 #include "svgToolBox.hpp"
 
 #include <assert.h>
+#include <chrono>
 #include <iostream>
 #include <vector>
 
@@ -24,6 +25,8 @@ using smalltoolbox::Total;
 using smalltoolbox::TriangleArea;
 using smalltoolbox::TriangleHeight;
 using smalltoolbox::Trim;
+using smalltoolbox::LTrim;
+using smalltoolbox::RTrim;
 using smalltoolbox::View;
 
 using smalltoolbox::Origin;
@@ -53,6 +56,10 @@ void svg();
 
 int main()
 {
+    std::cout << "Start tests ...\n";
+    const auto start = std::chrono::steady_clock::now();
+
+    // Sequence
     basic();
     point();
     line();
@@ -62,6 +69,11 @@ int main()
     regularPolygons();
     irregularPolygon();
     svg();
+
+    const auto end = std::chrono::steady_clock::now();
+    const std::chrono::duration<double> elapsed_seconds = end - start;
+
+    std::cout << "Finished tests.\nElapsed: " << elapsed_seconds << '\n';
 
     return 0;
 }
@@ -127,6 +139,8 @@ void basic()
     assert(Equal(Split("Hello World!", char(32)), std::vector<std::string> {"Hello", "World!"}));
     assert(Equal(Trim(std::vector<std::string> {"100", "001"}, '0'), {"1", "1"}));
     assert(Trim("0.100", '0') == ".1");
+    assert(LTrim("0001", '0') == "1");
+    assert(RTrim("1000", '0') == "1");
 
     std::cout << "Basic test finished!\n";
 }
@@ -237,6 +251,12 @@ void point()
     assert(Angle(Origin, Point(1, 0), Point(0, 1), true) == -90);
     assert(Angle(Origin, Origin, Origin)      == 0);
     assert(Angle(Origin, Origin, Point(1, 1)) == 45);
+
+    // String
+    p1.X.value = 1.101;
+    p1.Y.value = 1.202;
+    assert(p1.toStr(true) == "1.101,1.202");
+    //View(p1.toStr());
 
     std::cout << "Point test finished!\n";
 }

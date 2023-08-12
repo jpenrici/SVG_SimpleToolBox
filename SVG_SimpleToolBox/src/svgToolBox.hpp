@@ -70,6 +70,8 @@ Strings Trim(Strings vStr, const char trimmer);
 
 string Join(Strings vStr, const char delimiter);
 string Trim(string str, const char trimmer);
+string LTrim(string str, const char trimmer);
+string RTrim(string str, const char trimmer);
 
 // Point 2D (x,y)
 class Point {
@@ -220,8 +222,12 @@ public:
         return {X.value, Y.value};
     }
 
-    string toStr()
+    string toStr(bool trimmed = false)
     {
+        if (trimmed) {
+            return RTrim(X.toStr(), '0') + "," + RTrim(Y.toStr(), '0');
+        }
+
         return X.toStr() + "," + Y.toStr();
     }
 
@@ -947,7 +953,7 @@ public:
             values += shape.points[i].toStr() + " ";
         }
 
-        check(shape, "polyline");
+        check(shape, shape.name);
         string opacity = std::to_string(shape.fillOpacity);
         string strokeOpacity = std::to_string(shape.strokeOpacity);
         string strokeWidth = std::to_string(shape.strokeWidth);
@@ -976,7 +982,7 @@ public:
         }
         values += shape.points[shape.points.size() - 1].toStr();
 
-        check(shape, "polygon");
+        check(shape, shape.name);
         string opacity = std::to_string(shape.fillOpacity);
         string strokeOpacity = std::to_string(shape.strokeOpacity);
         string strokeWidth = std::to_string(shape.strokeWidth);
@@ -1471,8 +1477,8 @@ string Join(Strings vStr, const char delimiter)
     return result;
 }
 
-// Trim string.
-string Trim(string str, const char trimmer)
+// Trim string : Remove characters to the left.
+string LTrim(string str, const char trimmer)
 {
     int left = 0;
     int right = str.size() - 1;
@@ -1483,6 +1489,16 @@ string Trim(string str, const char trimmer)
         }
         left++;
     }
+
+    return str.substr(left, 1 + right - left);
+}
+
+// Trim string : Remove characters to the right.
+string RTrim(string str, const char trimmer)
+{
+    int left = 0;
+    int right = str.size() - 1;
+    right = right < 0 ? 0 : right;
     while (right >= 0) {
         if (str[right] != trimmer) {
             break;
@@ -1491,6 +1507,12 @@ string Trim(string str, const char trimmer)
     }
 
     return str.substr(left, 1 + right - left);
+
+}
+
+string Trim(string str, const char trimmer)
+{
+    return RTrim(LTrim(str, trimmer), trimmer);
 }
 
 // Trim strings.
