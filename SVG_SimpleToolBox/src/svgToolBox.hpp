@@ -28,6 +28,7 @@ class Circle;
 class Ellipse;
 class RegularPolygon;
 class IrregularPolygon;
+
 class SVG;
 
 typedef std::vector<Point> Points;
@@ -1464,6 +1465,16 @@ Points Organize(Points points)
     }
 
     return result;
+}
+
+// Shape
+SVG::Shape Shape(Base base, std::string label)
+{
+    SVG::Shape shape;
+    shape.name = label;
+    shape.points = base.points();
+
+    return shape;
 }
 
 // Join strings.
