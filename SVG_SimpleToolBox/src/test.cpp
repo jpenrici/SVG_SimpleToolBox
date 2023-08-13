@@ -41,6 +41,8 @@ using smalltoolbox::Base;
 using smalltoolbox::IrregularPolygon;
 using smalltoolbox::RegularPolygon;
 
+using smalltoolbox::Color;
+using smalltoolbox::SVG;
 using smalltoolbox::Sketch;
 
 // Tests
@@ -525,6 +527,37 @@ void irregularPolygon()
 
 void svg()
 {
+    assert(!Color::RGBA(1, 0, 1, 0).equal(Color::RGBA(0, 1, 0, 1)));
+
+    //View(Color::RGBA(255, 255, 0, 0).toStr());
+    //View(Color::RGBA(255, 255, 0, 0).toStr(false));
+    //View(Color::RGBA(std::vector<int>{1}).toStr(true));
+    //View(Color::RGBA(std::vector<int>{1, 2}).toStr(true));
+    //View(Color::RGBA(std::vector<int>{1, 2, 3}).toStr(true));
+    //View(Color::RGBA(std::vector<int>{1, 2, 3, 4}).toStr(true));
+    //View(Color::RGBA(std::vector<int>{-1, -2, -3, -4}).toStr(true));
+
+    assert(SVG::INT2HEX(0) == "00");
+    assert(SVG::INT2HEX(10) == "0A");
+    assert(SVG::INT2HEX(255) == "FF");
+
+    assert(SVG::HEX2INT("#")   ==   0);
+    assert(SVG::HEX2INT("##")  ==   0);
+    assert(SVG::HEX2INT("#0#") ==   0);
+    assert(SVG::HEX2INT("#0")  ==   0);
+    assert(SVG::HEX2INT("0A")  ==  10);
+    assert(SVG::HEX2INT("ff")  == 255);
+    assert(SVG::HEX2INT("FF")  == 255);
+
+    assert(SVG::HEX2RGB("#").empty());
+    assert(SVG::HEX2RGB("#1234567").empty());
+    assert(Equal(SVG::HEX2RGB("#0102"), {1, 2}));
+    assert(Equal(SVG::HEX2RGB("#01020304"), {1, 2, 3, 4}));
+    assert(Equal(SVG::HEX2RGB("#7F7F7F"), {127, 127, 127}));        // RGB
+    assert(Equal(SVG::HEX2RGB("#7F7F7FFF"), {127, 127, 127, 255})); // RGBA
+    //View(SVG::HEX2RGB("#7F7F7FFF"));
+    //View(Color::RGBA(SVG::HEX2RGB("#7F7F7FFF")).toStr());
+
     std::vector<Base> shapes {
         Line(Point(10, 150), Point(500, 150)),
         Triangle(Point(10, 120), Point(150, 120), -100),
@@ -537,7 +570,7 @@ void svg()
     };
 
     auto svg = Sketch::svg(600, 600, Sketch::Join(shapes), Sketch::Metadata());
-    Save(svg, "svgOutput.svg");
+    //Save(svg, "svgOutput.svg");
     //View(svg);
 
     std::cout << "SVG test finished!\n";

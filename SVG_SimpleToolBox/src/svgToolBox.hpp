@@ -25,6 +25,7 @@ namespace smalltoolbox {
 #define CRITICALNUMBER std::numeric_limits<double>::max()
 
 using std::string;
+using std::vector;
 
 class Point;
 class Base;
@@ -54,7 +55,8 @@ Numbers Sort(Numbers numbers, bool ascendingOrder = true);
 bool Average(Points points, Point &point);
 bool LineIntersect(Line line1, Line line2, Point &point);
 bool LineIntersect(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double &X, double &Y);
-template<typename T> bool Equal(std::vector<T> group1, std::vector<T> group2, bool compareOrder = false);
+bool Save(const string &text, string path = "");
+template<typename T> bool Equal(vector<T> group1, vector<T> group2, bool compareOrder = false);
 
 double Angle(Point origin, Point first, Point second, bool signal = false);
 double Angle(double radians);
@@ -73,10 +75,18 @@ double TriangleHeight(double x0, double y0, double x1, double y1, double x2, dou
 Strings Split(string str, const char delimiter);
 Strings Trim(Strings vStr, const char trimmer);
 
+string Load(string path, string filenameExtension = "");
 string Join(Strings vStr, const char delimiter);
-string Trim(string str, const char trimmer);
 string LTrim(string str, const char trimmer);
 string RTrim(string str, const char trimmer);
+string Trim(string str, const char trimmer);
+
+void View(Point point);
+void View(Points points);
+void View(double value);
+void View(string str);
+template<std::size_t SIZE> void View(std::array<double, SIZE> arr);
+template<typename T> void View(vector<T> values);
 
 // Point 2D (x,y)
 class Point {
@@ -932,6 +942,54 @@ public:
         return result;
     }
 
+    // Converts hexadecimal value to decimal
+    static const int HEX2INT(string value)
+    {
+        if (value.starts_with('#')) {
+            value = value.substr(1);
+        }
+
+        if (value.empty()) {
+            return 0;
+        }
+
+        unsigned result = 0;
+        try {
+            result = std::stoul(value, nullptr, 16);
+        } catch (...) {
+            // pass
+        }
+
+        return result;
+    }
+
+    // Return vector unsigned {Red, Green, Blue, Alpha}
+    static const vector<unsigned> HEX2RGB(string value)
+    {
+        if (value.starts_with('#')) {
+            value = value.substr(1);
+        }
+
+        if (value.empty()) {
+            return {};
+        }
+
+        if (value.size() > 8) {
+            value = value.substr(0, 8);
+        }
+
+        vector<unsigned> result;
+        if (value.size() % 2 == 0) {
+            while (!value.empty()) {
+                string num = value.substr(0, 2);
+                value = value.substr(2);
+                result.push_back(HEX2INT(num));
+            }
+        }
+
+        return result;
+    }
+
     // Formats values (Red, Green, Blue) to "#RRGGBB" hexadecimal.
     static const string RGB2HEX(unsigned R, unsigned G, unsigned B)
     {
@@ -1123,11 +1181,30 @@ public:
         RGBA() {};
 
         RGBA(int r, int g, int b, int a)
+            : RGBA(vector<int>{r, g, b, a}) {}
+
+        RGBA(vector<int> rgba)
         {
-            R = r < 0 ? 0 : r % 256;
-            G = g < 0 ? 0 : g % 256;
-            B = b < 0 ? 0 : b % 256;
-            A = a < 0 ? 0 : a % 256;
+            R = 0; G = 0; B = 0; A = 0;
+
+            switch (rgba.size()) {
+            case 4:
+                A = rgba[3];
+            case 3:
+                B = rgba[2];
+            case 2:
+                G = rgba[1];
+            case 1:
+                R = rgba[0];
+                break;
+            default:
+                break;
+            }
+
+            R = R < 0 ? 0 : R % 256;
+            G = G < 0 ? 0 : G % 256;
+            B = B < 0 ? 0 : B % 256;
+            A = A < 0 ? 0 : A % 256;
         }
 
         bool operator==(RGBA rgba)
@@ -1148,10 +1225,8 @@ public:
         std::string toStr(bool alpha = true)
         {
             return {
-                std::to_string(R) + "," +
-                std::to_string(G) + "," +
-                std::to_string(B) + "," +
-                (alpha ? std::to_string(A) : "")
+                std::to_string(R) + "," + std::to_string(G) + "," +
+                std::to_string(B) + (alpha ? "," + std::to_string(A) : "")
             };
         }
     };
@@ -1209,7 +1284,7 @@ public:
     }
 
     // Returns SVG Elements.
-    static const string Join(std::vector<Base> bases, string label = "")
+    static const string Join(vector<Base> bases, string label = "")
     {
         std::string strShape{};
         for (auto item : bases) {
@@ -1419,7 +1494,7 @@ Line Perpendicular(Line line, Point point)
 
 // Compare groups.
 template<typename T>
-bool Equal(std::vector<T> group1, std::vector<T> group2, bool compareOrder)
+bool Equal(vector<T> group1, vector<T> group2, bool compareOrder)
 {
     if (group1.size() != group2.size()) {
         return false;
@@ -1724,7 +1799,8 @@ void View(Points points)
 }
 
 // Std::cout : Vector of double.
-void View(Numbers values)
+template<typename T>
+void View(vector<T> values)
 {
     string str{};
     for (unsigned i = 0; i < values.size(); i++) {
@@ -1746,7 +1822,7 @@ void View(string str)
 }
 
 // Load text file.
-string Load(string path, string filenameExtension = "")
+string Load(string path, string filenameExtension)
 {
     if (path.empty()) {
         return {};
@@ -1790,7 +1866,7 @@ string Load(string path, string filenameExtension = "")
 }
 
 // Save text file.
-bool Save(const string &text, string path = "")
+bool Save(const string &text, string path)
 {
     if (text.empty()) {
         std::cerr << "Empty text! Export failed!\n";
