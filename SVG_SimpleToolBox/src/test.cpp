@@ -525,24 +525,18 @@ void irregularPolygon()
 
 void svg()
 {
-    Line line(Point(10, 150), Point(500, 150));
-    Triangle triangle(Point(10, 120), Point(150, 120), -100);
-    Rectangle rectangle(Point(300, 160), 150, 300);
-    Circle circle(Point(250, 80), 50);
-    Ellipse ellipse(Point(400, 80), 80, 50);
-    RegularPolygon rpolygon(Point(200, 300), 100, 90, 6);
-    IrregularPolygon ipolygon(Sum(rpolygon.points(), Point(-100, 200)));
-
     std::vector<Base> shapes {
-        line, triangle, rectangle, circle, ellipse, rpolygon, ipolygon
+        Line(Point(10, 150), Point(500, 150)),
+        Triangle(Point(10, 120), Point(150, 120), -100),
+        Rectangle(Point(300, 160), 150, 300),
+        Circle(Point(250, 80), 50),
+        Ellipse(Point(400, 80), 80, 50),
+        RegularPolygon(Point(200, 300), 100, 90, 6),
+        IrregularPolygon(Sum(Polygon(Point(200, 300), 100, 90, 6).points(),
+                             Point(-100, 200)))
     };
 
-    std::string strShape{};
-    for (auto item : shapes) {
-        strShape += Sketch::SvgPolygon(item, "ShapeTest");
-    }
-
-    auto svg = Sketch::svg(600, 600, strShape, Sketch::Metadata());
+    auto svg = Sketch::svg(600, 600, Sketch::Join(shapes), Sketch::Metadata());
     Save(svg, "svgOutput.svg");
     //View(svg);
 

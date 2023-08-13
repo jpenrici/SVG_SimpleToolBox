@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -396,7 +397,7 @@ public:
         return polygon;
     }
 
-    // Return the length of each side
+    // Return the length of each side.
     Numbers lengthOfSides()
     {
         if (vertices.size() < 2) {
@@ -415,7 +416,7 @@ public:
         return lengths;
     }
 
-    // Average length
+    // Average length.
     double averageLength()
     {
         if (!vertices.empty()) {
@@ -557,7 +558,7 @@ public:
         setup(first, second, third);
     };
 
-    // Triangle: Points (x1,y1),(x2,y2) and height
+    // Triangle: Points (x1,y1),(x2,y2) and height.
     // Returns vertices.
     Triangle(Point first, Point second, double height)
     {
@@ -575,7 +576,7 @@ public:
         return points();
     }
 
-    // Triangle: Line and height
+    // Triangle: Line and height.
     // Returns vertices.
     Points setup(Line side, double height)
     {
@@ -584,7 +585,7 @@ public:
                      Point(side.middle()).position(90 + side.angle(), height));
     }
 
-    // Triangle: Points (x1,y1),(x2,y2) and height
+    // Triangle: Points (x1,y1),(x2,y2) and height.
     // Returns vertices.
     Points setup(Point first, Point second, double height)
     {
@@ -708,7 +709,7 @@ public:
     Points setup(Point center, double horizontalRadius, double verticalRadius,
                  double angle, unsigned sides)
     {
-        // Update
+        // Update.
         this->center = center;
         this->angle = angle;
         this->horizontalRadius = horizontalRadius;
@@ -721,7 +722,7 @@ public:
         last_verticalRadius = verticalRadius;
         last_sides = sides;
 
-        // Check
+        // Check.
         sides = sides > 360 ? 360 : sides;
         if (horizontalRadius < 1 || verticalRadius < 1 || sides < 3) {
             return Base::setup({});
@@ -1208,10 +1209,14 @@ public:
     }
 
     // Returns SVG Elements.
-    static const string Join(std::vector<Base> bases)
+    static const string Join(std::vector<Base> bases, string label = "")
     {
-        // TO DO
-        return "";
+        std::string strShape{};
+        for (auto item : bases) {
+            strShape += Sketch::SvgPolygon(item, label);
+        }
+
+        return strShape;
     }
 
 };
@@ -1332,7 +1337,7 @@ Points Round(Points points, int decimalPlaces)
     return points;
 }
 
-// Triangle area
+// Triangle area.
 double TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2)
 {
     // Heron's formula
@@ -1352,7 +1357,7 @@ double TriangleArea(Point p1, Point p2, Point p3)
                         p3.X.value, p3.Y.value);
 }
 
-// Triangle height
+// Triangle height.
 double TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2)
 {
     auto area = TriangleArea(x0, y0, x1, y1, x2, y2);
@@ -1395,7 +1400,7 @@ bool LineIntersect(double x0, double y0, double x1, double y1,
         return true;
     }
 
-    // Lines do not intersect
+    // Lines do not intersect.
     return false;
 }
 
@@ -1412,7 +1417,7 @@ Line Perpendicular(Line line, Point point)
     return line.perpendicular(point);
 }
 
-// Compare groups
+// Compare groups.
 template<typename T>
 bool Equal(std::vector<T> group1, std::vector<T> group2, bool compareOrder)
 {
@@ -1487,7 +1492,7 @@ double SumDistances(Points points)
     return sum;
 }
 
-// Sum : Point (Total X axis, Total Y axis)
+// Sum : Point (Total X axis, Total Y axis).
 Point Total(Points points)
 {
     Point sum;
@@ -1498,7 +1503,7 @@ Point Total(Points points)
     return sum;
 }
 
-// Average : Point (Total X axis / Points, Total Y axis / Points)
+// Average : Point (Total X axis / Points, Total Y axis / Points).
 bool Average(Points points, Point &point)
 {
     if (points.empty()) {
@@ -1511,7 +1516,7 @@ bool Average(Points points, Point &point)
     return true;
 }
 
-// Sort numbers
+// Sort numbers.
 Numbers Sort(Numbers numbers, bool ascendingOrder)
 {
     if (ascendingOrder) {
@@ -1573,7 +1578,7 @@ Points Organize(Points points)
         return points;
     }
 
-    // Map : Angle x Point
+    // Map : Angle x Point.
     std::map<float, Points > mapPoint;
 
     for (auto value : points) {
@@ -1640,6 +1645,7 @@ string RTrim(string str, const char trimmer)
 
 }
 
+// Trim string.
 string Trim(string str, const char trimmer)
 {
     return RTrim(LTrim(str, trimmer), trimmer);
@@ -1678,16 +1684,19 @@ Strings Split(string str, const char delimiter)
 
 // Input/Output
 
+// Std::cout : double.
 void View(double value)
 {
     std::cout << std::to_string(value) << '\n';
 }
 
+// Std::cout : Point(x,y).
 void View(Point point)
 {
     std::cout << "(" << point.toStr() << ")" << '\n';
 }
 
+// Std::cout : Array of double.
 template<std::size_t SIZE>
 void View(std::array<double, SIZE> arr)
 {
@@ -1698,6 +1707,7 @@ void View(std::array<double, SIZE> arr)
     }
 }
 
+// Std::cout : Vector of Point(x,y).
 void View(Points points)
 {
     string str{};
@@ -1713,6 +1723,7 @@ void View(Points points)
     }
 }
 
+// Std::cout : Vector of double.
 void View(Numbers values)
 {
     string str{};
@@ -1728,15 +1739,36 @@ void View(Numbers values)
     }
 }
 
+// Std::cout : string.
 void View(string str)
 {
     std::cout << str << '\n';
 }
 
-string Load(string path)
+// Load text file.
+string Load(string path, string filenameExtension = "")
 {
     if (path.empty()) {
         return {};
+    }
+
+    // Check extension.
+    if (!filenameExtension.empty()) {
+        const std::filesystem::path p(path);
+        if (!std::filesystem::exists(p)) {
+            std::cerr << "File not found!\n";
+            return {};
+        }
+
+        std::string extension{p.extension()};
+        std::transform(extension.begin(), extension.end(),
+                       extension.begin(), ::toupper);
+        std::transform(filenameExtension.begin(), filenameExtension.end(),
+                       filenameExtension.begin(), ::toupper);
+        if (!extension.ends_with(filenameExtension)) {
+            std::cerr << "Invalid file!\n";
+            return {};
+        }
     }
 
     string str{};
@@ -1757,6 +1789,7 @@ string Load(string path)
     return str;
 }
 
+// Save text file.
 bool Save(const string &text, string path = "")
 {
     if (text.empty()) {
