@@ -41,8 +41,7 @@ using smalltoolbox::Base;
 using smalltoolbox::IrregularPolygon;
 using smalltoolbox::RegularPolygon;
 
-using smalltoolbox::SVG;
-using smalltoolbox::Shape;
+using smalltoolbox::Sketch;
 
 // Tests
 void basic();
@@ -540,10 +539,10 @@ void svg()
 
     std::string strShape{};
     for (auto item : shapes) {
-        strShape += SVG::polygon(Shape(item, "ShapeTest"));
+        strShape += Sketch::SvgPolygon(item, "ShapeTest");
     }
 
-    auto svg = SVG::svg(600, 600, strShape, SVG::Metadata());
+    auto svg = Sketch::svg(600, 600, strShape, Sketch::Metadata());
     Save(svg, "svgOutput.svg");
     //View(svg);
 

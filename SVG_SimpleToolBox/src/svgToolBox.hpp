@@ -13,9 +13,15 @@
 #include <string>
 #include <vector>
 
-#define CRITICALNUMBER std::numeric_limits<double>::max()
-
 namespace smalltoolbox {
+
+#define Numbers std::vector<double>
+#define Point2D smalltoolbox::Point
+#define Points  std::vector<smalltoolbox::Point>
+#define Polygon smalltoolbox::RegularPolygon
+#define Strings std::vector<std::string>
+
+#define CRITICALNUMBER std::numeric_limits<double>::max()
 
 using std::string;
 
@@ -30,10 +36,7 @@ class RegularPolygon;
 class IrregularPolygon;
 
 class SVG;
-
-typedef std::vector<Point> Points;
-typedef std::vector<double> Numbers;
-typedef std::vector<std::string> Strings;
+class Sketch;
 
 Point Total(Points points);
 Points Organize(Points points);
@@ -852,12 +855,17 @@ class SVG {
 
 public:
 
-    static constexpr const char *WHITE = "#FFFFFF";
-    static constexpr const char *BLACK = "#000000";
-    static constexpr const char *RED   = "#FF0000";
-    static constexpr const char *GREEN = "#00FF00";
-    static constexpr const char *BLUE  = "#0000FF";
+    static constexpr const char* WHITE = "#FFFFFF";
+    static constexpr const char* BLACK = "#000000";
+    static constexpr const char* RED   = "#FF0000";
+    static constexpr const char* GREEN = "#00FF00";
+    static constexpr const char* BLUE  = "#0000FF";
 
+    // Metadata setup.
+    // creator             : string with the name of the creator or developer,
+    // title               : string with title,
+    // publisherAgentTitle : string with the name of the publisher,
+    // date                : string with creation date, if empty use current date.
     struct Metadata {
         string creator = "SVG created automatically by algorithm in C++.";
         string title = "SVG";
@@ -869,6 +877,14 @@ public:
             : creator(creator), title(title), publisherAgentTitle(publisher) {}
     };
 
+    // Drawing setup.
+    // name          : ID used in SVG element,
+    // fill          : fill color in hexadecimal string format (#FFFFFF),
+    // stroke        : stroke color in hexadecimal string format (#FFFFFF),
+    // strokeWidth   : line width,
+    // fillOpacity   : fill opacity or alpha value from 0 to 255.
+    // strokeOpacity : stroke opacity or alpha value from 0 to 255.
+    // points        : Points vector (x,y).
     struct Shape {
         string name, fill, stroke;
         double strokeWidth;
@@ -897,6 +913,7 @@ public:
             fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points(points) {}
     };
 
+    // Converts decimal value to hexadecimal.
     static const string INT2HEX(unsigned value)
     {
         string digits = "0123456789ABCDEF";
@@ -914,16 +931,19 @@ public:
         return result;
     }
 
+    // Formats values (Red, Green, Blue) to "#RRGGBB" hexadecimal.
     static const string RGB2HEX(unsigned R, unsigned G, unsigned B)
     {
         return "#" + INT2HEX(R) + INT2HEX(G) + INT2HEX(B);
     }
 
+    // Formats values (Red, Green, Blue, Alpha) to "#RRGGBBAA" hexadecimal.
     static const string RGBA2HEX(unsigned R, unsigned G, unsigned B, unsigned A)
     {
         return RGB2HEX(R, G, B) + INT2HEX(A);
     }
 
+    // Returns SVG: <g> Elements </g>
     static const string group(string id, string elements)
     {
         id = id.empty() ? "<g>\n" : "<g id=\"" + id + "\" >\n";
@@ -932,6 +952,7 @@ public:
 
 private:
 
+    // Validates and formats entries.
     static const void check(Shape &shape, string name)
     {
         shape.name = name.empty() ? "Shape" : name;
@@ -942,6 +963,7 @@ private:
 
 public:
 
+    // Returns SVG: <polyline ... />
     static const string polyline(Shape shape)
     {
 
@@ -971,6 +993,7 @@ public:
         };
     }
 
+    // Returns SVG: <path ... />
     static const string polygon(Shape shape)
     {
         if (shape.points.empty()) {
@@ -1000,6 +1023,7 @@ public:
         };
     }
 
+    // Returns full SVG.
     static const string svg(int width, int height, const string &xml,
                             Metadata metadata)
     {
@@ -1085,6 +1109,111 @@ public:
             "</svg>"
         };
     }
+};
+
+// Color
+class Color {
+
+public:
+
+    struct RGBA {
+        int R{0}, G{0}, B{0}, A{0};
+
+        RGBA() {};
+
+        RGBA(int r, int g, int b, int a)
+        {
+            R = r < 0 ? 0 : r % 256;
+            G = g < 0 ? 0 : g % 256;
+            B = b < 0 ? 0 : b % 256;
+            A = a < 0 ? 0 : a % 256;
+        }
+
+        bool operator==(RGBA rgba)
+        {
+            return equal(rgba);
+        }
+
+        bool empty()
+        {
+            return R == 0 && G == 0 && B == 0 && A == 0;
+        }
+
+        bool equal(RGBA rgba)
+        {
+            return R == rgba.R && G == rgba.G && B == rgba.B && A == rgba.A;
+        }
+
+        std::string toStr(bool alpha = true)
+        {
+            return {
+                std::to_string(R) + "," +
+                std::to_string(G) + "," +
+                std::to_string(B) + "," +
+                (alpha ? std::to_string(A) : "")
+            };
+        }
+    };
+
+};
+
+// Sketch
+// Organizes SVG development.
+class Sketch : public SVG, public Color {
+
+public:
+
+    // Returns basic SVG::Shape with Polygon base.
+    static const SVG::Shape Shape(Base base, std::string label)
+    {
+        SVG::Shape shape;
+        shape.name = label;
+        shape.points = base.points();
+
+        return shape;
+    }
+
+    // Returns SVG::polyline with Polygon base.
+    static const string SvgPolyline(Base base,std::string label)
+    {
+
+        return SVG::polygon(Shape(base, label));
+    }
+
+    // Returns SVG::polyline with Polygon base.
+    static const string SvgPolyline(Base base,std::string label, RGBA fill, RGBA stroke)
+    {
+
+        return SVG::polyline(SVG::Shape(label,
+                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                        1.0, base.points()));
+    }
+
+    // Returns SVG::polygon with Polygon base.
+    static const string SvgPolygon(Base base,std::string label)
+    {
+
+        return SVG::polygon(Shape(base, label));
+    }
+
+    // Returns SVG::polygon with Polygon base.
+    static const string SvgPolygon(Base base,std::string label, RGBA fill, RGBA stroke)
+    {
+
+        return SVG::polygon(SVG::Shape(label,
+                                       SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                       SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                       1.0, base.points()));
+    }
+
+    // Returns SVG Elements.
+    static const string Join(std::vector<Base> bases)
+    {
+        // TO DO
+        return "";
+    }
+
 };
 
 // Generic
@@ -1467,16 +1596,6 @@ Points Organize(Points points)
     return result;
 }
 
-// Shape
-SVG::Shape Shape(Base base, std::string label)
-{
-    SVG::Shape shape;
-    shape.name = label;
-    shape.points = base.points();
-
-    return shape;
-}
-
 // Join strings.
 string Join(Strings vStr, const char delimiter)
 {
@@ -1664,11 +1783,5 @@ bool Save(const string &text, string path = "")
 }
 
 } // namespace
-
-typedef std::vector<smalltoolbox::Point> Points;
-typedef std::vector<double> Numbers;
-
-typedef smalltoolbox::Point Point2D;
-typedef smalltoolbox::RegularPolygon Polygon;
 
 #endif // _SMALLTOOLBOX_H_
