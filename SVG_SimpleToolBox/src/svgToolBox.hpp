@@ -39,6 +39,7 @@ class IrregularPolygon;
 
 class SVG;
 class Sketch;
+class Interpreter;
 
 Point Total(Points points);
 Points Organize(Points points);
@@ -76,15 +77,19 @@ Strings Split(string str, const char delimiter);
 Strings Trim(Strings vStr, const char trimmer);
 
 string Load(string path, string filenameExtension = "");
-string Join(Strings vStr, const char delimiter);
+
+string Replace(string str, char character, string replace);
+string Replace(string str, char character, char replace);
 string LTrim(string str, const char trimmer);
 string RTrim(string str, const char trimmer);
 string Trim(string str, const char trimmer);
+string Join(Strings vStr, const char delimiter);
 
 void View(Point point);
 void View(Points points);
 void View(double value);
 void View(string str);
+void View(Strings values);
 template<std::size_t SIZE> void View(std::array<double, SIZE> arr);
 template<typename T> void View(vector<T> values);
 
@@ -1296,6 +1301,185 @@ public:
 
 };
 
+// Interpreter
+// Conversion of text into commands for SVG construction.
+class Interpreter {
+
+    enum elementType {
+        EMPTY, POINT, LINE, TRIANGLE, RECTANGLE, CIRCLE, ELLIPSE, POLYGON, BASE
+    };
+
+    Strings labelType {
+        "EMPTY", "POINT", "LINE", "TRIANGLE", "RECTANGLE",
+        "CIRCLE", "ELLIPSE", "POLYGON", "BASE"
+    };
+
+    const string ERROR   = "\tERROR";
+    const string WARNING = "\tWARNING";
+    const char SPACE = char(32);
+
+public:
+
+    Interpreter(){};
+    ~Interpreter(){};
+
+    string svg (string line)
+    {
+        if (line.empty()) {
+            return {};
+        }
+
+        Points points;
+        double angle;
+        double sides;
+        double width, height;
+        double horizontalRadius;
+        double verticalRadius;
+        string label;
+
+        string result{};
+        string bkp = line;
+
+        line = Trim(line, SPACE); // Remove spaces from the ends.
+        std::transform(line.begin(), line.end(), line.begin(), ::toupper); // Format.
+
+        // Check command.
+        string command{};
+        int element = EMPTY;
+        for (unsigned i = 1; i < labelType.size(); i++) {
+            command = labelType[i] + ":";   // Syntax.
+            if (line.starts_with(command)) {
+                element = i;
+                break;
+            }
+        }
+
+        if (element < POINT || element > POLYGON) {
+            return bkp + WARNING + "[Ignore]";
+        }
+        line = line.substr(command.size());
+
+        // Check format.
+        auto counter = std::count_if(line.begin(), line.end(),
+                                     [](char c){ return c == '{'; });
+        if (counter > 1) {
+            return bkp + ERROR + "[Curly braces]\n";
+        }
+
+        counter -= std::count_if(line.begin(), line.end(),
+                                 [](char c){ return c == '}'; });
+        if (counter != 0) {
+            return bkp + ERROR + "[Curly braces]\n";
+        }
+
+        counter = std::count_if(line.begin(), line.end(),
+                                [](char c){ return c == '('; }) -
+                  std::count_if(line.begin(), line.end(),
+                                [](char c){ return c == ')'; });
+        if (counter != 0) {
+            return bkp + ERROR + "[Parentheses]\n";
+        }
+
+        // Check content between braces.
+        // Expected: {(x0,y1)(xN,yN)}
+        points.clear();
+        line = Trim(line, SPACE);
+        if (line.starts_with('{')) {
+            line = LTrim(line, '{');
+            auto arg = Split(line, '}');
+            arg[0] = Replace(arg[0], '(', " (");
+            for (auto str : Split(arg[0], SPACE)) {
+                str = Trim(str, SPACE);
+                if (str.starts_with('(')) {
+                    str = Trim(Trim(str, '('), ')');
+                    try {
+                        // Convert to Point.
+                        auto values = Split(str, ',');
+                        if (values.size() == 2) {
+                            points.push_back(Point(std::stod(values[0]),
+                                                   std::stod(values[1])));
+                        }
+                    } catch (...) {
+                        return bkp + ERROR + "[Invalid numeric formatting!]\n";
+                    }
+                }
+            }
+        }
+
+        // Check other arguments.
+        for (auto str : Split(line, SPACE)) {
+            if (str.starts_with("ANGLE=")) {
+                try {
+                    angle = std::stod(str.substr(6));
+                } catch (...) {
+                    // pass
+                }
+            }
+            if (str.starts_with("SIDES=")) {
+                try {
+                    sides = std::stod(str.substr(6));
+                } catch (...) {
+                    // pass
+                }
+            }
+            if (str.starts_with("WIDTH=")) {
+                try {
+                    width = std::stod(str.substr(6));
+                } catch (...) {
+                    // pass
+                }
+            }
+            if (str.starts_with("HEIGHT=")) {
+                try {
+                    height = std::stod(str.substr(7));
+                } catch (...) {
+                    // pass
+                }
+            }
+            if (str.starts_with("HRADIUS=")) {
+                try {
+                    horizontalRadius = std::stod(str.substr(8));
+                } catch (...) {
+                    // pass
+                }
+            }
+            if (str.starts_with("VRADIUS=")) {
+                try {
+                    verticalRadius = std::stod(str.substr(8));
+                } catch (...) {
+                    // pass
+                }
+            }
+            if (str.starts_with("LABEL=")) {
+                try {
+                    label = std::stod(str.substr(8));
+                } catch (...) {
+                    // pass
+                }
+            }
+        }
+
+        // TO DO
+
+        label = label.empty() ? labelType[RECTANGLE] : label;
+        switch (element) {
+        case RECTANGLE:
+            if (points.size() == 1) {
+                result = Sketch::SvgPolygon(Rectangle(points.front(), width, height), label);
+            } else if (points.size() == 4) {
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+            }
+            break;
+        default:
+            result = {};
+            break;
+        }
+
+        return result;
+    }
+
+};
+
 // Generic
 
 double Radians(double angle)
@@ -1736,6 +1920,23 @@ Strings Trim(Strings vStr, const char trimmer)
     return vStr;
 }
 
+// Replace all occurrences.
+string Replace(string str, char character, string replace)
+{
+    string result{};
+    for (unsigned i = 0; i < str.size(); ++i) {
+        result += (str[i] == character ? replace : string{str[i]});
+    }
+
+    return result;
+}
+
+// Replace all occurrences.
+string Replace(string str, char character, char replace)
+{
+    return Replace(str, character, string{replace});
+}
+
 // Split string.
 Strings Split(string str, const char delimiter)
 {
@@ -1798,7 +1999,7 @@ void View(Points points)
     }
 }
 
-// Std::cout : Vector of double.
+// Std::cout : Vector of numbers.
 template<typename T>
 void View(vector<T> values)
 {
@@ -1815,11 +2016,30 @@ void View(vector<T> values)
     }
 }
 
+// Std::cout : Vector of strings.
+void View(Strings values)
+{
+    string str{};
+    for (unsigned i = 0; i < values.size(); i++) {
+        str += values[i] + (i < values.size() - 1 ? "," : "");
+    }
+
+    if (str.empty()) {
+        std::cout << "Empty\n";
+    }
+    else {
+        std::cout << str << '\n';
+    }
+}
+
 // Std::cout : string.
 void View(string str)
 {
     std::cout << str << '\n';
 }
+
+// Std::cout : Vector of strings.
+
 
 // Load text file.
 string Load(string path, string filenameExtension)

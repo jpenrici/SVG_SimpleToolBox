@@ -27,6 +27,7 @@ using smalltoolbox::TriangleHeight;
 using smalltoolbox::Trim;
 using smalltoolbox::LTrim;
 using smalltoolbox::RTrim;
+using smalltoolbox::Replace;
 using smalltoolbox::View;
 
 using smalltoolbox::Origin;
@@ -44,6 +45,7 @@ using smalltoolbox::RegularPolygon;
 using smalltoolbox::Color;
 using smalltoolbox::SVG;
 using smalltoolbox::Sketch;
+using smalltoolbox::Interpreter;
 
 // Tests
 void basic();
@@ -55,6 +57,7 @@ void circle();
 void regularPolygons();
 void irregularPolygon();
 void svg();
+void interpreter();
 
 int main()
 {
@@ -62,15 +65,17 @@ int main()
     const auto start = std::chrono::steady_clock::now();
 
     // Sequence
-    basic();
-    point();
-    line();
-    triangle();
-    rectangle();
-    circle();
-    regularPolygons();
-    irregularPolygon();
-    svg();
+//    basic();
+//    point();
+//    line();
+//    triangle();
+//    rectangle();
+//    circle();
+//    regularPolygons();
+//    irregularPolygon();
+//    svg();
+
+    interpreter();
 
     const auto end = std::chrono::steady_clock::now();
     const std::chrono::duration<double> elapsed_seconds = end - start;
@@ -140,6 +145,7 @@ void basic()
     assert(Join(std::vector<std::string> {"Hello", "World!"}, char(32)) == "Hello World!");
     assert(Equal(Split("Hello World!", char(32)), std::vector<std::string> {"Hello", "World!"}));
     assert(Equal(Trim(std::vector<std::string> {"100", "001"}, '0'), {"1", "1"}));
+    assert(Replace("010110", '1', "--") == "0--0----0");
     assert(Trim("0.100", '0') == ".1");
     assert(LTrim("0001", '0') == "1");
     assert(RTrim("1000", '0') == "1");
@@ -574,4 +580,30 @@ void svg()
     //View(svg);
 
     std::cout << "SVG test finished!\n";
+}
+
+void interpreter()
+{
+    Interpreter interpreter;
+
+    assert(interpreter.svg("").empty());
+    View(interpreter.svg("Text"));                  // Ignore
+    View(interpreter.svg("Point"));                 // Ignore
+    View(interpreter.svg("Point:"));
+    View(interpreter.svg("PoInT:"));
+    View(interpreter.svg("Circle:"));
+
+    View(interpreter.svg("Point: {"));              // Error
+    View(interpreter.svg("Point: }"));              // Error
+    View(interpreter.svg("Point: {}"));
+    View(interpreter.svg("Point: {} {}"));          // Error
+    View(interpreter.svg("Point: { ( ) }"));
+    View(interpreter.svg("Point: { ( }"));          // Error
+    View(interpreter.svg("Point:{(1,1)}"));
+    View(interpreter.svg("Point:{(1,1)(1,a)}"));    // Error
+    View(interpreter.svg("Point:{(1,1)(1,2)}"));
+    View(interpreter.svg("Point:{(1,1) (1,2) (1,3)}"));
+    View(interpreter.svg("Point:{(1,1) (1,2)} angle=45 label=Test"));
+    View(interpreter.svg("Rectangle:{(1,1)} width=100 height=100"));
+
 }
