@@ -586,24 +586,38 @@ void interpreter()
 {
     Interpreter interpreter;
 
-    assert(interpreter.svg("").empty());
-    View(interpreter.svg("Text"));                  // Ignore
-    View(interpreter.svg("Point"));                 // Ignore
-    View(interpreter.svg("Point:"));
-    View(interpreter.svg("PoInT:"));
-    View(interpreter.svg("Circle:"));
+    std::vector<std::string> commands {
+        "",
+        "Text",                    // Ignore
+        "Point",                   // Ignore
+        "Points:",
+        "PoInTs:",
+        "Circle:",
+        "Points: {",               // Error
+        "Points: }",               // Error
+        "Points: {}",
+        "Points: {} {}",           // Error
+        "Points: { ( ) }",
+        "Points: { ( }",           // Error
+        "Points:{(1,1)}",
+        "Points:{(1,1)(1,a)}",     // Error
+        "Points:{(1,1)(1,2)}",
+        "Points:{(1,1) (1,2) (1,3)}",
+        "Points:{(1,1) (1,2)} angle=45 label=Test",
+        "Line:{(0,0) (5,5)}",
+        "Line:{(0,0)} angle=90 length=20",
+        "Rectangle:{(1,1)} width=100 height=100"
+    };
 
-    View(interpreter.svg("Point: {"));              // Error
-    View(interpreter.svg("Point: }"));              // Error
-    View(interpreter.svg("Point: {}"));
-    View(interpreter.svg("Point: {} {}"));          // Error
-    View(interpreter.svg("Point: { ( ) }"));
-    View(interpreter.svg("Point: { ( }"));          // Error
-    View(interpreter.svg("Point:{(1,1)}"));
-    View(interpreter.svg("Point:{(1,1)(1,a)}"));    // Error
-    View(interpreter.svg("Point:{(1,1)(1,2)}"));
-    View(interpreter.svg("Point:{(1,1) (1,2) (1,3)}"));
-    View(interpreter.svg("Point:{(1,1) (1,2)} angle=45 label=Test"));
-    View(interpreter.svg("Rectangle:{(1,1)} width=100 height=100"));
+    std::string error;
+    for(auto command : commands) {
+        auto result = interpreter.svg(command, error);
+        if (!result.empty()) {
+            View(command);
+            View(result);
+        } else {
+            View(error);
+        }
+    }
 
 }

@@ -1306,24 +1306,24 @@ public:
 class Interpreter {
 
     enum elementType {
-        EMPTY, POINT, LINE, TRIANGLE, RECTANGLE, CIRCLE, ELLIPSE, POLYGON, BASE
+        EMPTY, POINTS, LINE, TRIANGLE, RECTANGLE, CIRCLE, ELLIPSE, POLYGON, BASE
     };
 
     Strings labelType {
-        "EMPTY", "POINT", "LINE", "TRIANGLE", "RECTANGLE",
+        "EMPTY", "POINTS", "LINE", "TRIANGLE", "RECTANGLE",
         "CIRCLE", "ELLIPSE", "POLYGON", "BASE"
     };
 
+    const char SPACE = char(32);
     const string ERROR   = "\tERROR";
     const string WARNING = "\tWARNING";
-    const char SPACE = char(32);
 
 public:
 
     Interpreter(){};
     ~Interpreter(){};
 
-    string svg (string line)
+    string svg (string line, string& error)
     {
         if (line.empty()) {
             return {};
@@ -1332,7 +1332,7 @@ public:
         Points points;
         double angle;
         double sides;
-        double width, height;
+        double width, height, length;
         double horizontalRadius;
         double verticalRadius;
         string label;
@@ -1354,8 +1354,9 @@ public:
             }
         }
 
-        if (element < POINT || element > POLYGON) {
-            return bkp + WARNING + "[Ignore]";
+        if (element < POINTS || element > POLYGON) {
+            error = bkp + WARNING + "[Ignore]";
+            return result;
         }
         line = line.substr(command.size());
 
@@ -1363,13 +1364,15 @@ public:
         auto counter = std::count_if(line.begin(), line.end(),
                                      [](char c){ return c == '{'; });
         if (counter > 1) {
-            return bkp + ERROR + "[Curly braces]\n";
+            error = bkp + ERROR + "[Curly braces]\n";
+            return result;
         }
 
         counter -= std::count_if(line.begin(), line.end(),
                                  [](char c){ return c == '}'; });
         if (counter != 0) {
-            return bkp + ERROR + "[Curly braces]\n";
+            error = bkp + ERROR + "[Curly braces]\n";
+            return result;
         }
 
         counter = std::count_if(line.begin(), line.end(),
@@ -1377,7 +1380,8 @@ public:
                   std::count_if(line.begin(), line.end(),
                                 [](char c){ return c == ')'; });
         if (counter != 0) {
-            return bkp + ERROR + "[Parentheses]\n";
+            error = bkp + ERROR + "[Parentheses]\n";
+            return result;
         }
 
         // Check content between braces.
@@ -1400,7 +1404,8 @@ public:
                                                    std::stod(values[1])));
                         }
                     } catch (...) {
-                        return bkp + ERROR + "[Invalid numeric formatting!]\n";
+                        error = bkp + ERROR + "[Invalid numeric formatting!]\n";
+                        return result;
                     }
                 }
             }
@@ -1408,51 +1413,46 @@ public:
 
         // Check other arguments.
         for (auto str : Split(line, SPACE)) {
-            if (str.starts_with("ANGLE=")) {
-                try {
-                    angle = std::stod(str.substr(6));
-                } catch (...) {
-                    // pass
-                }
-            }
-            if (str.starts_with("SIDES=")) {
-                try {
-                    sides = std::stod(str.substr(6));
-                } catch (...) {
-                    // pass
-                }
-            }
-            if (str.starts_with("WIDTH=")) {
-                try {
-                    width = std::stod(str.substr(6));
-                } catch (...) {
-                    // pass
-                }
-            }
-            if (str.starts_with("HEIGHT=")) {
-                try {
-                    height = std::stod(str.substr(7));
-                } catch (...) {
-                    // pass
-                }
-            }
-            if (str.starts_with("HRADIUS=")) {
-                try {
-                    horizontalRadius = std::stod(str.substr(8));
-                } catch (...) {
-                    // pass
-                }
-            }
-            if (str.starts_with("VRADIUS=")) {
-                try {
-                    verticalRadius = std::stod(str.substr(8));
-                } catch (...) {
-                    // pass
+            vector<string> complements {
+                "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "HRADIUS", "VRADIUS"
+            };
+            for (unsigned i = 0; i < complements.size(); i++) {
+                if (str.starts_with(complements[i])) {
+                    try {
+                        auto value = std::stod(str.substr(complements[i].size()));
+                        switch (i) {
+                        case 0:
+                            angle = value;
+                            break;
+                        case 1:
+                            sides = value;
+                            break;
+                        case 2:
+                            width = value;
+                            break;
+                        case 3:
+                            height = value;
+                            break;
+                        case 4:
+                            length = value;
+                            break;
+                        case 5:
+                            horizontalRadius = value;
+                            break;
+                        case 6:
+                            verticalRadius = value;
+                            break;
+                        default:
+                            break;
+                        }
+                    } catch (...) {
+                        // pass
+                    }
                 }
             }
             if (str.starts_with("LABEL=")) {
                 try {
-                    label = std::stod(str.substr(8));
+                    label = str.substr(6);
                 } catch (...) {
                     // pass
                 }
@@ -1461,8 +1461,26 @@ public:
 
         // TO DO
 
-        label = label.empty() ? labelType[RECTANGLE] : label;
+        label = label.empty() ? labelType[element] : label;
         switch (element) {
+        case POINTS:
+            if (points.size() > 1) {
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+            }
+            break;
+        case LINE:
+            if (points.size() == 1) {
+                result = Sketch::SvgPolygon(Line(points.front(), angle, length), label);
+            }
+            if (points.size() == 2) {
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+            }
+            break;
+        case TRIANGLE:
+            if (points.size() == 3) {
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+            }
+            break;
         case RECTANGLE:
             if (points.size() == 1) {
                 result = Sketch::SvgPolygon(Rectangle(points.front(), width, height), label);
@@ -1471,6 +1489,7 @@ public:
             }
             break;
         default:
+            error = bkp + WARNING + "[Incomplete or wrong syntax!]";
             result = {};
             break;
         }
@@ -2037,9 +2056,6 @@ void View(string str)
 {
     std::cout << str << '\n';
 }
-
-// Std::cout : Vector of strings.
-
 
 // Load text file.
 string Load(string path, string filenameExtension)
