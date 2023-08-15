@@ -58,6 +58,7 @@ void regularPolygons();
 void irregularPolygon();
 void svg();
 void interpreter();
+void loadTxt();
 
 int main()
 {
@@ -65,17 +66,17 @@ int main()
     const auto start = std::chrono::steady_clock::now();
 
     // Sequence
-//    basic();
-//    point();
-//    line();
-//    triangle();
-//    rectangle();
-//    circle();
-//    regularPolygons();
-//    irregularPolygon();
-//    svg();
-
-    interpreter();
+    //basic();
+    //point();
+    //line();
+    //triangle();
+    //rectangle();
+    //circle();
+    //regularPolygons();
+    //irregularPolygon();
+    //svg();
+    //interpreter();
+    loadTxt();
 
     const auto end = std::chrono::steady_clock::now();
     const std::chrono::duration<double> elapsed_seconds = end - start;
@@ -587,25 +588,27 @@ void interpreter()
     Interpreter interpreter;
 
     std::vector<std::string> commands {
-        "",
-        "Text",                    // Ignore
-        "Point",                   // Ignore
-        "Points:",
-        "PoInTs:",
-        "Circle:",
-        "Points: {",               // Error
-        "Points: }",               // Error
-        "Points: {}",
-        "Points: {} {}",           // Error
-        "Points: { ( ) }",
-        "Points: { ( }",           // Error
-        "Points:{(1,1)}",
-        "Points:{(1,1)(1,a)}",     // Error
+        "",                     // Empty
+        "Text",                 // Ignore : Invalid command!
+        "Point",                // Ignore : Invalid command!
+        "Points:",              // Ignore : Incomplete!
+        "PoInTs:",              // Ignore : Incomplete!
+        "Circle:",              // Ignore : Incomplete!
+        "Points: {",            // Error  : expected '{ something }'
+        "Points: }",            // Error  : expected '{ something }'
+        "Points: {}",           // Ignore : expected '{ something }'
+        "Points: } {",          // Ignore : expected '{ something }'
+        "Points: {} {}",        // Error  : only a '{}' is expected
+        "Points: { ( ) }",      // Ignore : expected '{ (x,y) }'
+        "Points: { ( }",        // Error  : expected '{ (x,y) }'
+        "Points:{(1,1)}",       // Ignore : one point
+        "Points:{(1,1)(1,a)}",  // Error  : invalid argument
         "Points:{(1,1)(1,2)}",
-        "Points:{(1,1) (1,2) (1,3)}",
+        "Points:{(1,1) (1,2) (1,3) }",
         "Points:{(1,1) (1,2)} angle=45 label=Test",
         "Line:{(0,0) (5,5)}",
-        "Line:{(0,0)} angle=90 length=20",
+        "Line: {(0,0)} angle=90 length=20",
+        "Line: angle=90 {(0,0)} length=20 label=Line1",
         "Rectangle:{(1,1)} width=100 height=100"
     };
 
@@ -620,4 +623,18 @@ void interpreter()
         }
     }
 
+}
+
+void loadTxt()
+{
+    Interpreter interpreter;
+
+    std::string errors;
+    auto svg = interpreter.load("Resources/test_commands.txt", errors);
+
+    svg = Sketch::svg(100, 100, svg, Sketch::Metadata());
+    Save(svg, "Resources/svgOutput.svg");
+
+    //View(svg);
+    View(errors);
 }

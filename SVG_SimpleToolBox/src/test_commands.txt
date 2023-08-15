@@ -1,0 +1,11 @@
+# Commands
+
+Points:{(10,10)(100,100)} stroke=255,0,0
+Points:{(50,50) (10,20) (100,50) }
+Points:{(10,100) (100,10)} angle=45 label=Test
+
+Line:{(0,0) (100,50)}
+#Line: {(0,0)} angle=90 length=20
+#Line: angle=90 {(0,0)} length=20 label=Line1
+
+Rectangle:{(80,80)} width=20 height=20 fill=127,127,127

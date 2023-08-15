@@ -24,7 +24,40 @@ namespace smalltoolbox {
 
 #define CRITICALNUMBER std::numeric_limits<double>::max()
 
+using std::array;
+using std::atan;
+using std::cerr;
+using std::cos;
+using std::count_if;
+using std::cout;
+using std::exception;
+using std::filesystem::exists;
+using std::filesystem::path;
+using std::greater;
+using std::ifstream;
+using std::ios;
+using std::less;
+using std::localtime;
+using std::map;
+using std::max;
+using std::min;
+using std::numbers::pi;
+using std::ofstream;
+using std::pow;
+using std::round;
+using std::sin;
+using std::size_t;
+using std::sort;
+using std::sqrt;
+using std::stod;
+using std::stoi;
+using std::stoul;
 using std::string;
+using std::time;
+using std::time_t;
+using std::tm;
+using std::to_string;
+using std::transform;
 using std::vector;
 
 class Point;
@@ -90,7 +123,7 @@ void View(Points points);
 void View(double value);
 void View(string str);
 void View(Strings values);
-template<std::size_t SIZE> void View(std::array<double, SIZE> arr);
+template<size_t SIZE> void View(array<double, SIZE> arr);
 template<typename T> void View(vector<T> values);
 
 // Point 2D (x,y)
@@ -101,7 +134,7 @@ class Point {
 
         string toStr()
         {
-            return std::to_string(value);
+            return to_string(value);
         }
     };
 
@@ -219,8 +252,8 @@ public:
     // Distance between the current point and another.
     double distance(Point point)
     {
-        return std::sqrt(std::pow(X.value - point.X.value, 2) +
-                         std::pow(Y.value - point.Y.value, 2));
+        return sqrt(pow(X.value - point.X.value, 2) +
+                    pow(Y.value - point.Y.value, 2));
     }
 
     // Position from angle and radius.
@@ -552,7 +585,7 @@ public:
         // Pythagorean theorem : a^2 + b^2 = c^2
         double c = first.distance(point);               // hypotenuse
         double b = 2 * area / first.distance(second);   // area = base * height / 2
-        double a = std::sqrt(std::pow(c, 2) - std::pow(b, 2));
+        double a = sqrt(pow(c, 2) - pow(b, 2));
 
         // Line with base slope.
         return Line(first.position(angle(), a), point);
@@ -804,7 +837,7 @@ public:
 
     double area()
     {
-        return horizontalRadius * verticalRadius * std::numbers::pi;
+        return horizontalRadius * verticalRadius * pi;
     }
 
     double perimeter()
@@ -960,7 +993,7 @@ public:
 
         unsigned result = 0;
         try {
-            result = std::stoul(value, nullptr, 16);
+            result = stoul(value, nullptr, 16);
         } catch (...) {
             // pass
         }
@@ -1021,8 +1054,8 @@ private:
     {
         shape.name = name.empty() ? "Shape" : name;
         shape.stroke = shape.stroke.empty() ? "#000000" : shape.stroke;
-        shape.fillOpacity = shape.fillOpacity < 0 ? 0 : std::min(shape.fillOpacity / 255, 1.0);
-        shape.strokeOpacity = shape.strokeOpacity < 0 ? 0 : std::min(shape.strokeOpacity / 255, 1.0);
+        shape.fillOpacity = shape.fillOpacity < 0 ? 0 : min(shape.fillOpacity / 255, 1.0);
+        shape.strokeOpacity = shape.strokeOpacity < 0 ? 0 : min(shape.strokeOpacity / 255, 1.0);
     }
 
 public:
@@ -1041,9 +1074,9 @@ public:
         }
 
         check(shape, shape.name);
-        string opacity = std::to_string(shape.fillOpacity);
-        string strokeOpacity = std::to_string(shape.strokeOpacity);
-        string strokeWidth = std::to_string(shape.strokeWidth);
+        string opacity = to_string(shape.fillOpacity);
+        string strokeOpacity = to_string(shape.strokeOpacity);
+        string strokeWidth = to_string(shape.strokeWidth);
 
         return {
             "     <polyline\n"
@@ -1071,9 +1104,9 @@ public:
         values += shape.points[shape.points.size() - 1].toStr();
 
         check(shape, shape.name);
-        string opacity = std::to_string(shape.fillOpacity);
-        string strokeOpacity = std::to_string(shape.strokeOpacity);
-        string strokeWidth = std::to_string(shape.strokeWidth);
+        string opacity = to_string(shape.fillOpacity);
+        string strokeOpacity = to_string(shape.strokeOpacity);
+        string strokeWidth = to_string(shape.strokeWidth);
 
         return {
             "     <path\n"
@@ -1093,9 +1126,9 @@ public:
     {
         string now = "";
         try {
-            std::time_t t = std::time(nullptr);
-            std::tm *const pTm = std::localtime(&t);
-            now = std::to_string(1900 + pTm->tm_year);
+            time_t t = time(nullptr);
+            tm *const pTm = localtime(&t);
+            now = to_string(1900 + pTm->tm_year);
         }
         catch (...) {
             // pass
@@ -1112,9 +1145,9 @@ public:
             "   xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
             "   xmlns=\"http://www.w3.org/2000/svg\"\n"
             "   xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-            "   width=\"" + std::to_string(width) + "\"\n" +
-            "   height=\"" + std::to_string(height) + "\"\n" +
-            "   viewBox= \"0 0 " + std::to_string(width) + " " + std::to_string(height) + "\"\n" +
+            "   width=\"" + to_string(width) + "\"\n" +
+            "   height=\"" + to_string(height) + "\"\n" +
+            "   viewBox= \"0 0 " + to_string(width) + " " + to_string(height) + "\"\n" +
             "   version=\"1.1\"\n" +
             "   id=\"svg8\">\n" +
             "  <title\n" +
@@ -1227,11 +1260,11 @@ public:
             return R == rgba.R && G == rgba.G && B == rgba.B && A == rgba.A;
         }
 
-        std::string toStr(bool alpha = true)
+        string toStr(bool alpha = true)
         {
             return {
-                std::to_string(R) + "," + std::to_string(G) + "," +
-                std::to_string(B) + (alpha ? "," + std::to_string(A) : "")
+                to_string(R) + "," + to_string(G) + "," +
+                to_string(B) + (alpha ? "," + to_string(A) : "")
             };
         }
     };
@@ -1245,7 +1278,7 @@ class Sketch : public SVG, public Color {
 public:
 
     // Returns basic SVG::Shape with Polygon base.
-    static const SVG::Shape Shape(Base base, std::string label)
+    static const SVG::Shape Shape(Base base, string label)
     {
         SVG::Shape shape;
         shape.name = label;
@@ -1255,14 +1288,14 @@ public:
     }
 
     // Returns SVG::polyline with Polygon base.
-    static const string SvgPolyline(Base base,std::string label)
+    static const string SvgPolyline(Base base, string label)
     {
 
         return SVG::polygon(Shape(base, label));
     }
 
     // Returns SVG::polyline with Polygon base.
-    static const string SvgPolyline(Base base,std::string label, RGBA fill, RGBA stroke)
+    static const string SvgPolyline(Base base, string label, RGBA fill, RGBA stroke)
     {
 
         return SVG::polyline(SVG::Shape(label,
@@ -1272,14 +1305,14 @@ public:
     }
 
     // Returns SVG::polygon with Polygon base.
-    static const string SvgPolygon(Base base,std::string label)
+    static const string SvgPolygon(Base base,string label)
     {
 
         return SVG::polygon(Shape(base, label));
     }
 
     // Returns SVG::polygon with Polygon base.
-    static const string SvgPolygon(Base base,std::string label, RGBA fill, RGBA stroke)
+    static const string SvgPolygon(Base base,string label, RGBA fill, RGBA stroke)
     {
 
         return SVG::polygon(SVG::Shape(label,
@@ -1291,7 +1324,7 @@ public:
     // Returns SVG Elements.
     static const string Join(vector<Base> bases, string label = "")
     {
-        std::string strShape{};
+        string strShape{};
         for (auto item : bases) {
             strShape += Sketch::SvgPolygon(item, label);
         }
@@ -1326,22 +1359,16 @@ public:
     string svg (string line, string& error)
     {
         if (line.empty()) {
+            error = "[LINE EMPTY]\n";
             return {};
         }
-
-        Points points;
-        double angle;
-        double sides;
-        double width, height, length;
-        double horizontalRadius;
-        double verticalRadius;
-        string label;
 
         string result{};
         string bkp = line;
 
+        // Prepare
         line = Trim(line, SPACE); // Remove spaces from the ends.
-        std::transform(line.begin(), line.end(), line.begin(), ::toupper); // Format.
+        transform(line.begin(), line.end(), line.begin(), ::toupper); // Format.
 
         // Check command.
         string command{};
@@ -1353,55 +1380,74 @@ public:
                 break;
             }
         }
-
         if (element < POINTS || element > POLYGON) {
             error = bkp + WARNING + "[Ignore]";
             return result;
         }
-        line = line.substr(command.size());
 
-        // Check format.
-        auto counter = std::count_if(line.begin(), line.end(),
-                                     [](char c){ return c == '{'; });
+        // Prepare
+        line = line.substr(command.size()); // Remove command word.
+
+        // Check points container: { }
+        auto counter = count_if(line.begin(), line.end(),
+                                [](char c){ return c == '{'; });
         if (counter > 1) {
             error = bkp + ERROR + "[Curly braces]\n";
             return result;
         }
-
-        counter -= std::count_if(line.begin(), line.end(),
-                                 [](char c){ return c == '}'; });
+        counter -= count_if(line.begin(), line.end(),
+                            [](char c){ return c == '}'; });
         if (counter != 0) {
             error = bkp + ERROR + "[Curly braces]\n";
             return result;
         }
 
-        counter = std::count_if(line.begin(), line.end(),
-                                [](char c){ return c == '('; }) -
-                  std::count_if(line.begin(), line.end(),
-                                [](char c){ return c == ')'; });
+        // Check coordinates container. ( )
+        counter = count_if(line.begin(), line.end(),
+                           [](char c){ return c == '('; }) -
+                  count_if(line.begin(), line.end(),
+                           [](char c){ return c == ')'; });
         if (counter != 0) {
             error = bkp + ERROR + "[Parentheses]\n";
             return result;
         }
 
+        // Reset
+        Points points{};
+        double angle{0};
+        double sides{0};
+        double width{0}, height{0}, length{0};
+        double horizontalRadius{0}, verticalRadius{0};
+        string label{};
+        Color::RGBA fillColor(255, 255, 255, 255);
+        Color::RGBA strokeColor(0, 0, 0, 255);
+
         // Check content between braces.
         // Expected: {(x0,y1)(xN,yN)}
-        points.clear();
-        line = Trim(line, SPACE);
-        if (line.starts_with('{')) {
-            line = LTrim(line, '{');
-            auto arg = Split(line, '}');
-            arg[0] = Replace(arg[0], '(', " (");
-            for (auto str : Split(arg[0], SPACE)) {
+        string content{};
+        unsigned first = line.find_first_of('{');
+        unsigned second = line.find_first_of('}');
+        if (second < first) {   // } {
+            error = bkp + ERROR + "[Curly braces]\n";
+            return result;
+        }
+        if (first < second) {   // { ... } or {}
+            content = line.substr(first + 1, second - first - 1);
+            line = line.substr(0, first) + line.substr(second + 1);
+        }
+        if (!content.empty()) {
+            content = Trim(content, SPACE);
+            content = Replace(content, '(', " (");  // (x0,y0)(x1,y1) to (x0,y0) (x1,y1)
+            for (auto str : Split(content, SPACE)) {
                 str = Trim(str, SPACE);
-                if (str.starts_with('(')) {
-                    str = Trim(Trim(str, '('), ')');
+                if (str.starts_with('(') && str.ends_with(')')) { // (x,y)
+                    str = Trim(Trim(str, '('), ')');              //  x,y
                     try {
-                        // Convert to Point.
-                        auto values = Split(str, ',');
+                        auto values = Split(str, ',');            //  x y
                         if (values.size() == 2) {
-                            points.push_back(Point(std::stod(values[0]),
-                                                   std::stod(values[1])));
+                            // Convert to Point.
+                            points.push_back(Point(stod(values[0]),
+                                                   stod(values[1])));
                         }
                     } catch (...) {
                         error = bkp + ERROR + "[Invalid numeric formatting!]\n";
@@ -1411,15 +1457,21 @@ public:
             }
         }
 
+        if (points.empty()) {
+            error = bkp + WARNING + "[Ignore]";
+            return result;
+        }
+
         // Check other arguments.
         for (auto str : Split(line, SPACE)) {
             vector<string> complements {
                 "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "HRADIUS", "VRADIUS"
             };
             for (unsigned i = 0; i < complements.size(); i++) {
-                if (str.starts_with(complements[i])) {
+                auto arg = complements[i] + "=";
+                if (str.starts_with(arg)) {
                     try {
-                        auto value = std::stod(str.substr(complements[i].size()));
+                        auto value = stod(str.substr(arg.size()));
                         switch (i) {
                         case 0:
                             angle = value;
@@ -1457,41 +1509,116 @@ public:
                     // pass
                 }
             }
+            if (str.starts_with("FILL=")) {
+                try {
+                    auto numbers = Split(str.substr(5), ',');
+                    fillColor = Color::RGBA(stoi(numbers[0]),
+                                            stoi(numbers[1]),
+                                            stoi(numbers[2]),
+                                            255);
+                } catch (...) {
+                    // pass
+                }
+            }
+            if (str.starts_with("STROKE=")) {
+                try {
+                    auto numbers = Split(str.substr(7), ',');
+                    strokeColor = Color::RGBA(stoi(numbers[0]),
+                                              stoi(numbers[1]),
+                                              stoi(numbers[2]),
+                                              255);
+                } catch (...) {
+                    // pass
+                }
+            }
         }
 
-        // TO DO
-
+        // Converter
         label = label.empty() ? labelType[element] : label;
         switch (element) {
         case POINTS:
+            if (points.size() == 1) {
+                // Isolated points in SVG are not recommended.
+                error = bkp + WARNING + "[Ignore - A minimum of two points is expected!]";
+                return result;
+            }
             if (points.size() > 1) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
+                                            fillColor, strokeColor);
             }
             break;
         case LINE:
-            if (points.size() == 1) {
-                result = Sketch::SvgPolygon(Line(points.front(), angle, length), label);
-            }
-            if (points.size() == 2) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+            if (points.size() == 1 && angle > 0 && length > 0) {
+                result = Sketch::SvgPolygon(Line(points.front(), angle, length), label,
+                                            fillColor, strokeColor);
+            } else if (points.size() == 2) {
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
+                                            fillColor, strokeColor);
+            } else {
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]";
+                return result;
             }
             break;
         case TRIANGLE:
             if (points.size() == 3) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
+                                            fillColor, strokeColor);
+            } else {
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]";
+                return result;
             }
             break;
         case RECTANGLE:
-            if (points.size() == 1) {
-                result = Sketch::SvgPolygon(Rectangle(points.front(), width, height), label);
+            if (points.size() == 1 && width > 0 && height > 0) {
+                result = Sketch::SvgPolygon(Rectangle(points.front(), width, height),
+                                            label, fillColor, strokeColor);
             } else if (points.size() == 4) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label);
+                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
+                                            fillColor, strokeColor);
+            } else {
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]";
+                return result;
             }
+            break;
+        case CIRCLE:
+            // TO DO
+            break;
+        case ELLIPSE:
+            // TO DO
             break;
         default:
             error = bkp + WARNING + "[Incomplete or wrong syntax!]";
             result = {};
             break;
+        }
+
+        return result;
+    }
+
+    string load(string path, string& errors)
+    {
+        auto text = Load(path, ".txt");
+        if (text.empty()) {
+            errors = path + ERROR + "[FILE EMPTY]";
+            return {};
+        }
+
+        string result{};
+        errors.clear();
+        auto lines = Split(text, '\n');
+        for(unsigned i = 0; i < lines.size(); i++) {
+            auto line = lines[i];
+            if (line.starts_with('#')) {
+                errors += to_string(i + 1) + ": [COMMENT LINE]\n";
+                continue;
+            }
+            string error{};
+            auto res = svg(line, error);
+            if (!res.empty()) {
+                result += res;
+            } else {
+                errors += to_string(i + 1) + ": " + error;
+            }
         }
 
         return result;
@@ -1503,18 +1630,18 @@ public:
 
 double Radians(double angle)
 {
-    return angle * std::numbers::pi / 180.0;
+    return angle * pi / 180.0;
 }
 
 double Angle(double radians)
 {
-    return radians * 180.0 / std::numbers::pi;
+    return radians * 180.0 / pi;
 }
 
 // Returns the angle of the line (x0,y0)(x1,y1).
 double Angle(double x0, double y0, double x1, double y1)
 {
-    double result = Angle(std::atan((y1 - y0) / (x1 - x0)));
+    double result = Angle(atan((y1 - y0) / (x1 - x0)));
 
     if (x0 == x1 && y0 == y1) {
         result = 0;
@@ -1555,25 +1682,25 @@ double Angle(Point origin, Point first, Point second, bool signal)
         return angle1 - angle2;
     }
 
-    return std::max(angle1, angle2) - std::min(angle1, angle2);
+    return max(angle1, angle2) - min(angle1, angle2);
 }
 
 // Return: value + radius * cos(angle).
 double Cos(double value, double radius, double angle)
 {
-    return value + radius * std::cos(Radians(angle));
+    return value + radius * cos(Radians(angle));
 }
 
 // Return: value + radius * sin(angle).
 double Sin(double value, double radius, double angle)
 {
-    return value + radius * std::sin(Radians(angle));
+    return value + radius * sin(Radians(angle));
 }
 
 // Returns the distance between two points.
 double Distance(double x0, double y0, double x1, double y1)
 {
-    return std::sqrt(std::pow(x0 - x1, 2) + std::pow(y0 - y1, 2));
+    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
 }
 
 // Rounds value to N digits after decimal point.
@@ -1590,7 +1717,7 @@ double Round(double value, int decimalPlaces)
 
     decimalPlaces = decimalPlaces > 10 ? 10 : decimalPlaces;
 
-    return std::round(value * std::pow(10, decimalPlaces)) / std::pow(10, decimalPlaces);
+    return round(value * pow(10, decimalPlaces)) / pow(10, decimalPlaces);
 }
 
 // Round values.
@@ -1624,7 +1751,7 @@ double TriangleArea(double x0, double y0, double x1, double y1, double x2, doubl
     auto c = Distance(x2, y2, x0, y0);
     auto s = (a + b + c) / 2.0;
 
-    return std::sqrt(s * (s - a) * (s - b) * (s - c));
+    return sqrt(s * (s - a) * (s - b) * (s - c));
 }
 
 // Triangle area using points.
@@ -1643,7 +1770,7 @@ double TriangleHeight(double x0, double y0, double x1, double y1, double x2, dou
     auto h1 = 2 * area / Distance(x1, y1, x2, y2);
     auto h2 = 2 * area / Distance(x2, y2, x0, y0);
 
-    return std::max(std::max(h0, h1), h2);
+    return max(max(h0, h1), h2);
 }
 
 // Triangle height using points.
@@ -1798,10 +1925,10 @@ bool Average(Points points, Point &point)
 Numbers Sort(Numbers numbers, bool ascendingOrder)
 {
     if (ascendingOrder) {
-        std::sort(numbers.begin(), numbers.end(), std::less<double>());
+        sort(numbers.begin(), numbers.end(), less<double>());
     }
     else {
-        std::sort(numbers.begin(), numbers.end(), std::greater<double>());
+        sort(numbers.begin(), numbers.end(), greater<double>());
     }
 
     return numbers;
@@ -1818,7 +1945,7 @@ Points Sort(Points points, bool X_axis)
         return points;
     }
 
-    std::map<double, Numbers > mapPoint;
+    map<double, Numbers > mapPoint;
 
     for (auto p : points) {
         auto key = X_axis ? p.X.value : p.Y.value;
@@ -1857,12 +1984,12 @@ Points Organize(Points points)
     }
 
     // Map : Angle x Point.
-    std::map<float, Points > mapPoint;
+    map<float, Points > mapPoint;
 
     for (auto value : points) {
         float key = Point(0, 0).angle(value);
         if (mapPoint.find(key) == mapPoint.end()) {
-            mapPoint.insert(std::make_pair(key, Points{value}));
+            mapPoint.insert(make_pair(key, Points{value}));
         }
         else {
             mapPoint[key].push_back(value);
@@ -1982,22 +2109,22 @@ Strings Split(string str, const char delimiter)
 // Std::cout : double.
 void View(double value)
 {
-    std::cout << std::to_string(value) << '\n';
+    cout << to_string(value) << '\n';
 }
 
 // Std::cout : Point(x,y).
 void View(Point point)
 {
-    std::cout << "(" << point.toStr() << ")" << '\n';
+    cout << "(" << point.toStr() << ")" << '\n';
 }
 
 // Std::cout : Array of double.
-template<std::size_t SIZE>
-void View(std::array<double, SIZE> arr)
+template<size_t SIZE>
+void View(array<double, SIZE> arr)
 {
     unsigned i = 0;
     for (const auto &value : arr) {
-        std::cout << "[" << i << "]: " << Round(value) << '\n';
+        cout << "[" << i << "]: " << Round(value) << '\n';
         i++;
     }
 }
@@ -2011,10 +2138,10 @@ void View(Points points)
     }
 
     if (str.empty()) {
-        std::cout << "Empty\n";
+        cout << "Empty\n";
     }
     else {
-        std::cout << str << '\n';
+        cout << str << '\n';
     }
 }
 
@@ -2024,14 +2151,14 @@ void View(vector<T> values)
 {
     string str{};
     for (unsigned i = 0; i < values.size(); i++) {
-        str += std::to_string(values[i]) + (i < values.size() - 1 ? "," : "");
+        str += to_string(values[i]) + (i < values.size() - 1 ? "," : "");
     }
 
     if (str.empty()) {
-        std::cout << "Empty\n";
+        cout << "Empty\n";
     }
     else {
-        std::cout << str << '\n';
+        cout << str << '\n';
     }
 }
 
@@ -2044,17 +2171,17 @@ void View(Strings values)
     }
 
     if (str.empty()) {
-        std::cout << "Empty\n";
+        cout << "Empty\n";
     }
     else {
-        std::cout << str << '\n';
+        cout << str << '\n';
     }
 }
 
 // Std::cout : string.
 void View(string str)
 {
-    std::cout << str << '\n';
+    cout << str << '\n';
 }
 
 // Load text file.
@@ -2068,24 +2195,24 @@ string Load(string path, string filenameExtension)
     if (!filenameExtension.empty()) {
         const std::filesystem::path p(path);
         if (!std::filesystem::exists(p)) {
-            std::cerr << "File not found!\n";
+            cerr << "File not found!\n";
             return {};
         }
 
-        std::string extension{p.extension()};
-        std::transform(extension.begin(), extension.end(),
-                       extension.begin(), ::toupper);
-        std::transform(filenameExtension.begin(), filenameExtension.end(),
-                       filenameExtension.begin(), ::toupper);
+        string extension{p.extension()};
+        transform(extension.begin(), extension.end(),
+                  extension.begin(), ::toupper);
+        transform(filenameExtension.begin(), filenameExtension.end(),
+                  filenameExtension.begin(), ::toupper);
         if (!extension.ends_with(filenameExtension)) {
-            std::cerr << "Invalid file!\n";
+            cerr << "Invalid file!\n";
             return {};
         }
     }
 
     string str{};
     try {
-        std::ifstream fileIn(path, std::ios::in);
+        ifstream fileIn(path, ios::in);
         if (fileIn.is_open()) {
             string line{};
             while (getline(fileIn, line)) {
@@ -2105,7 +2232,7 @@ string Load(string path, string filenameExtension)
 bool Save(const string &text, string path)
 {
     if (text.empty()) {
-        std::cerr << "Empty text! Export failed!\n";
+        cerr << "Empty text! Export failed!\n";
         return false;
     }
 
@@ -2114,13 +2241,13 @@ bool Save(const string &text, string path)
     }
 
     try {
-        std::ofstream file(path, std::ios::out);
+        ofstream file(path, ios::out);
         file << text;
         file.close();
     }
-    catch (const std::exception &e) {
-        std::cout << "Error handling file writing.\n";
-        std::cerr << e.what() << "\n";
+    catch (const exception &e) {
+        cout << "Error handling file writing.\n";
+        cerr << e.what() << "\n";
         return false;
     }
 
