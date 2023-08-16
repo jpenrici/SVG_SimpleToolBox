@@ -911,10 +911,10 @@ public:
     static constexpr const char* BLUE  = "#0000FF";
 
     // Metadata setup.
-    // creator             : string with the name of the creator or developer,
-    // title               : string with title,
-    // publisherAgentTitle : string with the name of the publisher,
-    // date                : string with creation date, if empty use current date.
+    // creator             : String with the name of the creator or developer,
+    // title               : String with title,
+    // publisherAgentTitle : String with the name of the publisher,
+    // date                : String with creation date, if empty use current date.
     struct Metadata {
         string creator = "SVG created automatically by algorithm in C++.";
         string title = "SVG";
@@ -928,38 +928,72 @@ public:
 
     // Drawing setup.
     // name          : ID used in SVG element,
-    // fill          : fill color in hexadecimal string format (#FFFFFF),
-    // stroke        : stroke color in hexadecimal string format (#FFFFFF),
-    // strokeWidth   : line width,
-    // fillOpacity   : fill opacity or alpha value from 0 to 255.
-    // strokeOpacity : stroke opacity or alpha value from 0 to 255.
-    // points        : Points vector (x,y).
-    struct Shape {
-        string name, fill, stroke;
-        double strokeWidth;
-        double fillOpacity, strokeOpacity; // 0.0 = 0 = 0%; 255 = 1.0 = 100%
-        Points points;
+    // fill          : Fill color in hexadecimal string format (#FFFFFF),
+    // stroke        : Stroke color in hexadecimal string format (#FFFFFF),
+    // strokeWidth   : Line width,
+    // fillOpacity   : Fill opacity or alpha value from 0 to 255.
+    // strokeOpacity : Stroke opacity or alpha value from 0 to 255.
+    struct Style {
+        string name{"Shape"}, fill{WHITE}, stroke{BLACK};
+        double strokeWidth{1.0};
+        double fillOpacity{255.0}, strokeOpacity{255.0}; // 0.0 = 0%; 255 = 1.0 = 100%
 
-        Shape()
-            : name("Shape"), fill(WHITE), stroke(BLACK), strokeWidth(1.0),
-            fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
-
-        Shape(string name,  string fill, string stroke, double strokeWidth)
-            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(255.0), strokeOpacity(255.0), points({}) {}
-        Shape(string name,  string fill, string stroke, double strokeWidth,
-              Points points)
-            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(255.0), strokeOpacity(255.0), points(points) {}
-
-        Shape(string name,  string fill, string stroke, double strokeWidth,
+        Style(){};
+        Style(string name,  string fill, string stroke, double strokeWidth)
+            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth) {}
+        Style(string name,  string fill, string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points({}) {}
+            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity) {}
+    };
+
+    // Polygon and Polyline.
+    // points : Points vector (x,y).
+    struct Shape : Style {
+        Points points{};
+
+        Shape() : Style() {}
+
+        Shape(string name,  string fill, string stroke, double strokeWidth)
+            : Style(name,  fill, stroke, strokeWidth) {}
+        Shape(string name,  string fill, string stroke, double strokeWidth,
+              double fillOpacity, double strokeOpacity)
+            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity) {}
+
+        Shape(string name,  string fill, string stroke, double strokeWidth, Points points)
+            :  Style(name,  fill, stroke, strokeWidth), points(points) {}
         Shape(string name,  string fill, string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity, Points points)
-            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity), points(points) {}
+            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity),
+            points(points) {}
+    };
+
+    // Circle and Ellipse.
+    // center           : Central point, (x,y)
+    // horizontalRadius : Horizontal radius of circle, rx
+    // verticalRadius   : Vertical radius of circle, ry
+    struct CircleShape : Style {
+        Point center{Origin};
+        double horizontalRadius{1};
+        double verticalRadius{1};
+
+        CircleShape() : Style() {}
+
+        CircleShape(string name,  string fill, string stroke, double strokeWidth)
+            : Style(name,  fill, stroke, strokeWidth) {}
+        CircleShape(string name,  string fill, string stroke, double strokeWidth,
+                    double fillOpacity, double strokeOpacity)
+            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity) {}
+
+        CircleShape(string name,  string fill, string stroke, double strokeWidth,
+                    Point center, double horizontalRadius, double verticalRadius)
+            :  Style(name,  fill, stroke, strokeWidth), center(center),
+            horizontalRadius (horizontalRadius), verticalRadius(verticalRadius) {}
+        CircleShape(string name,  string fill, string stroke, double strokeWidth,
+                    double fillOpacity, double strokeOpacity,
+                    Point center, double horizontalRadius, double verticalRadius)
+            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity),
+            center(center), horizontalRadius (horizontalRadius), verticalRadius(verticalRadius) {}
     };
 
     // Converts decimal value to hexadecimal.
@@ -1050,17 +1084,24 @@ public:
 private:
 
     // Validates and formats entries.
-    static const void check(Shape &shape, string name)
+    static const string style(Style style, string name)
     {
-        shape.name = name.empty() ? "Shape" : name;
-        shape.stroke = shape.stroke.empty() ? "#000000" : shape.stroke;
-        shape.fillOpacity = shape.fillOpacity < 0 ? 0 : min(shape.fillOpacity / 255, 1.0);
-        shape.strokeOpacity = shape.strokeOpacity < 0 ? 0 : min(shape.strokeOpacity / 255, 1.0);
+        style.name = name.empty() ? "Shape" : name;
+        style.stroke = style.stroke.empty() ? "#000000" : style.stroke;
+        style.fillOpacity = style.fillOpacity < 0 ? 0 : min(style.fillOpacity / 255, 1.0);
+        style.strokeOpacity = style.strokeOpacity < 0 ? 0 : min(style.strokeOpacity / 255, 1.0);
+
+        return {
+                "id=\"" + style.name + "\"\nstyle=\"" +
+                "opacity:" + to_string(style.fillOpacity) + ";fill:" + style.fill +
+                ";stroke:" + style.stroke + ";stroke-width:" + to_string(style.strokeWidth) +
+                ";stroke-opacity:" + to_string(style.strokeOpacity) +
+                ";stroke-linejoin:round;stroke-linecap:round\"\n" };
     }
 
 public:
 
-    // Returns SVG: <polyline ... />
+    // Return SVG: <polyline ... />
     static const string polyline(Shape shape)
     {
 
@@ -1073,24 +1114,12 @@ public:
             values += shape.points[i].toStr() + " ";
         }
 
-        check(shape, shape.name);
-        string opacity = to_string(shape.fillOpacity);
-        string strokeOpacity = to_string(shape.strokeOpacity);
-        string strokeWidth = to_string(shape.strokeWidth);
-
         return {
-            "     <polyline\n"
-            "        id=\"" + shape.name + "\"\n" +
-            "        style=\"" +
-            "opacity:" + opacity + ";fill:" + shape.fill +
-            ";stroke:" + shape.stroke + ";stroke-width:" + strokeWidth +
-            ";stroke-opacity:" + strokeOpacity +
-            ";stroke-linejoin:round;stroke-linecap:round\"\n" +
-            "        points=\"" + values + "\" />\n"
+            "<polyline\n" + style(shape, shape.name) + "points=\"" + values + "\" />\n"
         };
     }
 
-    // Returns SVG: <path ... />
+    // Return SVG: <path ... />
     static const string polygon(Shape shape)
     {
         if (shape.points.empty()) {
@@ -1103,24 +1132,27 @@ public:
         }
         values += shape.points[shape.points.size() - 1].toStr();
 
-        check(shape, shape.name);
-        string opacity = to_string(shape.fillOpacity);
-        string strokeOpacity = to_string(shape.strokeOpacity);
-        string strokeWidth = to_string(shape.strokeWidth);
-
         return {
-            "     <path\n"
-            "        id=\"" + shape.name + "\"\n" +
-            "        style=\"" +
-            "opacity:" + opacity + ";fill:" + shape.fill +
-            ";stroke:" + shape.stroke + ";stroke-width:" + strokeWidth +
-            ";stroke-opacity:" + strokeOpacity +
-            ";stroke-linejoin:round;stroke-linecap:round\"\n" +
-            "        d=\"M " + values + " Z\" />\n"
+            "<path\n" + style(shape, shape.name) + "d=\"M " + values + " Z\" />\n"
         };
     }
 
-    // Returns full SVG.
+    // Return SVG : <ellipse ... />
+    static const string circle(CircleShape circle)
+    {
+        if (circle.horizontalRadius < 1 || circle.verticalRadius < 1 ) {
+            return "<!-- Empty -->\n";
+        }
+        return {
+            "<ellipse\n" + style(circle, circle.name) +
+            "cx=\"" + circle.center.X.toStr() + "\" " +
+            "cy=\"" + circle.center.Y.toStr() + "\" " +
+            "rx=\"" + to_string(circle.horizontalRadius) + "\" " +
+            "ry=\"" + to_string(circle.verticalRadius) + "\" />\n"
+        };
+    }
+
+    // Return full SVG.
     static const string svg(int width, int height, const string &xml,
                             Metadata metadata)
     {
@@ -1139,70 +1171,68 @@ public:
         return {
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
             "<svg\n"
-            "   xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
-            "   xmlns:cc=\"http://creativecommons.org/ns#\"\n"
-            "   xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
-            "   xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
-            "   xmlns=\"http://www.w3.org/2000/svg\"\n"
-            "   xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-            "   width=\"" + to_string(width) + "\"\n" +
-            "   height=\"" + to_string(height) + "\"\n" +
-            "   viewBox= \"0 0 " + to_string(width) + " " + to_string(height) + "\"\n" +
-            "   version=\"1.1\"\n" +
-            "   id=\"svg8\">\n" +
-            "  <title\n" +
-            "     id=\"title1\">" + metadata.title + "</title>\n" +
-            "  <defs\n" +
-            "     id=\"defs1\" />\n" +
-            "  <metadata\n" +
-            "     id=\"metadata1\">\n" +
-            "    <rdf:RDF>\n" +
-            "      <cc:Work\n" +
-            "         rdf:about=\"\">\n" +
-            "        <dc:format>image/svg+xml</dc:format>\n" +
-            "        <dc:type\n" +
-            "           rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" />\n" +
-            "        <dc:title>" + metadata.title + "</dc:title>\n" +
-            "        <dc:date>" + metadata.date + "</dc:date>\n" +
-            "        <dc:publisher>\n" +
-            "          <cc:Agent>\n" +
-            "            <dc:title>" + metadata.publisherAgentTitle + "</dc:title>\n" +
-            "          </cc:Agent>\n" +
-            "        </dc:publisher>\n" +
-            "        <dc:subject>\n" +
-            "          <rdf:Bag>\n" +
-            "            <rdf:li></rdf:li>\n" +
-            "            <rdf:li></rdf:li>\n" +
-            "            <rdf:li></rdf:li>\n" +
-            "            <rdf:li></rdf:li>\n" +
-            "          </rdf:Bag>\n" +
-            "        </dc:subject>\n" +
-            "        <dc:creator>\n" +
-            "          <cc:Agent>\n" +
-            "            <dc:title>" + metadata.creator + "</dc:title>\n" +
-            "          </cc:Agent>\n" +
-            "        </dc:creator>\n" +
-            "        <cc:license\n" +
-            "           rdf:resource=\"http://creativecommons.org/publicdomain/zero/1.0/\" />\n" +
-            "        <dc:description>SVG created automatically by algorithm in C++.</dc:description>\n" +
-            "      </cc:Work>\n" +
-            "      <cc:License\n" +
-            "         rdf:about=\"http://creativecommons.org/publicdomain/zero/1.0/\">\n" +
-            "        <cc:permits\n" +
-            "           rdf:resource=\"http://creativecommons.org/ns#Reproduction\" />\n" +
-            "        <cc:permits\n" +
-            "           rdf:resource=\"http://creativecommons.org/ns#Distribution\" />\n" +
-            "        <cc:permits\n" +
-            "           rdf:resource=\"http://creativecommons.org/ns#DerivativeWorks\" />\n" +
-            "      </cc:License>\n" +
-            "    </rdf:RDF>\n" +
-            "  </metadata>\n" +
-            "  <!--      Created in C++ algorithm       -->\n" +
-            "  <!-- Attention: do not modify this code. -->\n" +
-            "\n"
-            "" + xml + "" +
-            "\n" +
-            "  <!-- Attention: do not modify this code. -->\n" +
+            "xmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n"
+            "xmlns:cc=\"http://creativecommons.org/ns#\"\n"
+            "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+            "xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
+            "xmlns=\"http://www.w3.org/2000/svg\"\n"
+            "xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
+            "width=\"" + to_string(width) + "\"\n" +
+            "height=\"" + to_string(height) + "\"\n" +
+            "viewBox= \"0 0 " + to_string(width) + " " + to_string(height) + "\"\n" +
+            "version=\"1.1\"\n" +
+            "id=\"svg8\">\n" +
+            "<title\n" +
+            "id=\"title1\">" + metadata.title + "</title>\n" +
+            "<defs\n" +
+            "id=\"defs1\" />\n" +
+            "<metadata\n" +
+            "id=\"metadata1\">\n" +
+            "<rdf:RDF>\n" +
+            "<cc:Work\n" +
+            "rdf:about=\"\">\n" +
+            "<dc:format>image/svg+xml</dc:format>\n" +
+            "<dc:type\n" +
+            "rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\" />\n" +
+            "<dc:title>" + metadata.title + "</dc:title>\n" +
+            "<dc:date>" + metadata.date + "</dc:date>\n" +
+            "<dc:publisher>\n" +
+            "<cc:Agent>\n" +
+            "<dc:title>" + metadata.publisherAgentTitle + "</dc:title>\n" +
+            "</cc:Agent>\n" +
+            "</dc:publisher>\n" +
+            "<dc:subject>\n" +
+            "<rdf:Bag>\n" +
+            "<rdf:li></rdf:li>\n" +
+            "<rdf:li></rdf:li>\n" +
+            "<rdf:li></rdf:li>\n" +
+            "<rdf:li></rdf:li>\n" +
+            "</rdf:Bag>\n" +
+            "</dc:subject>\n" +
+            "<dc:creator>\n" +
+            "<cc:Agent>\n" +
+            "<dc:title>" + metadata.creator + "</dc:title>\n" +
+            "</cc:Agent>\n" +
+            "</dc:creator>\n" +
+            "<cc:license\n" +
+            "rdf:resource=\"http://creativecommons.org/publicdomain/zero/1.0/\" />\n" +
+            "<dc:description>SVG created automatically by algorithm in C++.</dc:description>\n" +
+            "</cc:Work>\n" +
+            "<cc:License\n" +
+            "rdf:about=\"http://creativecommons.org/publicdomain/zero/1.0/\">\n" +
+            "<cc:permits\n" +
+            "rdf:resource=\"http://creativecommons.org/ns#Reproduction\" />\n" +
+            "<cc:permits\n" +
+            "rdf:resource=\"http://creativecommons.org/ns#Distribution\" />\n" +
+            "<cc:permits\n" +
+            "rdf:resource=\"http://creativecommons.org/ns#DerivativeWorks\" />\n" +
+            "</cc:License>\n" +
+            "</rdf:RDF>\n" +
+            "</metadata>\n" +
+            "<!--      Created in C++ algorithm       -->\n" +
+            "<!-- Attention: do not modify this code. -->\n" +
+            "\n" + xml + "\n" +
+            "<!-- Attention: do not modify this code. -->\n" +
             "</svg>"
         };
     }
@@ -1277,7 +1307,7 @@ class Sketch : public SVG, public Color {
 
 public:
 
-    // Returns basic SVG::Shape with Polygon base.
+    // Return basic SVG::Shape with Polygon base.
     static const SVG::Shape Shape(Base base, string label)
     {
         SVG::Shape shape;
@@ -1287,38 +1317,115 @@ public:
         return shape;
     }
 
-    // Returns SVG::polyline with Polygon base.
+    // Return basic SVG::CircleShape with Ellipse base.
+    static const SVG::CircleShape CircleShape(Ellipse ellipse, string label)
+    {
+        SVG::CircleShape shape;
+        shape.name = label;
+        shape.center = ellipse.center;
+        shape.horizontalRadius = ellipse.horizontalRadius;
+        shape.verticalRadius = ellipse.verticalRadius;
+
+        return shape;
+    }
+
+    // Return SVG::polyline with Polygon base.
     static const string SvgPolyline(Base base, string label)
     {
 
         return SVG::polygon(Shape(base, label));
     }
 
-    // Returns SVG::polyline with Polygon base.
+    // Return SVG::polyline with Polygon base.
     static const string SvgPolyline(Base base, string label, RGBA fill, RGBA stroke)
     {
 
         return SVG::polyline(SVG::Shape(label,
                                         SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                         SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
-                                        1.0, base.points()));
+                                        1.0,    // strokeWidth
+                                        base.points()));
     }
 
-    // Returns SVG::polygon with Polygon base.
-    static const string SvgPolygon(Base base,string label)
+    // Return SVG::polyline with Polygon base.
+    static const string SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
+                                    double fillOpacity, double strokeOpacity)
+    {
+
+        return SVG::polyline(SVG::Shape(label,
+                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                        1.0,    // strokeWidth
+                                        fillOpacity,
+                                        strokeOpacity,
+                                        base.points()));
+    }
+
+    // Return SVG::polygon with Polygon base.
+    static const string SvgPolygon(Base base, string label)
     {
 
         return SVG::polygon(Shape(base, label));
     }
 
-    // Returns SVG::polygon with Polygon base.
+    // Return SVG::polygon with Polygon base.
     static const string SvgPolygon(Base base,string label, RGBA fill, RGBA stroke)
     {
 
         return SVG::polygon(SVG::Shape(label,
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
-                                       1.0, base.points()));
+                                       1.0, // strokeWidth
+                                       base.points()));
+    }
+
+    // Return SVG::polygon with Polygon base.
+    static const string SvgPolygon(Base base,string label, RGBA fill, RGBA stroke,
+                                   double fillOpacity, double strokeOpacity)
+    {
+
+        return SVG::polygon(SVG::Shape(label,
+                                       SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                       SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                       1.0, // strokeWidth
+                                       fillOpacity,
+                                       strokeOpacity,
+                                       base.points()));
+    }
+
+    // Return SVG::circle with Ellipse base.
+    static const string SvgCircle(Ellipse ellipse, string label)
+    {
+        return SVG::circle(CircleShape(ellipse, label));
+    }
+
+    // Return SVG::circle with Ellipse base.
+    static const string SvgCircle(Ellipse ellipse, string label, RGBA fill, RGBA stroke)
+    {
+        return SVG::circle(SVG::CircleShape(label,
+                                            SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                            SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                            1.0,    // strokeWidth
+                                            255,    // fillOpacity
+                                            255,    // strokeOpacity
+                                            ellipse.center,
+                                            ellipse.horizontalRadius,
+                                            ellipse.verticalRadius));
+    }
+
+    // Return SVG::circle with Ellipse base.
+    static const string SvgCircle(Ellipse ellipse, string label, RGBA fill, RGBA stroke,
+                                  double fillOpacity, double strokeOpacity)
+    {
+        return SVG::circle(SVG::CircleShape(label,
+                                            SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                            SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                            1.0,    // strokeWidth
+                                            fillOpacity,
+                                            strokeOpacity,
+                                            ellipse.center,
+                                            ellipse.horizontalRadius,
+                                            ellipse.verticalRadius));
     }
 
     // Returns SVG Elements.
@@ -1381,7 +1488,7 @@ public:
             }
         }
         if (element < POINTS || element > POLYGON) {
-            error = bkp + WARNING + "[Ignore]";
+            error = bkp + WARNING + "[Ignore]\n";
             return result;
         }
 
@@ -1418,6 +1525,7 @@ public:
         double sides{0};
         double width{0}, height{0}, length{0};
         double horizontalRadius{0}, verticalRadius{0};
+        double fillOpacity{255}, strokeOpacity{255};
         string label{};
         Color::RGBA fillColor(255, 255, 255, 255);
         Color::RGBA strokeColor(0, 0, 0, 255);
@@ -1436,7 +1544,7 @@ public:
             line = line.substr(0, first) + line.substr(second + 1);
         }
         if (!content.empty()) {
-            content = Trim(content, SPACE);
+            content = Replace(content, SPACE, "");  // (x0, y0)( x1,y1) to (x0,y0)(x1,y1)
             content = Replace(content, '(', " (");  // (x0,y0)(x1,y1) to (x0,y0) (x1,y1)
             for (auto str : Split(content, SPACE)) {
                 str = Trim(str, SPACE);
@@ -1458,14 +1566,14 @@ public:
         }
 
         if (points.empty()) {
-            error = bkp + WARNING + "[Ignore]";
+            error = bkp + WARNING + "[Ignore]\n";
             return result;
         }
 
         // Check other arguments.
         for (auto str : Split(line, SPACE)) {
             vector<string> complements {
-                "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "HRADIUS", "VRADIUS"
+                "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "RADIUS", "HRADIUS", "VRADIUS"
             };
             for (unsigned i = 0; i < complements.size(); i++) {
                 auto arg = complements[i] + "=";
@@ -1489,9 +1597,11 @@ public:
                             length = value;
                             break;
                         case 5:
+                            // radius = horizontalRadius
+                        case 6:
                             horizontalRadius = value;
                             break;
-                        case 6:
+                        case 7:
                             verticalRadius = value;
                             break;
                         default:
@@ -1516,6 +1626,7 @@ public:
                                             stoi(numbers[1]),
                                             stoi(numbers[2]),
                                             255);
+                    fillOpacity = (numbers.size() == 4 ? stoi(numbers[3]) : 255);
                 } catch (...) {
                     // pass
                 }
@@ -1527,6 +1638,7 @@ public:
                                               stoi(numbers[1]),
                                               stoi(numbers[2]),
                                               255);
+                    strokeOpacity = (numbers.size() == 4 ? stoi(numbers[3]) : 255);
                 } catch (...) {
                     // pass
                 }
@@ -1539,55 +1651,93 @@ public:
         case POINTS:
             if (points.size() == 1) {
                 // Isolated points in SVG are not recommended.
-                error = bkp + WARNING + "[Ignore - A minimum of two points is expected!]";
-                return result;
+                error = bkp + WARNING + "[Ignore - A minimum of two points is expected!]\n";
+                return {};
             }
             if (points.size() > 1) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
-                                            fillColor, strokeColor);
+                result = Sketch::SvgPolygon(IrregularPolygon(points),
+                                            label, fillColor, strokeColor);
             }
             break;
         case LINE:
             if (points.size() == 1 && angle > 0 && length > 0) {
-                result = Sketch::SvgPolygon(Line(points.front(), angle, length), label,
-                                            fillColor, strokeColor);
+                result = Sketch::SvgPolygon(Line(points.front(), angle, length),
+                                            label, fillColor, strokeColor);
             } else if (points.size() == 2) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
-                                            fillColor, strokeColor);
+                result = Sketch::SvgPolygon(IrregularPolygon(points),
+                                            label, fillColor, strokeColor);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]";
-                return result;
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                return {};
             }
             break;
         case TRIANGLE:
-            if (points.size() == 3) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
-                                            fillColor, strokeColor);
+            if (points.size() == 2) {
+                result = Sketch::SvgPolygon(Triangle(points[0], points[1], height),
+                                            label, fillColor, strokeColor,
+                                            fillOpacity, strokeOpacity);
+            } else if (points.size() == 3) {
+                result = Sketch::SvgPolygon(IrregularPolygon(points),
+                                            label, fillColor, strokeColor,
+                                            fillOpacity, strokeOpacity);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]";
-                return result;
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                return {};
             }
             break;
         case RECTANGLE:
             if (points.size() == 1 && width > 0 && height > 0) {
                 result = Sketch::SvgPolygon(Rectangle(points.front(), width, height),
-                                            label, fillColor, strokeColor);
+                                            label, fillColor, strokeColor,
+                                            fillOpacity, strokeOpacity);
             } else if (points.size() == 4) {
-                result = Sketch::SvgPolygon(IrregularPolygon(points), label,
-                                            fillColor, strokeColor);
+                result = Sketch::SvgPolygon(IrregularPolygon(points),
+                                            label, fillColor, strokeColor,
+                                            fillOpacity, strokeOpacity);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]";
-                return result;
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                return {};
             }
             break;
         case CIRCLE:
-            // TO DO
+            if (points.size() == 1 && horizontalRadius > 0) {
+                result = Sketch::SvgCircle(Circle(points.front(), horizontalRadius),
+                                           label, fillColor, strokeColor,
+                                           fillOpacity, strokeOpacity);
+            } else {
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                return {};
+            }
             break;
         case ELLIPSE:
-            // TO DO
+            if (points.size() == 1 && horizontalRadius > 0 && verticalRadius > 0) {
+                result = Sketch::SvgCircle(Ellipse(points.front(),
+                                                   horizontalRadius,
+                                                   verticalRadius),
+                                           label, fillColor, strokeColor,
+                                           fillOpacity, strokeOpacity);
+            } else {
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                return {};
+            }
+            break;
+        case POLYGON:
+            if (points.size() == 1 && horizontalRadius > 0 && angle > 0 && sides > 2) {
+                result = Sketch::SvgPolygon(RegularPolygon(points.front(),
+                                                           horizontalRadius, angle, sides),
+                                            label, fillColor, strokeColor,
+                                            fillOpacity, strokeOpacity);
+            } else if (points.size() > 1) {
+                result = Sketch::SvgPolygon(IrregularPolygon(points),
+                                            label, fillColor, strokeColor,
+                                            fillOpacity, strokeOpacity);
+            } else {
+                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                return {};
+            }
             break;
         default:
-            error = bkp + WARNING + "[Incomplete or wrong syntax!]";
+            error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
             result = {};
             break;
         }
@@ -1599,7 +1749,7 @@ public:
     {
         auto text = Load(path, ".txt");
         if (text.empty()) {
-            errors = path + ERROR + "[FILE EMPTY]";
+            errors = path + ERROR + "[FILE EMPTY]\n";
             return {};
         }
 
