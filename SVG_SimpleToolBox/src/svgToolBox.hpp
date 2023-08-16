@@ -74,42 +74,45 @@ class SVG;
 class Sketch;
 class Interpreter;
 
-Point Total(Points points);
+Point  Total(Points points);
 Points Organize(Points points);
 Points Round(Points points, int decimalPlaces = -1);
 Points Sort(Points points, bool X_axis = true);
 Points Sum(Points group, Point point);
 Points Sum(Points group, double value);
 
+bool Average(Points points, Point &point);
+
 Line Perpendicular(Line line, Point point);
 
-Numbers Round(Numbers values, int decimalPlaces = -1);
-Numbers Sort(Numbers numbers, bool ascendingOrder = true);
-
-bool Average(Points points, Point &point);
 bool LineIntersect(Line line1, Line line2, Point &point);
-bool LineIntersect(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double &X, double &Y);
-bool Save(const string &text, string path = "");
-template<typename T> bool Equal(vector<T> group1, vector<T> group2, bool compareOrder = false);
+bool LineIntersect(double x0, double y0, double x1, double y1, double x2,
+                   double y2, double x3, double y3, double &X, double &Y);
 
-double Angle(Point origin, Point first, Point second, bool signal = false);
-double Angle(double radians);
-double Angle(double x0, double y0, double x1, double y1);
-double Cos(double value, double radius, double angle);
-double Distance(double x0, double y0, double x1, double y1);
-double Radians(double angle);
-double Round(double value, int decimalPlaces = -1);
-double Sin(double value, double radius, double angle);
-double SumDistances(Points points);
 double TriangleArea(Point p1, Point p2, Point p3);
 double TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2);
 double TriangleHeight(Point p1, Point p2, Point p3);
 double TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2);
 
+double Angle(Point origin, Point first, Point second, bool signal = false);
+double Angle(double radians);
+double Angle(double x0, double y0, double x1, double y1);
+double Cos(double value, double radius, double angle);
+double Sin(double value, double radius, double angle);
+double Radians(double angle);
+double Distance(double x0, double y0, double x1, double y1);
+double SumDistances(Points points);
+
+template<typename T>
+bool Equal(vector<T> group1, vector<T> group2, bool compareOrder = false);
+
+Numbers Sort(Numbers numbers, bool ascendingOrder = true);
+Numbers Round(Numbers values, int decimalPlaces = -1);
+double Round(double value, int decimalPlaces = -1);
+
+// String
 Strings Split(string str, const char delimiter);
 Strings Trim(Strings vStr, const char trimmer);
-
-string Load(string path, string filenameExtension = "");
 
 string Replace(string str, char character, string replace);
 string Replace(string str, char character, char replace);
@@ -118,13 +121,22 @@ string RTrim(string str, const char trimmer);
 string Trim(string str, const char trimmer);
 string Join(Strings vStr, const char delimiter);
 
+// View
 void View(Point point);
 void View(Points points);
+void View(Strings values);
 void View(double value);
 void View(string str);
-void View(Strings values);
-template<size_t SIZE> void View(array<double, SIZE> arr);
-template<typename T> void View(vector<T> values);
+
+template<typename T>
+void View(vector<T> values);
+
+template<size_t SIZE>
+void View(array<double, SIZE> arr);
+
+// I/O
+bool Save(const string &text, string path = "");
+string Load(string path, string filenameExtension = "");
 
 // Point 2D (x,y)
 class Point {
@@ -329,6 +341,7 @@ public:
     Point first, second, third, fourth;
 
     Base() {};
+
     ~Base() {};
 
     Points setup(Points points)
@@ -821,12 +834,12 @@ public:
 
     Ellipse(){};
 
-    ~Ellipse() {};
-
     Ellipse(Point center, double horizontalRadius, double verticalRadius)
     {
         setup(center, horizontalRadius, verticalRadius);
     }
+
+    ~Ellipse() {};
 
     Points setup(Point center, double horizontalRadius, double verticalRadius)
     {
@@ -853,12 +866,12 @@ public:
 
     Circle(){};
 
-    ~Circle() {};
-
     Circle(Point center, double radius)
     {
         setup(center, radius);
     }
+
+    ~Circle() {};
 
     Points setup(Point center, double radius)
     {
@@ -1361,6 +1374,21 @@ public:
                                         base.points()));
     }
 
+    // Return SVG::polyline with Polygon base.
+    static const string SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
+                                    double fillOpacity, double strokeOpacity,
+                                    double strokeWidth)
+    {
+
+        return SVG::polyline(SVG::Shape(label,
+                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                        strokeWidth,
+                                        fillOpacity,
+                                        strokeOpacity,
+                                        base.points()));
+    }
+
     // Return SVG::polygon with Polygon base.
     static const string SvgPolygon(Base base, string label)
     {
@@ -1388,6 +1416,21 @@ public:
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                        1.0, // strokeWidth
+                                       fillOpacity,
+                                       strokeOpacity,
+                                       base.points()));
+    }
+
+    // Return SVG::polygon with Polygon base.
+    static const string SvgPolygon(Base base,string label, RGBA fill, RGBA stroke,
+                                   double fillOpacity, double strokeOpacity,
+                                   double strokeWidth)
+    {
+
+        return SVG::polygon(SVG::Shape(label,
+                                       SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                       SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                       strokeWidth,
                                        fillOpacity,
                                        strokeOpacity,
                                        base.points()));
@@ -1428,6 +1471,22 @@ public:
                                             ellipse.verticalRadius));
     }
 
+    // Return SVG::circle with Ellipse base.
+    static const string SvgCircle(Ellipse ellipse, string label, RGBA fill, RGBA stroke,
+                                  double fillOpacity, double strokeOpacity,
+                                  double strokeWidth)
+    {
+        return SVG::circle(SVG::CircleShape(label,
+                                            SVG::RGB2HEX(fill.R, fill.G, fill.B),
+                                            SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
+                                            strokeWidth,
+                                            fillOpacity,
+                                            strokeOpacity,
+                                            ellipse.center,
+                                            ellipse.horizontalRadius,
+                                            ellipse.verticalRadius));
+    }
+
     // Returns SVG Elements.
     static const string Join(vector<Base> bases, string label = "")
     {
@@ -1461,6 +1520,7 @@ class Interpreter {
 public:
 
     Interpreter(){};
+
     ~Interpreter(){};
 
     string svg (string line, string& error)
@@ -1525,7 +1585,7 @@ public:
         double sides{0};
         double width{0}, height{0}, length{0};
         double horizontalRadius{0}, verticalRadius{0};
-        double fillOpacity{255}, strokeOpacity{255};
+        double fillOpacity{255}, strokeOpacity{255}, strokeWidth{1.0};
         string label{};
         Color::RGBA fillColor(255, 255, 255, 255);
         Color::RGBA strokeColor(0, 0, 0, 255);
@@ -1573,7 +1633,8 @@ public:
         // Check other arguments.
         for (auto str : Split(line, SPACE)) {
             vector<string> complements {
-                "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "RADIUS", "HRADIUS", "VRADIUS"
+                "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "RADIUS", "HRADIUS", "VRADIUS",
+                "STROKEW"
             };
             for (unsigned i = 0; i < complements.size(); i++) {
                 auto arg = complements[i] + "=";
@@ -1603,6 +1664,9 @@ public:
                             break;
                         case 7:
                             verticalRadius = value;
+                            break;
+                        case 8:
+                            strokeWidth = value;
                             break;
                         default:
                             break;
@@ -1667,7 +1731,7 @@ public:
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
             break;
@@ -1675,13 +1739,13 @@ public:
             if (points.size() == 2) {
                 result = Sketch::SvgPolygon(Triangle(points[0], points[1], height),
                                             label, fillColor, strokeColor,
-                                            fillOpacity, strokeOpacity);
+                                            fillOpacity, strokeOpacity, strokeWidth);
             } else if (points.size() == 3) {
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor,
-                                            fillOpacity, strokeOpacity);
+                                            fillOpacity, strokeOpacity, strokeWidth);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
             break;
@@ -1689,13 +1753,13 @@ public:
             if (points.size() == 1 && width > 0 && height > 0) {
                 result = Sketch::SvgPolygon(Rectangle(points.front(), width, height),
                                             label, fillColor, strokeColor,
-                                            fillOpacity, strokeOpacity);
+                                            fillOpacity, strokeOpacity, strokeWidth);
             } else if (points.size() == 4) {
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor,
-                                            fillOpacity, strokeOpacity);
+                                            fillOpacity, strokeOpacity, strokeWidth);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
             break;
@@ -1703,9 +1767,9 @@ public:
             if (points.size() == 1 && horizontalRadius > 0) {
                 result = Sketch::SvgCircle(Circle(points.front(), horizontalRadius),
                                            label, fillColor, strokeColor,
-                                           fillOpacity, strokeOpacity);
+                                           fillOpacity, strokeOpacity, strokeWidth);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
             break;
@@ -1715,9 +1779,9 @@ public:
                                                    horizontalRadius,
                                                    verticalRadius),
                                            label, fillColor, strokeColor,
-                                           fillOpacity, strokeOpacity);
+                                           fillOpacity, strokeOpacity, strokeWidth);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
             break;
@@ -1726,13 +1790,13 @@ public:
                 result = Sketch::SvgPolygon(RegularPolygon(points.front(),
                                                            horizontalRadius, angle, sides),
                                             label, fillColor, strokeColor,
-                                            fillOpacity, strokeOpacity);
+                                            fillOpacity, strokeOpacity, strokeWidth);
             } else if (points.size() > 1) {
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity);
             } else {
-                error = bkp + WARNING + "[Incomplete or insufficient arguments!]\n";
+                error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
             break;
