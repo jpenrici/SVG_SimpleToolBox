@@ -1,63 +1,46 @@
-#ifndef _SMALLTOOLBOX_H_
-#define _SMALLTOOLBOX_H_
+#ifndef SMALLTOOLBOX_H_
+#define SMALLTOOLBOX_H_
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
-#include <math.h>
+#include <numbers>
 #include <random>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace smalltoolbox {
 
-#define Numbers std::vector<double>
-#define Point2D smalltoolbox::Point
-#define Points  std::vector<smalltoolbox::Point>
-#define Polygon smalltoolbox::RegularPolygon
-#define Strings std::vector<std::string>
-
-#define CRITICALNUMBER std::numeric_limits<double>::max()
+#define Numbers     std::vector<double>
+#define Point2D     smalltoolbox::Point
+#define Points      std::vector<smalltoolbox::Point>
+#define Polygon     smalltoolbox::RegularPolygon
+#define Strings     std::vector<std::string>
+#define PI          std::numbers::pi
+#define MAXDOUBLE   std::numeric_limits<double>::max()
 
 using std::array;
-using std::atan;
 using std::cerr;
-using std::cos;
-using std::count_if;
 using std::cout;
 using std::exception;
-using std::filesystem::exists;
-using std::filesystem::path;
 using std::greater;
 using std::ifstream;
 using std::ios;
 using std::less;
-using std::localtime;
 using std::map;
 using std::max;
 using std::min;
-using std::numbers::pi;
+using std::move;
 using std::ofstream;
-using std::pow;
-using std::round;
-using std::sin;
-using std::size_t;
-using std::sort;
-using std::sqrt;
-using std::stod;
-using std::stoi;
-using std::stoul;
 using std::string;
-using std::time;
-using std::time_t;
-using std::tm;
 using std::to_string;
-using std::transform;
 using std::vector;
 
 class Point;
@@ -74,59 +57,59 @@ class SVG;
 class Sketch;
 class Interpreter;
 
-Point  Total(Points points);
-Points Organize(Points points);
-Points Round(Points points, int decimalPlaces = -1);
-Points Sort(Points points, bool X_axis = true);
-Points Sum(Points group, Point point);
-Points Sum(Points group, double value);
+auto Organize(Points points) -> Points;
+auto Round(Points points, int decimalPlaces = -1) -> Points;
+auto Sort(Points points, bool X_axis = true) -> Points;
+auto Sum(Points group, Point point) -> Points;
+auto Sum(Points group, double value) -> Points;
+auto Total(Points const &points) -> Point;
 
-bool Average(Points points, Point &point);
+auto Average(Points const &points, Point &point) -> bool;
 
-Line Perpendicular(Line line, Point point);
+auto Perpendicular(Line line, Point point) -> Line;
 
-bool LineIntersect(Line line1, Line line2, Point &point);
-bool LineIntersect(double x0, double y0, double x1, double y1, double x2,
-                   double y2, double x3, double y3, double &X, double &Y);
+auto LineIntersect(Line line1, const Line &line2, Point &point) -> bool;
+auto LineIntersect(double x0, double y0, double x1, double y1, double x2,
+                   double y2, double x3, double y3, Point &point) -> bool;
 
-double TriangleArea(Point p1, Point p2, Point p3);
-double TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2);
-double TriangleHeight(Point p1, Point p2, Point p3);
-double TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2);
+auto TriangleArea(Point point1, Point point2, Point point3) -> double;
+auto TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2) -> double;
+auto TriangleHeight(Point point1, Point point2, Point point3) -> double;
+auto TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2) -> double;
 
-double Angle(Point origin, Point first, Point second, bool signal = false);
-double Angle(double radians);
-double Angle(double x0, double y0, double x1, double y1);
-double Cos(double value, double radius, double angle);
-double Sin(double value, double radius, double angle);
-double Radians(double angle);
-double Distance(double x0, double y0, double x1, double y1);
-double SumDistances(Points points);
+auto Angle(Point origin, Point first, Point second, bool signal = false) -> double;
+auto Angle(double radians) -> double;
+auto Angle(double x0, double y0, double x1, double y1) -> double;
+auto Cos(double value, double radius, double angle) -> double;
+auto Sin(double value, double radius, double angle) -> double;
+auto Radians(double angle) -> double;
+auto Distance(double x0, double y0, double x1, double y1) -> double;
+auto SumDistances(Points points) -> double;
 
 template<typename T>
-bool Equal(vector<T> group1, vector<T> group2, bool compareOrder = false);
+auto Equal(vector<T> group1, vector<T> group2, bool compareOrder = false) -> bool;
 
-Numbers Sort(Numbers numbers, bool ascendingOrder = true);
-Numbers Round(Numbers values, int decimalPlaces = -1);
-double Round(double value, int decimalPlaces = -1);
+auto Sort(Numbers numbers, bool ascendingOrder = true) -> Numbers;
+auto Round(Numbers values, int decimalPlaces = -1)  -> Numbers;
+auto Round(double value, int decimalPlaces = -1) -> double;
 
 // String
-Strings Split(string str, const char delimiter);
-Strings Trim(Strings vStr, const char trimmer);
+auto Split(const string &str, char delimiter) -> Strings;
+auto Trim(Strings vStr, char trimmer) -> Strings;
 
-string Replace(string str, char character, string replace);
-string Replace(string str, char character, char replace);
-string LTrim(string str, const char trimmer);
-string RTrim(string str, const char trimmer);
-string Trim(string str, const char trimmer);
-string Join(Strings vStr, const char delimiter);
+auto Replace(const string &str, char character, const string &replace) -> string;
+auto Replace(const string &str, char character, char replace) -> string;
+auto LTrim(string str, char trimmer) -> string;
+auto RTrim(string str, char trimmer) -> string;
+auto Trim(string str, char trimmer) -> string;
+auto Join(Strings vStr, char delimiter) -> string;
 
 // View
 void View(Point point);
 void View(Points points);
 void View(Strings values);
 void View(double value);
-void View(string str);
+void View(const string &str);
 
 template<typename T>
 void View(vector<T> values);
@@ -135,8 +118,8 @@ template<size_t SIZE>
 void View(array<double, SIZE> arr);
 
 // I/O
-bool Save(const string &text, string path = "");
-string Load(string path, string filenameExtension = "");
+auto Save(const string &text, string filePath = "") -> bool;
+auto Load(const string &filePath, string filenameExtension = "") -> string;
 
 // Point 2D (x,y)
 class Point {
@@ -144,7 +127,7 @@ class Point {
     struct Coordinate {
         double value;
 
-        string toStr()
+        auto toStr() const -> string
         {
             return to_string(value);
         }
@@ -161,16 +144,16 @@ public:
     // Point (x, y)
     Point(double x, double y) : X{x}, Y{y} {};
 
-    ~Point() {};
+    ~Point() = default;
 
-    Point operator+(Point point)
+    auto operator+(Point point) const -> Point
     {
-        return Point(X.value + point.X.value, Y.value + point.Y.value);
+        return {X.value + point.X.value, Y.value + point.Y.value};
     }
 
-    Point operator+(double value)
+    auto operator+(double value) const -> Point
     {
-        return Point(X.value + value, Y.value + value);
+        return {X.value + value, Y.value + value};
     }
 
     void operator+=(Point point)
@@ -183,14 +166,14 @@ public:
         sum(value, value);
     }
 
-    Point operator-(const Point point)
+    auto operator-(const Point point) const -> Point
     {
-        return Point(X.value - point.X.value, Y.value - point.Y.value);
+        return {X.value - point.X.value, Y.value - point.Y.value};
     }
 
-    Point operator-(double value)
+    auto operator-(double value) const -> Point
     {
-        return Point(X.value - value, Y.value - value);
+        return {X.value - value, Y.value - value};
     }
 
     void operator-=(const Point point)
@@ -203,14 +186,14 @@ public:
         sum(-value, -value);
     }
 
-    Point operator*(const Point point)
+    auto operator*(const Point point) const -> Point
     {
-        return Point(X.value * point.X.value, Y.value * point.Y.value);
+        return {X.value * point.X.value, Y.value * point.Y.value};
     }
 
-    Point operator*(double value)
+    auto operator*(double value) const -> Point
     {
-        return Point(X.value * value, Y.value * value);
+        return {X.value * value, Y.value * value};
     }
 
     void operator*=(const Point point)
@@ -223,7 +206,7 @@ public:
         multiply(value, value);
     }
 
-    bool operator==(const Point point)
+    auto operator==(const Point point) const -> bool
     {
         return equal(point);
     }
@@ -250,19 +233,19 @@ public:
     }
 
     // Checks if coordinates are equal.
-    bool equal(Point point)
+    auto equal(Point point) const -> bool
     {
         return X.value == point.X.value && Y.value == point.Y.value;
     }
 
     // Angle of the imaginary line between the current point and the other.
-    double angle(Point point)
+    auto angle(Point point) const -> double
     {
         return Angle(X.value, Y.value, point.X.value, point.Y.value);
     }
 
     // Distance between the current point and another.
-    double distance(Point point)
+    auto distance(Point point) const -> double
     {
         return sqrt(pow(X.value - point.X.value, 2) +
                     pow(Y.value - point.Y.value, 2));
@@ -270,24 +253,24 @@ public:
 
     // Position from angle and radius.
     // Current point as origin.
-    Point position(double angle, double radius)
+    auto position(double angle, double radius) const -> Point
     {
-        return Point(Cos(X.value, radius, angle), Sin(Y.value, radius, angle));
+        return {Cos(X.value, radius, angle), Sin(Y.value, radius, angle)};
     }
 
     // Returns the rounded current coordinates.
-    Point round(int decimalPlaces = 2)
+    auto round(int decimalPlaces = 2) const -> Point
     {
-        return Point(Round(X.value, decimalPlaces), Round(Y.value, decimalPlaces));
+        return {Round(X.value, decimalPlaces), Round(Y.value, decimalPlaces)};
     }
 
     // Returns Vector[2] with X and Y values.
-    Numbers XY()
+    auto XY() -> Numbers
     {
         return {X.value, Y.value};
     }
 
-    string toStr(bool trimmed = false)
+    auto toStr(bool trimmed = false) const -> string
     {
         if (trimmed) {
             return RTrim(X.toStr(), '0') + "," + RTrim(Y.toStr(), '0');
@@ -330,7 +313,7 @@ class Base {
         }
     }
 
-    bool state()
+    auto state() -> bool
     {
         return (!first.equal(last_first) || !second.equal(last_second) ||
                 !third.equal(last_third) || !fourth.equal(last_fourth));
@@ -340,11 +323,10 @@ public:
 
     Point first, second, third, fourth;
 
-    Base() {};
+    Base() = default;
+    ~Base() = default;
 
-    ~Base() {};
-
-    Points setup(Points points)
+    auto setup(const Points &points) -> Points
     {
         if (points.size() < 2) {
             vertices.clear();
@@ -365,12 +347,12 @@ public:
         return vertices;
     }
 
-    bool operator==(Base polygon)
+    auto operator==(const Base &polygon) -> bool
     {
         return equal(polygon);
     }
 
-    bool isConvex()
+    auto isConvex() -> bool
     {
         auto sides = vertices.size();
         if (sides < 3) {
@@ -379,10 +361,10 @@ public:
 
         // Cross product of two vectors.
         auto crossProduct = [](Point origin, Point first, Point second) {
-            int x1 = first.X.value  - origin.X.value;
-            int y1 = first.Y.value  - origin.Y.value;
-            int x2 = second.X.value - origin.X.value;
-            int y2 = second.Y.value - origin.Y.value;
+            auto x1 = first.X.value  - origin.X.value;
+            auto y1 = first.Y.value  - origin.Y.value;
+            auto x2 = second.X.value - origin.X.value;
+            auto y2 = second.Y.value - origin.Y.value;
             return x1 * y2 - y1 * x2;
         };
 
@@ -405,13 +387,13 @@ public:
     }
 
     // Rearrange the polygon points.
-    Points organize()
+    auto organize() -> Points
     {
         return Organize(vertices);
     }
 
     // Calculates the Area by triangular subdivisions.
-    double area()
+    auto area() -> double
     {
         if (vertices.size() < 3) {
             return 0;
@@ -434,7 +416,7 @@ public:
         return result;
     }
 
-    double perimeter()
+    auto perimeter() -> double
     {
         double perimeter = SumDistances(vertices);
 
@@ -445,12 +427,12 @@ public:
         return perimeter;
     }
 
-    bool equal(Base polygon)
+    auto equal(Base polygon) -> bool
     {
         return Equal(points(), polygon.points());
     }
 
-    Base round(unsigned decimalPlaces = 2)
+    auto round(int decimalPlaces = 2) -> Base
     {
         Base polygon;
         polygon.vertices = Round(vertices, decimalPlaces);
@@ -459,7 +441,7 @@ public:
     }
 
     // Return the length of each side.
-    Numbers lengthOfSides()
+    auto lengthOfSides() -> Numbers
     {
         if (vertices.size() < 2) {
             return {0};
@@ -478,17 +460,17 @@ public:
     }
 
     // Average length.
-    double averageLength()
+    auto averageLength() -> double
     {
         if (!vertices.empty()) {
-            return perimeter() / vertices.size();
+            return perimeter() / static_cast<double>(vertices.size());
         }
 
         return 0;
     }
 
     // Returns the current vertices.
-    Points points()
+    auto points() -> Points
     {
         if (state()) {
             update(first, second, third, fourth);
@@ -504,7 +486,7 @@ class Line : public Base {
 
 public:
 
-    Line() {};
+    Line() = default;
 
     // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
     Line(Point first, Point second)
@@ -524,11 +506,11 @@ public:
         setup(Point(x1, y1), Point(x2, y2));
     };
 
-    ~Line() {};
+    ~Line() = default;
 
     // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
     // Returns vertices.
-    Points setup(Point first, Point second = Origin)
+    auto setup(Point first, Point second = Origin) -> Points
     {
         Base::setup({first, second});
 
@@ -537,27 +519,27 @@ public:
 
     // Line : Point (x,y), angle and length.
     // Returns vertices.
-    Points setup(Point origin, double angle, double length)
+    auto setup(Point origin, double angle, double length) -> Points
     {
         return setup(origin, origin.position(angle, length));
     }
 
     // Line : Point 1 (x1,y1) to Point 2 (x2,y2).
     // Returns vertices.
-    Points setup(double x1, double y1, double x2, double y2)
+    auto setup(double x1, double y1, double x2, double y2) -> Points
     {
         return setup(Point(x1, y1), Point(x2, y2));
     }
 
     // Distance between the two points.
-    double length()
+    auto length() -> double
     {
         return perimeter();
     }
 
     // Line angle.
     // Direction: first point to second point.
-    double angle()
+    auto angle() -> double
     {
         // Update
         auto vertices = points();
@@ -570,7 +552,7 @@ public:
     }
 
     // Midpoint
-    Point middle()
+    auto middle() -> Point
     {
         // Update
         points();
@@ -579,17 +561,17 @@ public:
     }
 
     // Returns the intersection point with another line.
-    bool intersection(Line line, Point &point)
+    auto intersection(const Line &line, Point &point) -> bool
     {
         return LineIntersect(first.X.value, first.Y.value,
                              second.X.value, second.Y.value,
                              line.first.X.value, line.first.Y.value,
                              line.second.X.value, line.second.Y.value,
-                             point.X.value, point.Y.value);
+                             point);
     }
 
     // Perpendicular line passing through the point.
-    Line perpendicular(Point point)
+    auto perpendicular(Point point) -> Line
     {
         // Dummy triangle area.
         double area = TriangleArea(first.X.value, first.Y.value,
@@ -601,7 +583,7 @@ public:
         double a = sqrt(pow(c, 2) - pow(b, 2));
 
         // Line with base slope.
-        return Line(first.position(angle(), a), point);
+        return {first.position(angle(), a), point};
     }
 
 };
@@ -611,7 +593,7 @@ class Triangle : public Base {
 
 public:
 
-    Triangle() {};
+    Triangle() = default;
 
     // Triangle: Points (x1,y1),(x2,y2),(x3,y3)
     Triangle(Point first, Point second, Point third)
@@ -626,11 +608,11 @@ public:
         setup(Line(first, second), height);
     }
 
-    ~Triangle() {};
+    ~Triangle() = default;
 
     // Triangle: Points (x1,y1),(x2,y2),(x3,y3)
     // Returns vertices.
-    Points setup(Point first, Point second, Point third)
+    auto setup(Point first, Point second, Point third) -> Points
     {
         Base::setup({first, second, third});
 
@@ -639,7 +621,7 @@ public:
 
     // Triangle: Line and height.
     // Returns vertices.
-    Points setup(Line side, double height)
+    auto setup(Line side, double height) -> Points
     {
         return setup(side.first,
                      side.second,
@@ -648,12 +630,12 @@ public:
 
     // Triangle: Points (x1,y1),(x2,y2) and height.
     // Returns vertices.
-    Points setup(Point first, Point second, double height)
+    auto setup(Point first, Point second, double height) -> Points
     {
         return setup(Line(first, second), height);
     }
 
-    double height()
+    auto height() -> double
     {
         return TriangleHeight(first, second, third);
     }
@@ -665,7 +647,7 @@ class Rectangle : public Base {
 
 public:
 
-    Rectangle() {};
+    Rectangle() = default;
 
     // Rectangle: Points (x1,y1),(x2,y2),(x3,y3),(x4,y4)
     Rectangle(Point first, Point second, Point third, Point fourth)
@@ -679,11 +661,11 @@ public:
         setup(origin, width, heigth);
     }
 
-    ~Rectangle() {};
+    ~Rectangle() = default;
 
     // Rectangle: Points (x1,y1),(x2,y2),(x3,y3),(x4,y4)
     // Returns vertices.
-    Points setup(Point first, Point second, Point third, Point fourth)
+    auto setup(Point first, Point second, Point third, Point fourth) -> Points
     {
         Base::setup({first, second, third, fourth});
 
@@ -692,7 +674,7 @@ public:
 
     // Rectangle : Point (x,y), width and heigth.
     // Returns vertices.
-    Points setup(Point origin, double width, double heigth)
+    auto setup(Point origin, double width, double heigth) -> Points
     {
         return setup(origin,
                      origin + Point(width, 0),
@@ -728,7 +710,7 @@ public:
     unsigned sides;
 
     // Returns true if data changes.
-    bool state()
+    auto state() -> bool
     {
         return !(center == last_center &&
                  angle == last_angle &&
@@ -737,7 +719,7 @@ public:
                  sides == last_sides);
     }
 
-    RegularPolygon() {};
+    RegularPolygon() = default;
 
     // Center : polygon center point (x,y),
     // radius : distance from the center (>= 1),
@@ -759,7 +741,7 @@ public:
         setup(center, horizontalRadius, verticalRadius, angle, sides);
     }
 
-    ~RegularPolygon() {};
+    ~RegularPolygon() = default;
 
     // Center : polygon center point (x,y),
     // horizontalRadius : distance from the center on X axis (>= 1),
@@ -767,8 +749,8 @@ public:
     // angle  : starting point angle,
     // sides  : divisions of a circle (>= 3).
     // Returns vertices.
-    Points setup(Point center, double horizontalRadius, double verticalRadius,
-                 double angle, unsigned sides)
+    auto setup(Point center, double horizontalRadius, double verticalRadius,
+               double angle, unsigned sides) -> Points
     {
         // Update.
         this->center = center;
@@ -790,9 +772,12 @@ public:
         }
 
         Points points;
-        for (unsigned a = angle; a < 360 + angle; a += (360 / sides)) {
-            points.push_back(Point(Cos(center.X.value, horizontalRadius, a),
-                                   Sin(center.Y.value, verticalRadius, a)));
+        int begin = static_cast<int>(angle);
+        int end = 360 + static_cast<int>(angle);
+        int step = 360 / static_cast<int>(sides);
+        for (auto a = begin; a < end; a += step) {
+            points.emplace_back(Point(Cos(center.X.value, horizontalRadius, a),
+                                      Sin(center.Y.value, verticalRadius, a)));
         }
 
         return Base::setup(points);
@@ -802,12 +787,12 @@ public:
     // radius : distance from the center (>= 1),
     // angle  : starting point angle,
     // sides  : divisions of a circle (>= 3).
-    Points setup(Point center, double radius, double angle, unsigned sides)
+    auto setup(Point center, double radius, double angle, unsigned sides) -> Points
     {
         return setup(center, radius, radius, angle, sides);
     }
 
-    double sideLength(int decimalPlaces = 2)
+    auto sideLength(int decimalPlaces = 2) -> double
     {
         if (sides < 2) {
             return 0;
@@ -819,7 +804,7 @@ public:
     }
 
     // Returns the current vertices.
-    Points points()
+    auto points() -> Points
     {
         update();
 
@@ -832,28 +817,28 @@ class Ellipse : public RegularPolygon {
 
 public:
 
-    Ellipse(){};
+    Ellipse() = default;
 
     Ellipse(Point center, double horizontalRadius, double verticalRadius)
     {
         setup(center, horizontalRadius, verticalRadius);
     }
 
-    ~Ellipse() {};
+    ~Ellipse() = default;
 
-    Points setup(Point center, double horizontalRadius, double verticalRadius)
+    auto setup(Point center, double horizontalRadius, double verticalRadius) -> Points
     {
         RegularPolygon::setup(center, horizontalRadius, verticalRadius, 0, 360);
 
         return points();
     }
 
-    double area()
+    auto area() -> double
     {
-        return horizontalRadius * verticalRadius * pi;
+        return horizontalRadius * verticalRadius * PI;
     }
 
-    double perimeter()
+    auto perimeter() -> double
     {
         // TO DO
         return -1;
@@ -864,16 +849,16 @@ class Circle : public Ellipse {
 
 public:
 
-    Circle(){};
+    Circle() = default;
 
     Circle(Point center, double radius)
     {
         setup(center, radius);
     }
 
-    ~Circle() {};
+    ~Circle() = default;
 
-    Points setup(Point center, double radius)
+    auto setup(Point center, double radius) -> Points
     {
         Ellipse::setup(center, radius, radius);
 
@@ -887,29 +872,29 @@ class IrregularPolygon : public Base {
 
 public:
 
-    IrregularPolygon() {};
+    IrregularPolygon() = default;
 
-    IrregularPolygon(Points points)
+    explicit IrregularPolygon(const Points &points)
     {
         setup(points);
     }
 
-    IrregularPolygon(Triangle triangle)
+    explicit IrregularPolygon(Triangle triangle)
     {
         setup(triangle.points());
     }
 
-    IrregularPolygon(Rectangle rectangle)
+    explicit IrregularPolygon(Rectangle rectangle)
     {
         setup(rectangle.points());
     }
 
-    IrregularPolygon(RegularPolygon polygon)
+    explicit IrregularPolygon(RegularPolygon polygon)
     {
         setup(polygon.points());
     }
 
-    ~IrregularPolygon() {};
+    ~IrregularPolygon() = default;
 };
 
 // SVG
@@ -917,11 +902,11 @@ class SVG {
 
 public:
 
-    static constexpr const char* WHITE = "#FFFFFF";
-    static constexpr const char* BLACK = "#000000";
-    static constexpr const char* RED   = "#FF0000";
-    static constexpr const char* GREEN = "#00FF00";
-    static constexpr const char* BLUE  = "#0000FF";
+    static constexpr const char *WHITE = "#FFFFFF";
+    static constexpr const char *BLACK = "#000000";
+    static constexpr const char *RED   = "#FF0000";
+    static constexpr const char *GREEN = "#00FF00";
+    static constexpr const char *BLUE  = "#0000FF";
 
     // Metadata setup.
     // creator             : String with the name of the creator or developer,
@@ -931,12 +916,12 @@ public:
     struct Metadata {
         string creator = "SVG created automatically by algorithm in C++.";
         string title = "SVG";
-        string publisherAgentTitle = "";
-        string date = "";
+        string publisherAgentTitle;
+        string date;
 
-        Metadata() {};
+        Metadata() = default;
         Metadata(string creator, string title, string publisher)
-            : creator(creator), title(title), publisherAgentTitle(publisher) {}
+            : creator{move(creator)}, title{move(title)}, publisherAgentTitle{move(publisher)} {}
     };
 
     // Drawing setup.
@@ -951,13 +936,14 @@ public:
         double strokeWidth{1.0};
         double fillOpacity{255.0}, strokeOpacity{255.0}; // 0.0 = 0%; 255 = 1.0 = 100%
 
-        Style(){};
+        Style() = default;
+
         Style(string name,  string fill, string stroke, double strokeWidth)
-            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth) {}
+            : name{move(name)}, fill{move(fill)}, stroke{move(stroke)}, strokeWidth{strokeWidth} {}
         Style(string name,  string fill, string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity)
-            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth),
-            fillOpacity(fillOpacity), strokeOpacity(strokeOpacity) {}
+            : name{move(name)}, fill{move(fill)}, stroke{move(stroke)}, strokeWidth{strokeWidth},
+            fillOpacity{fillOpacity}, strokeOpacity{strokeOpacity} {}
     };
 
     // Polygon and Polyline.
@@ -965,20 +951,20 @@ public:
     struct Shape : Style {
         Points points{};
 
-        Shape() : Style() {}
+        Shape() = default;
 
         Shape(string name,  string fill, string stroke, double strokeWidth)
-            : Style(name,  fill, stroke, strokeWidth) {}
+            : Style(move(name), move(fill), move(stroke), strokeWidth) {}
         Shape(string name,  string fill, string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity)
-            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity) {}
+            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity) {}
 
         Shape(string name,  string fill, string stroke, double strokeWidth, Points points)
-            :  Style(name,  fill, stroke, strokeWidth), points(points) {}
+            :  Style(move(name),  move(fill), move(stroke), strokeWidth), points{move(points)} {}
         Shape(string name,  string fill, string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity, Points points)
-            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity),
-            points(points) {}
+            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity),
+            points{move(points)} {}
     };
 
     // Circle and Ellipse.
@@ -990,30 +976,30 @@ public:
         double horizontalRadius{1};
         double verticalRadius{1};
 
-        CircleShape() : Style() {}
+        CircleShape() = default;
 
         CircleShape(string name,  string fill, string stroke, double strokeWidth)
-            : Style(name,  fill, stroke, strokeWidth) {}
+            : Style(move(name),  move(fill), move(stroke), strokeWidth) {}
         CircleShape(string name,  string fill, string stroke, double strokeWidth,
                     double fillOpacity, double strokeOpacity)
-            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity) {}
+            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity) {}
 
         CircleShape(string name,  string fill, string stroke, double strokeWidth,
                     Point center, double horizontalRadius, double verticalRadius)
-            :  Style(name,  fill, stroke, strokeWidth), center(center),
-            horizontalRadius (horizontalRadius), verticalRadius(verticalRadius) {}
+            :  Style(move(name),  move(fill), move(stroke), strokeWidth), center(center),
+            horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
         CircleShape(string name,  string fill, string stroke, double strokeWidth,
                     double fillOpacity, double strokeOpacity,
                     Point center, double horizontalRadius, double verticalRadius)
-            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity),
-            center(center), horizontalRadius (horizontalRadius), verticalRadius(verticalRadius) {}
+            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity),
+            center(center), horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
     };
 
     // Converts decimal value to hexadecimal.
-    static const string INT2HEX(unsigned value)
+    static auto INT2HEX(unsigned value) -> string
     {
         string digits = "0123456789ABCDEF";
-        string result = "";
+        string result;
         if (value < 16) {
             result.push_back('0');
             result.push_back(digits[value % 16]);
@@ -1028,7 +1014,7 @@ public:
     }
 
     // Converts hexadecimal value to decimal
-    static const int HEX2INT(string value)
+    static auto HEX2INT(string value) -> unsigned
     {
         if (value.starts_with('#')) {
             value = value.substr(1);
@@ -1041,7 +1027,8 @@ public:
         unsigned result = 0;
         try {
             result = stoul(value, nullptr, 16);
-        } catch (...) {
+        }
+        catch (...) {
             // pass
         }
 
@@ -1049,7 +1036,7 @@ public:
     }
 
     // Return vector unsigned {Red, Green, Blue, Alpha}
-    static const vector<unsigned> HEX2RGB(string value)
+    static auto HEX2RGB(string value) -> vector<unsigned>
     {
         if (value.starts_with('#')) {
             value = value.substr(1);
@@ -1068,7 +1055,7 @@ public:
             while (!value.empty()) {
                 string num = value.substr(0, 2);
                 value = value.substr(2);
-                result.push_back(HEX2INT(num));
+                result.push_back(static_cast<unsigned>(HEX2INT(num)));
             }
         }
 
@@ -1076,19 +1063,19 @@ public:
     }
 
     // Formats values (Red, Green, Blue) to "#RRGGBB" hexadecimal.
-    static const string RGB2HEX(unsigned R, unsigned G, unsigned B)
+    static auto RGB2HEX(unsigned R, unsigned G, unsigned B) -> string
     {
         return "#" + INT2HEX(R) + INT2HEX(G) + INT2HEX(B);
     }
 
     // Formats values (Red, Green, Blue, Alpha) to "#RRGGBBAA" hexadecimal.
-    static const string RGBA2HEX(unsigned R, unsigned G, unsigned B, unsigned A)
+    static auto RGBA2HEX(unsigned R, unsigned G, unsigned B, unsigned A) -> string
     {
         return RGB2HEX(R, G, B) + INT2HEX(A);
     }
 
     // Returns SVG: <g> Elements </g>
-    static const string group(string id, string elements)
+    static auto group(string id, const string &elements) -> string
     {
         id = id.empty() ? "<g>\n" : "<g id=\"" + id + "\" >\n";
         return elements.empty() ? "" : id + elements + "</g>\n";
@@ -1097,7 +1084,7 @@ public:
 private:
 
     // Validates and formats entries.
-    static const string style(Style style, string name)
+    static auto style(Style style, const string &name) -> string
     {
         style.name = name.empty() ? "Shape" : name;
         style.stroke = style.stroke.empty() ? "#000000" : style.stroke;
@@ -1115,16 +1102,16 @@ private:
 public:
 
     // Return SVG: <polyline ... />
-    static const string polyline(Shape shape)
+    static auto polyline(const Shape &shape) -> string
     {
 
         if (shape.points.empty()) {
             return "<!-- Empty -->\n";
         }
 
-        string values = "";
-        for (unsigned i = 0; i < shape.points.size(); i++) {
-            values += shape.points[i].toStr() + " ";
+        string values;
+        for (const auto &point : shape.points) {
+            values += point.toStr() + " ";
         }
 
         return {
@@ -1133,13 +1120,13 @@ public:
     }
 
     // Return SVG: <path ... />
-    static const string polygon(Shape shape)
+    static auto polygon(Shape shape) -> string
     {
         if (shape.points.empty()) {
             return "<!-- Empty -->\n";
         }
 
-        string values = "";
+        string values;
         for (unsigned i = 0; i < shape.points.size() - 1; i++) {
             values += shape.points[i].toStr() + " L ";
         }
@@ -1151,9 +1138,9 @@ public:
     }
 
     // Return SVG : <ellipse ... />
-    static const string circle(CircleShape circle)
+    static auto circle(const CircleShape &circle) -> string
     {
-        if (circle.horizontalRadius < 1 || circle.verticalRadius < 1 ) {
+        if (circle.horizontalRadius < 1 || circle.verticalRadius < 1) {
             return "<!-- Empty -->\n";
         }
         return {
@@ -1166,10 +1153,10 @@ public:
     }
 
     // Return full SVG.
-    static const string svg(int width, int height, const string &xml,
-                            Metadata metadata)
+    static auto svg(int width, int height, const string &xml,
+                    Metadata metadata) -> string
     {
-        string now = "";
+        string now;
         try {
             time_t t = time(nullptr);
             tm *const pTm = localtime(&t);
@@ -1179,7 +1166,7 @@ public:
             // pass
         }
 
-        metadata.date = metadata.date == "" ? now : metadata.date;
+        metadata.date = metadata.date.empty() ? now : metadata.date;
 
         return {
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
@@ -1259,15 +1246,17 @@ public:
     struct RGBA {
         int R{0}, G{0}, B{0}, A{0};
 
-        RGBA() {};
+        RGBA() = default;
 
         RGBA(int r, int g, int b, int a)
-            : RGBA(vector<int>{r, g, b, a}) {}
+            : RGBA(vector<int>
+                   {
+                       r, g, b, a
+                   }) {}
 
-        RGBA(vector<int> rgba)
+        explicit RGBA(vector<int> rgba)
+            : RGBA()
         {
-            R = 0; G = 0; B = 0; A = 0;
-
             switch (rgba.size()) {
             case 4:
                 A = rgba[3];
@@ -1288,22 +1277,22 @@ public:
             A = A < 0 ? 0 : A % 256;
         }
 
-        bool operator==(RGBA rgba)
+        auto operator==(RGBA rgba) const -> bool
         {
             return equal(rgba);
         }
 
-        bool empty()
+        auto empty() const -> bool
         {
             return R == 0 && G == 0 && B == 0 && A == 0;
         }
 
-        bool equal(RGBA rgba)
+        auto equal(RGBA rgba) const  ->bool
         {
             return R == rgba.R && G == rgba.G && B == rgba.B && A == rgba.A;
         }
 
-        string toStr(bool alpha = true)
+        auto toStr(bool alpha = true) const  ->string
         {
             return {
                 to_string(R) + "," + to_string(G) + "," +
@@ -1321,20 +1310,20 @@ class Sketch : public SVG, public Color {
 public:
 
     // Return basic SVG::Shape with Polygon base.
-    static const SVG::Shape Shape(Base base, string label)
+    static auto Shape(Base base, string label) -> SVG::Shape
     {
         SVG::Shape shape;
-        shape.name = label;
+        shape.name = move(label);
         shape.points = base.points();
 
         return shape;
     }
 
     // Return basic SVG::CircleShape with Ellipse base.
-    static const SVG::CircleShape CircleShape(Ellipse ellipse, string label)
+    static auto CircleShape(const Ellipse &ellipse, string label) -> SVG::CircleShape
     {
         SVG::CircleShape shape;
-        shape.name = label;
+        shape.name = move(label);
         shape.center = ellipse.center;
         shape.horizontalRadius = ellipse.horizontalRadius;
         shape.verticalRadius = ellipse.verticalRadius;
@@ -1343,17 +1332,17 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static const string SvgPolyline(Base base, string label)
+    static auto SvgPolyline(const Base &base, string label) -> string
     {
 
-        return SVG::polygon(Shape(base, label));
+        return SVG::polygon(Shape(base, move(label)));
     }
 
     // Return SVG::polyline with Polygon base.
-    static const string SvgPolyline(Base base, string label, RGBA fill, RGBA stroke)
+    static auto SvgPolyline(Base base, string label, RGBA fill, RGBA stroke) -> string
     {
 
-        return SVG::polyline(SVG::Shape(label,
+        return SVG::polyline(SVG::Shape(move(label),
                                         SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                         SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                         1.0,    // strokeWidth
@@ -1361,11 +1350,11 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static const string SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
-                                    double fillOpacity, double strokeOpacity)
+    static auto SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
+                            double fillOpacity, double strokeOpacity) -> string
     {
 
-        return SVG::polyline(SVG::Shape(label,
+        return SVG::polyline(SVG::Shape(move(label),
                                         SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                         SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                         1.0,    // strokeWidth
@@ -1375,12 +1364,12 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static const string SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
-                                    double fillOpacity, double strokeOpacity,
-                                    double strokeWidth)
+    static auto SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
+                            double fillOpacity, double strokeOpacity,
+                            double strokeWidth) -> string
     {
 
-        return SVG::polyline(SVG::Shape(label,
+        return SVG::polyline(SVG::Shape(move(label),
                                         SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                         SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                         strokeWidth,
@@ -1390,17 +1379,17 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static const string SvgPolygon(Base base, string label)
+    static auto SvgPolygon(const Base &base, string label) -> string
     {
 
-        return SVG::polygon(Shape(base, label));
+        return SVG::polygon(Shape(base, move(label)));
     }
 
     // Return SVG::polygon with Polygon base.
-    static const string SvgPolygon(Base base,string label, RGBA fill, RGBA stroke)
+    static auto SvgPolygon(Base base, string label, RGBA fill, RGBA stroke) -> string
     {
 
-        return SVG::polygon(SVG::Shape(label,
+        return SVG::polygon(SVG::Shape(move(label),
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                        1.0, // strokeWidth
@@ -1408,11 +1397,11 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static const string SvgPolygon(Base base,string label, RGBA fill, RGBA stroke,
-                                   double fillOpacity, double strokeOpacity)
+    static auto SvgPolygon(Base base, string label, RGBA fill, RGBA stroke,
+                           double fillOpacity, double strokeOpacity) -> string
     {
 
-        return SVG::polygon(SVG::Shape(label,
+        return SVG::polygon(SVG::Shape(move(label),
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                        1.0, // strokeWidth
@@ -1422,12 +1411,12 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static const string SvgPolygon(Base base,string label, RGBA fill, RGBA stroke,
-                                   double fillOpacity, double strokeOpacity,
-                                   double strokeWidth)
+    static auto SvgPolygon(Base base, string label, RGBA fill, RGBA stroke,
+                           double fillOpacity, double strokeOpacity,
+                           double strokeWidth) -> string
     {
 
-        return SVG::polygon(SVG::Shape(label,
+        return SVG::polygon(SVG::Shape(move(label),
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                        strokeWidth,
@@ -1437,15 +1426,15 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static const string SvgCircle(Ellipse ellipse, string label)
+    static auto SvgCircle(const Ellipse &ellipse, string label) -> string
     {
-        return SVG::circle(CircleShape(ellipse, label));
+        return SVG::circle(CircleShape(ellipse, move(label)));
     }
 
     // Return SVG::circle with Ellipse base.
-    static const string SvgCircle(Ellipse ellipse, string label, RGBA fill, RGBA stroke)
+    static auto SvgCircle(const Ellipse &ellipse, string label, RGBA fill, RGBA stroke) -> string
     {
-        return SVG::circle(SVG::CircleShape(label,
+        return SVG::circle(SVG::CircleShape(move(label),
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             1.0,    // strokeWidth
@@ -1457,10 +1446,10 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static const string SvgCircle(Ellipse ellipse, string label, RGBA fill, RGBA stroke,
-                                  double fillOpacity, double strokeOpacity)
+    static auto SvgCircle(const Ellipse &ellipse, string label, RGBA fill, RGBA stroke,
+                          double fillOpacity, double strokeOpacity) -> string
     {
-        return SVG::circle(SVG::CircleShape(label,
+        return SVG::circle(SVG::CircleShape(move(label),
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             1.0,    // strokeWidth
@@ -1472,11 +1461,11 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static const string SvgCircle(Ellipse ellipse, string label, RGBA fill, RGBA stroke,
-                                  double fillOpacity, double strokeOpacity,
-                                  double strokeWidth)
+    static auto SvgCircle(const Ellipse &ellipse, string label, RGBA fill, RGBA stroke,
+                          double fillOpacity, double strokeOpacity,
+                          double strokeWidth) -> string
     {
-        return SVG::circle(SVG::CircleShape(label,
+        return SVG::circle(SVG::CircleShape(move(label),
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             strokeWidth,
@@ -1488,10 +1477,10 @@ public:
     }
 
     // Returns SVG Elements.
-    static const string Join(vector<Base> bases, string label = "")
+    static auto Join(const vector<Base> &bases, const string &label = "") -> string
     {
         string strShape{};
-        for (auto item : bases) {
+        for (const auto &item : bases) {
             strShape += Sketch::SvgPolygon(item, label);
         }
 
@@ -1513,17 +1502,16 @@ class Interpreter {
         "CIRCLE", "ELLIPSE", "POLYGON", "BASE"
     };
 
-    const char SPACE = char(32);
+    const char SPACE = static_cast<char>(32);
     const string ERROR   = "\tERROR";
     const string WARNING = "\tWARNING";
 
 public:
 
-    Interpreter(){};
+    Interpreter() = default;
+    ~Interpreter() = default;
 
-    ~Interpreter(){};
-
-    string svg (string line, string& error)
+    auto svg(string line, string &error) -> string
     {
         if (line.empty()) {
             error = "[LINE EMPTY]\n";
@@ -1539,7 +1527,7 @@ public:
 
         // Check command.
         string command{};
-        int element = EMPTY;
+        unsigned element = EMPTY;
         for (unsigned i = 1; i < labelType.size(); i++) {
             command = labelType[i] + ":";   // Syntax.
             if (line.starts_with(command)) {
@@ -1557,13 +1545,17 @@ public:
 
         // Check points container: { }
         auto counter = count_if(line.begin(), line.end(),
-                                [](char c){ return c == '{'; });
+                                [](char c) {
+                                    return c == '{';
+                                });
         if (counter > 1) {
             error = bkp + ERROR + "[Curly braces]\n";
             return result;
         }
         counter -= count_if(line.begin(), line.end(),
-                            [](char c){ return c == '}'; });
+                            [](char c) {
+                                return c == '}';
+                            });
         if (counter != 0) {
             error = bkp + ERROR + "[Curly braces]\n";
             return result;
@@ -1571,9 +1563,13 @@ public:
 
         // Check coordinates container. ( )
         counter = count_if(line.begin(), line.end(),
-                           [](char c){ return c == '('; }) -
+                           [](char c) {
+                               return c == '(';
+                           }) -
                   count_if(line.begin(), line.end(),
-                           [](char c){ return c == ')'; });
+                           [](char c) {
+                               return c == ')';
+                           });
         if (counter != 0) {
             error = bkp + ERROR + "[Parentheses]\n";
             return result;
@@ -1582,10 +1578,15 @@ public:
         // Reset
         Points points{};
         double angle{0};
-        double sides{0};
-        double width{0}, height{0}, length{0};
-        double horizontalRadius{0}, verticalRadius{0};
-        double fillOpacity{255}, strokeOpacity{255}, strokeWidth{1.0};
+        double width{0};
+        double height{0};
+        double length{0};
+        double horizontalRadius{0};
+        double verticalRadius{0};
+        double fillOpacity{255};
+        double strokeOpacity{255};
+        double strokeWidth{1.0};
+        unsigned sides{0};
         string label{};
         Color::RGBA fillColor(255, 255, 255, 255);
         Color::RGBA strokeColor(0, 0, 0, 255);
@@ -1614,10 +1615,11 @@ public:
                         auto values = Split(str, ',');            //  x y
                         if (values.size() == 2) {
                             // Convert to Point.
-                            points.push_back(Point(stod(values[0]),
-                                                   stod(values[1])));
+                            points.emplace_back(Point(stod(values[0]),
+                                                      stod(values[1])));
                         }
-                    } catch (...) {
+                    }
+                    catch (...) {
                         error = bkp + ERROR + "[Invalid numeric formatting!]\n";
                         return result;
                     }
@@ -1631,7 +1633,7 @@ public:
         }
 
         // Check other arguments.
-        for (auto str : Split(line, SPACE)) {
+        for (const auto &str : Split(line, SPACE)) {
             vector<string> complements {
                 "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "RADIUS", "HRADIUS", "VRADIUS",
                 "STROKEW"
@@ -1646,7 +1648,7 @@ public:
                             angle = value;
                             break;
                         case 1:
-                            sides = value;
+                            sides = static_cast<unsigned>(value);
                             break;
                         case 2:
                             width = value;
@@ -1658,7 +1660,7 @@ public:
                             length = value;
                             break;
                         case 5:
-                            // radius = horizontalRadius
+                        // radius = horizontalRadius
                         case 6:
                             horizontalRadius = value;
                             break;
@@ -1671,39 +1673,46 @@ public:
                         default:
                             break;
                         }
-                    } catch (...) {
+                    }
+                    catch (...) {
                         // pass
                     }
                 }
             }
-            if (str.starts_with("LABEL=")) {
+            string arg = "LABEL=";
+            if (str.starts_with(arg)) {
                 try {
-                    label = str.substr(6);
-                } catch (...) {
+                    label = str.substr(arg.size());
+                }
+                catch (...) {
                     // pass
                 }
             }
+            arg = "FILL=";
             if (str.starts_with("FILL=")) {
                 try {
-                    auto numbers = Split(str.substr(5), ',');
+                    auto numbers = Split(str.substr(arg.size()), ',');
                     fillColor = Color::RGBA(stoi(numbers[0]),
                                             stoi(numbers[1]),
                                             stoi(numbers[2]),
                                             255);
                     fillOpacity = (numbers.size() == 4 ? stoi(numbers[3]) : 255);
-                } catch (...) {
+                }
+                catch (...) {
                     // pass
                 }
             }
-            if (str.starts_with("STROKE=")) {
+            arg = "STROKE=";
+            if (str.starts_with(arg)) {
                 try {
-                    auto numbers = Split(str.substr(7), ',');
+                    auto numbers = Split(str.substr(arg.size()), ',');
                     strokeColor = Color::RGBA(stoi(numbers[0]),
                                               stoi(numbers[1]),
                                               stoi(numbers[2]),
                                               255);
                     strokeOpacity = (numbers.size() == 4 ? stoi(numbers[3]) : 255);
-                } catch (...) {
+                }
+                catch (...) {
                     // pass
                 }
             }
@@ -1727,10 +1736,12 @@ public:
             if (points.size() == 1 && angle > 0 && length > 0) {
                 result = Sketch::SvgPolygon(Line(points.front(), angle, length),
                                             label, fillColor, strokeColor);
-            } else if (points.size() == 2) {
+            }
+            else if (points.size() == 2) {
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor);
-            } else {
+            }
+            else {
                 error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
@@ -1740,11 +1751,13 @@ public:
                 result = Sketch::SvgPolygon(Triangle(points[0], points[1], height),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
-            } else if (points.size() == 3) {
+            }
+            else if (points.size() == 3) {
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
-            } else {
+            }
+            else {
                 error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
@@ -1754,11 +1767,13 @@ public:
                 result = Sketch::SvgPolygon(Rectangle(points.front(), width, height),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
-            } else if (points.size() == 4) {
+            }
+            else if (points.size() == 4) {
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
-            } else {
+            }
+            else {
                 error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
@@ -1768,7 +1783,8 @@ public:
                 result = Sketch::SvgCircle(Circle(points.front(), horizontalRadius),
                                            label, fillColor, strokeColor,
                                            fillOpacity, strokeOpacity, strokeWidth);
-            } else {
+            }
+            else {
                 error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
@@ -1780,7 +1796,8 @@ public:
                                                    verticalRadius),
                                            label, fillColor, strokeColor,
                                            fillOpacity, strokeOpacity, strokeWidth);
-            } else {
+            }
+            else {
                 error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
@@ -1791,11 +1808,13 @@ public:
                                                            horizontalRadius, angle, sides),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
-            } else if (points.size() > 1) {
+            }
+            else if (points.size() > 1) {
                 result = Sketch::SvgPolygon(IrregularPolygon(points),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity);
-            } else {
+            }
+            else {
                 error = bkp + WARNING + "[Incomplete or wrong syntax!]\n";
                 return {};
             }
@@ -1809,7 +1828,7 @@ public:
         return result;
     }
 
-    string load(string path, string& errors)
+    auto load(const string &path, string &errors) -> string
     {
         auto text = Load(path, ".txt");
         if (text.empty()) {
@@ -1820,7 +1839,7 @@ public:
         string result{};
         errors.clear();
         auto lines = Split(text, '\n');
-        for(unsigned i = 0; i < lines.size(); i++) {
+        for (unsigned i = 0; i < lines.size(); i++) {
             auto line = lines[i];
             if (line.starts_with('#')) {
                 errors += to_string(i + 1) + ": [COMMENT LINE]\n";
@@ -1830,7 +1849,8 @@ public:
             auto res = svg(line, error);
             if (!res.empty()) {
                 result += res;
-            } else {
+            }
+            else {
                 errors += to_string(i + 1) + ": " + error;
             }
         }
@@ -1842,18 +1862,18 @@ public:
 
 // Generic
 
-double Radians(double angle)
+auto Radians(double angle) -> double
 {
-    return angle * pi / 180.0;
+    return angle * PI / 180.0;
 }
 
-double Angle(double radians)
+auto Angle(double radians) -> double
 {
-    return radians * 180.0 / pi;
+    return radians * 180.0 / PI;
 }
 
 // Returns the angle of the line (x0,y0)(x1,y1).
-double Angle(double x0, double y0, double x1, double y1)
+auto Angle(double x0, double y0, double x1, double y1) -> double
 {
     double result = Angle(atan((y1 - y0) / (x1 - x0)));
 
@@ -1887,7 +1907,7 @@ double Angle(double x0, double y0, double x1, double y1)
 
 // Angle between three points.
 // Sign : True, respects the order of the vectors.
-double Angle(Point origin, Point first, Point second, bool signal)
+auto Angle(Point origin, Point first, Point second, bool signal) -> double
 {
     auto angle1 = origin.angle(first);
     auto angle2 = origin.angle(second);
@@ -1900,26 +1920,26 @@ double Angle(Point origin, Point first, Point second, bool signal)
 }
 
 // Return: value + radius * cos(angle).
-double Cos(double value, double radius, double angle)
+auto Cos(double value, double radius, double angle) -> double
 {
     return value + radius * cos(Radians(angle));
 }
 
 // Return: value + radius * sin(angle).
-double Sin(double value, double radius, double angle)
+auto Sin(double value, double radius, double angle) -> double
 {
     return value + radius * sin(Radians(angle));
 }
 
 // Returns the distance between two points.
-double Distance(double x0, double y0, double x1, double y1)
+auto Distance(double x0, double y0, double x1, double y1) -> double
 {
     return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
 }
 
 // Rounds value to N digits after decimal point.
 // Number of Decimal Places < 0, returns the same value.
-double Round(double value, int decimalPlaces)
+auto Round(double value, int decimalPlaces) -> double
 {
     if (decimalPlaces < 0) {
         return value;
@@ -1929,17 +1949,19 @@ double Round(double value, int decimalPlaces)
         return static_cast<int>(value);
     }
 
-    decimalPlaces = decimalPlaces > 10 ? 10 : decimalPlaces;
+    const int limit = 10;
+    decimalPlaces = decimalPlaces > limit ? limit : decimalPlaces;
 
-    return round(value * pow(10, decimalPlaces)) / pow(10, decimalPlaces);
+    const int base = 10;
+    return round(value * pow(base, decimalPlaces)) / pow(base, decimalPlaces);
 }
 
 // Round values.
 // Number of Decimal Places < 0, returns the same value.
-Numbers Round(Numbers values, int decimalPlaces)
+auto Round(Numbers values, int decimalPlaces) -> Numbers
 {
-    for (unsigned i = 0; i < values.size(); i++) {
-        values[i] = Round(values[i], decimalPlaces);
+    for (double &value : values) {
+        values = Round(values, decimalPlaces);
     }
 
     return values;
@@ -1947,17 +1969,17 @@ Numbers Round(Numbers values, int decimalPlaces)
 
 // Round points.
 // Number of Decimal Places < 0, returns the same value.
-Points Round(Points points, int decimalPlaces)
+auto Round(Points points, int decimalPlaces) -> Points
 {
-    for (unsigned i = 0; i < points.size(); i++) {
-        points[i] = points[i].round(decimalPlaces);
+    for (auto &point : points) {
+        point = point.round(decimalPlaces);
     }
 
     return points;
 }
 
 // Triangle area.
-double TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2)
+auto TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2) -> double
 {
     // Heron's formula
     auto a = Distance(x0, y0, x1, y1);
@@ -1969,44 +1991,44 @@ double TriangleArea(double x0, double y0, double x1, double y1, double x2, doubl
 }
 
 // Triangle area using points.
-double TriangleArea(Point p1, Point p2, Point p3)
+auto TriangleArea(Point point1, Point point2, Point point3) -> double
 {
-    return TriangleArea(p1.X.value, p1.Y.value,
-                        p2.X.value, p2.Y.value,
-                        p3.X.value, p3.Y.value);
+    return TriangleArea(point1.X.value, point1.Y.value,
+                        point2.X.value, point2.Y.value,
+                        point3.X.value, point3.Y.value);
 }
 
 // Triangle height.
-double TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2)
+auto TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2) -> double
 {
     auto area = TriangleArea(x0, y0, x1, y1, x2, y2);
-    auto h0 = 2 * area / Distance(x0, y0, x1, y1);
-    auto h1 = 2 * area / Distance(x1, y1, x2, y2);
-    auto h2 = 2 * area / Distance(x2, y2, x0, y0);
+    auto height0 = 2 * area / Distance(x0, y0, x1, y1);
+    auto height1 = 2 * area / Distance(x1, y1, x2, y2);
+    auto height2 = 2 * area / Distance(x2, y2, x0, y0);
 
-    return max(max(h0, h1), h2);
+    return max(max(height0, height1), height2);
 }
 
 // Triangle height using points.
-double TriangleHeight(Point p1, Point p2, Point p3)
+auto TriangleHeight(Point point1, Point point2, Point point3) -> double
 {
-    return TriangleHeight(p1.X.value, p1.Y.value,
-                          p2.X.value, p2.Y.value,
-                          p3.X.value, p3.Y.value);
+    return TriangleHeight(point1.X.value, point1.Y.value,
+                          point2.X.value, point2.Y.value,
+                          point3.X.value, point3.Y.value);
 }
 
 // Calculates the point of intersection between two lines.
 // Returns false if the lines are parallel or coincident.
 // Line 1 (x0, y0) - (x1, y1),
 // Line 2 (x2, y2) - (x3, y4).
-bool LineIntersect(double x0, double y0, double x1, double y1,
+auto LineIntersect(double x0, double y0, double x1, double y1,
                    double x2, double y2, double x3, double y3,
-                   double &X, double &Y)
+                   Point &point) -> bool
 {
     double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
     if (d == 0) {   // Two lines are parallel or coincident ...
-        X = CRITICALNUMBER;
-        Y = CRITICALNUMBER;
+        point.X.value = MAXDOUBLE;
+        point.Y.value = MAXDOUBLE;
         return false;
     }
 
@@ -2014,8 +2036,8 @@ bool LineIntersect(double x0, double y0, double x1, double y1,
     double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
 
     if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
-        X = x0 + t * (x1 - x0);
-        Y = y0 + t * (y1 - y0);
+        point.X.value = x0 + t * (x1 - x0);
+        point.Y.value = y0 + t * (y1 - y0);
         return true;
     }
 
@@ -2025,20 +2047,20 @@ bool LineIntersect(double x0, double y0, double x1, double y1,
 
 // Calculates the point of intersection between two lines.
 // Returns false if the lines are parallel or coincident.
-bool LineIntersect(Line line1, Line line2, Point &point)
+auto LineIntersect(Line line1, const Line &line2, Point &point) -> bool
 {
     return line1.intersection(line2, point);
 }
 
 // Perpendicular line passing through the point.
-Line Perpendicular(Line line, Point point)
+auto Perpendicular(Line line, Point point) -> Line
 {
     return line.perpendicular(point);
 }
 
 // Compare groups.
 template<typename T>
-bool Equal(vector<T> group1, vector<T> group2, bool compareOrder)
+auto Equal(vector<T> group1, vector<T> group2, bool compareOrder) -> bool
 {
     if (group1.size() != group2.size()) {
         return false;
@@ -2052,10 +2074,10 @@ bool Equal(vector<T> group1, vector<T> group2, bool compareOrder)
         }
     }
 
-    for (auto v1 : group1) {
+    for (auto value1 : group1) {
         bool differentFromEveryone = true;
-        for (auto v2 : group2) {
-            if (v1 == v2) {
+        for (auto value2 : group2) {
+            if (value1 == value2) {
                 differentFromEveryone = false;
                 break;
             }
@@ -2069,27 +2091,27 @@ bool Equal(vector<T> group1, vector<T> group2, bool compareOrder)
 }
 
 // Returns Points updated with the sum.
-Points Sum(Points group, double value)
+auto Sum(Points group, double value) -> Points
 {
-    for (unsigned i = 0; i < group.size(); i++) {
-        group[i] += value;
+    for (auto &item : group) {
+        item += value;
     }
 
     return group;
 }
 
 // Returns Points updated with the sum.
-Points Sum(Points group, Point point)
+auto Sum(Points group, Point point) -> Points
 {
-    for (unsigned i = 0; i < group.size(); i++) {
-        group[i] += point;
+    for (auto &item : group) {
+        item += point;
     }
 
     return group;
 }
 
 // Sum all the distances, point by point.
-double SumDistances(Points points)
+auto SumDistances(Points points) -> double
 {
     if (points.empty()) {
         return 0;
@@ -2112,44 +2134,44 @@ double SumDistances(Points points)
 }
 
 // Sum : Point (Total X axis, Total Y axis).
-Point Total(Points points)
+auto Total(const Points &points) -> Point
 {
     Point sum;
-    for (auto p : points) {
-        sum += p;
+    for (auto point : points) {
+        sum += point;
     }
 
     return sum;
 }
 
 // Average : Point (Total X axis / Points, Total Y axis / Points).
-bool Average(Points points, Point &point)
+auto  Average(const Points &points, Point &point) -> bool
 {
     if (points.empty()) {
         point = Origin;
         return false;
     }
 
-    point = Total(points) * (1.0 / points.size()) ;
+    point = Total(points) * (1.0 / static_cast<double>(points.size())) ;
 
     return true;
 }
 
 // Sort numbers.
-Numbers Sort(Numbers numbers, bool ascendingOrder)
+auto Sort(Numbers numbers, bool ascendingOrder) -> Numbers
 {
     if (ascendingOrder) {
-        sort(numbers.begin(), numbers.end(), less<double>());
+        sort(numbers.begin(), numbers.end(), less<>());
     }
     else {
-        sort(numbers.begin(), numbers.end(), greater<double>());
+        sort(numbers.begin(), numbers.end(), greater<>());
     }
 
     return numbers;
 }
 
 // Sort points by X or Y axis.
-Points Sort(Points points, bool X_axis)
+auto Sort(Points points, bool X_axis) -> Points
 {
     if (points.empty()) {
         return {};
@@ -2161,9 +2183,9 @@ Points Sort(Points points, bool X_axis)
 
     map<double, Numbers > mapPoint;
 
-    for (auto p : points) {
-        auto key = X_axis ? p.X.value : p.Y.value;
-        auto value = X_axis ? p.Y.value : p.X.value;
+    for (auto point : points) {
+        auto key = X_axis ? point.X.value : point.Y.value;
+        auto value = X_axis ? point.Y.value : point.X.value;
         if (mapPoint.find(key) == mapPoint.end()) {
             mapPoint.insert({key, {value}});
         }
@@ -2173,16 +2195,16 @@ Points Sort(Points points, bool X_axis)
     }
 
     Points result;
-    for (auto item : mapPoint) {
+    for (const auto &item : mapPoint) {
         if (X_axis) {
             for (auto value : item.second) { // Y
-                result.push_back(Point(item.first, value));
+                result.emplace_back(Point(item.first, value));
             }
         }
         else {
             auto values = Sort(item.second);
             for (auto value : values) {     // X
-                result.push_back(Point(value, item.first));
+                result.emplace_back(Point(value, item.first));
             }
         }
     }
@@ -2191,17 +2213,17 @@ Points Sort(Points points, bool X_axis)
 }
 
 // Sort the Points clockwise.
-Points Organize(Points points)
+auto Organize(Points points) -> Points
 {
     if (points.size() < 2) {
         return points;
     }
 
     // Map : Angle x Point.
-    map<float, Points > mapPoint;
+    map<double, Points > mapPoint;
 
     for (auto value : points) {
-        float key = Point(0, 0).angle(value);
+        auto key = Point(0, 0).angle(value);
         if (mapPoint.find(key) == mapPoint.end()) {
             mapPoint.insert(make_pair(key, Points{value}));
         }
@@ -2211,7 +2233,7 @@ Points Organize(Points points)
     }
 
     Points result;
-    for (auto item : mapPoint) {
+    for (const auto &item : mapPoint) {
         for (auto vPoints : item.second) {
             result.push_back(vPoints);
         }
@@ -2221,7 +2243,7 @@ Points Organize(Points points)
 }
 
 // Join strings.
-string Join(Strings vStr, const char delimiter)
+auto Join(Strings vStr, char delimiter) -> string
 {
     string result{};
     for (unsigned i = 0; i < vStr.size(); i++) {
@@ -2232,10 +2254,10 @@ string Join(Strings vStr, const char delimiter)
 }
 
 // Trim string : Remove characters to the left.
-string LTrim(string str, const char trimmer)
+auto LTrim(string str, char trimmer) -> string
 {
     int left = 0;
-    int right = str.size() - 1;
+    auto right = str.size() - 1;
     right = right < 0 ? 0 : right;
     while (left < str.size()) {
         if (str[left] != trimmer) {
@@ -2248,10 +2270,10 @@ string LTrim(string str, const char trimmer)
 }
 
 // Trim string : Remove characters to the right.
-string RTrim(string str, const char trimmer)
+auto RTrim(string str, char trimmer) -> string
 {
     int left = 0;
-    int right = str.size() - 1;
+    auto right = str.size() - 1;
     right = right < 0 ? 0 : right;
     while (right >= 0) {
         if (str[right] != trimmer) {
@@ -2265,54 +2287,54 @@ string RTrim(string str, const char trimmer)
 }
 
 // Trim string.
-string Trim(string str, const char trimmer)
+auto Trim(string str, char trimmer) -> string
 {
-    return RTrim(LTrim(str, trimmer), trimmer);
+    return RTrim(LTrim(move(str), trimmer), trimmer);
 }
 
 // Trim strings.
-Strings Trim(Strings vStr, const char trimmer)
+auto Trim(Strings vStr, char trimmer) -> Strings
 {
-    for (unsigned i = 0; i < vStr.size(); ++i) {
-        vStr[i] = Trim(vStr[i], trimmer);
+    for (auto &item : vStr) {
+        item = Trim(item, trimmer);
     }
 
     return vStr;
 }
 
 // Replace all occurrences.
-string Replace(string str, char character, string replace)
+auto Replace(const string &str, char character, const string &replace) -> string
 {
     string result{};
-    for (unsigned i = 0; i < str.size(); ++i) {
-        result += (str[i] == character ? replace : string{str[i]});
+    for (char characterTemp : str) {
+        result += (characterTemp == character ? replace : string{characterTemp});
     }
 
     return result;
 }
 
 // Replace all occurrences.
-string Replace(string str, char character, char replace)
+auto Replace(const string &str, char character, char replace) -> string
 {
     return Replace(str, character, string{replace});
 }
 
 // Split string.
-Strings Split(string str, const char delimiter)
+auto Split(const string &str, char delimiter) -> Strings
 {
     Strings result;
-    string s{};
-    for (unsigned i = 0; i < str.size(); ++i) {
-        if (str[i] == delimiter) {
-            result.push_back(s);
-            s = "";
+    string strTemp{};
+    for (char character : str) {
+        if (character == delimiter) {
+            result.push_back(strTemp);
+            strTemp = "";
         }
         else {
-            s += str[i];
+            strTemp += character;
         }
     }
-    if (!s.empty()) {
-        result.push_back(s);
+    if (!strTemp.empty()) {
+        result.push_back(strTemp);
     }
 
     return result;
@@ -2336,10 +2358,10 @@ void View(Point point)
 template<size_t SIZE>
 void View(array<double, SIZE> arr)
 {
-    unsigned i = 0;
+    unsigned counter = 0;
     for (const auto &value : arr) {
-        cout << "[" << i << "]: " << Round(value) << '\n';
-        i++;
+        cout << "[" << counter << "]: " << Round(value) << '\n';
+        counter++;
     }
 }
 
@@ -2393,27 +2415,27 @@ void View(Strings values)
 }
 
 // Std::cout : string.
-void View(string str)
+void View(const string &str)
 {
     cout << str << '\n';
 }
 
 // Load text file.
-string Load(string path, string filenameExtension)
+auto Load(const string &filePath, string filenameExtension) -> string
 {
-    if (path.empty()) {
+    if (filePath.empty()) {
         return {};
     }
 
     // Check extension.
     if (!filenameExtension.empty()) {
-        const std::filesystem::path p(path);
-        if (!std::filesystem::exists(p)) {
+        const auto fpath = std::filesystem::path(filePath);
+        if (!exists(fpath)) {
             cerr << "File not found!\n";
             return {};
         }
 
-        string extension{p.extension()};
+        string extension{fpath.extension()};
         transform(extension.begin(), extension.end(),
                   extension.begin(), ::toupper);
         transform(filenameExtension.begin(), filenameExtension.end(),
@@ -2426,7 +2448,7 @@ string Load(string path, string filenameExtension)
 
     string str{};
     try {
-        ifstream fileIn(path, ios::in);
+        ifstream fileIn(filePath, ios::in);
         if (fileIn.is_open()) {
             string line{};
             while (getline(fileIn, line)) {
@@ -2443,19 +2465,19 @@ string Load(string path, string filenameExtension)
 }
 
 // Save text file.
-bool Save(const string &text, string path)
+auto Save(const string &text, string filePath) -> bool
 {
     if (text.empty()) {
         cerr << "Empty text! Export failed!\n";
         return false;
     }
 
-    if (path.empty()) {
-        path = "output.txt";
+    if (filePath.empty()) {
+        filePath = "output.txt";
     }
 
     try {
-        ofstream file(path, ios::out);
+        ofstream file(filePath, ios::out);
         file << text;
         file.close();
     }
@@ -2468,6 +2490,6 @@ bool Save(const string &text, string path)
     return true;
 }
 
-} // namespace
+} // namespace smalltoolbox
 
-#endif // _SMALLTOOLBOX_H_
+#endif // SMALLTOOLBOX_H_

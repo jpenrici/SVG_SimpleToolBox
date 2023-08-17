@@ -1,6 +1,6 @@
 #include "svgToolBox.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -66,15 +66,15 @@ int main()
     const auto start = std::chrono::steady_clock::now();
 
     // Sequence
-    //basic();
-    //point();
-    //line();
-    //triangle();
-    //rectangle();
-    //circle();
-    //regularPolygons();
-    //irregularPolygon();
-    //svg();
+    basic();
+    point();
+    line();
+    triangle();
+    rectangle();
+    circle();
+    regularPolygons();
+    irregularPolygon();
+    svg();
     //interpreter();
     loadTxt();
 
@@ -129,12 +129,6 @@ void basic()
 
     assert(TriangleArea(0, 0, 5, 0, 0, 10) == 25.0);    // Triangle
     assert(TriangleHeight(0, 0, 5, 0, 0, 10) == 10.0);  // Triangle
-
-    double x, y;
-    assert(!LineIntersect(1, 2, 5, 5, 2, 1, 6, 4, x, y));     // Parallel
-    assert(!LineIntersect(0, 0, 5, 5, 1, 1, 4, 4, x, y));     // Coincident
-    assert(LineIntersect(1, 1, -1, -1, 2, -2, -2, 2, x, y));  // Intersection at Origin
-    assert(LineIntersect(2, 2, 2, 10, 0, 4, 10, 4, x, y));    // Intersection at (2,4)
 
     Numbers numbers {10, -1, 2};
     Numbers expected {-1, 2, 10};
@@ -324,6 +318,11 @@ void line()
     assert(Line(0, 0, 1, 1).angle() != Line(1, 1, 0, 0).angle());
 
     // Intersection
+    assert(!LineIntersect(1, 2, 5, 5, 2, 1, 6, 4, p));     // Parallel
+    assert(!LineIntersect(0, 0, 5, 5, 1, 1, 4, 4, p));     // Coincident
+    assert(LineIntersect(1, 1, -1, -1, 2, -2, -2, 2, p));  // Intersection at Origin
+    assert(LineIntersect(2, 2, 2, 10, 0, 4, 10, 4, p));    // Intersection at (2,4)
+
     assert(LineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1), p) == true);
     assert(p == Point(0.5, 0.5));
     assert(LineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2), p) == false);
@@ -613,16 +612,18 @@ void interpreter()
     };
 
     std::string error;
-    for(auto command : commands) {
+    for (auto command : commands) {
         auto result = interpreter.svg(command, error);
         if (!result.empty()) {
             View(command);
             View(result);
-        } else {
+        }
+        else {
             View(error);
         }
     }
 
+    std::cout << "Interpreter test finished!\n";
 }
 
 void loadTxt()
@@ -636,5 +637,7 @@ void loadTxt()
     Save(svg, "Resources/svgOutput.svg");
 
     //View(svg);
-    View(errors);
+    //View(errors);
+
+    std::cout << "Load Text File test finished!\n";
 }
