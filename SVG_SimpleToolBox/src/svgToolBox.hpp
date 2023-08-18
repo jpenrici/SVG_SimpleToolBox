@@ -125,7 +125,7 @@ auto Load(const string &filePath, string filenameExtension = "") -> string;
 class Point {
 
     struct Coordinate {
-        double value;
+        double value{0};
 
         auto toStr() const -> string
         {
@@ -368,17 +368,17 @@ public:
             return x1 * y2 - y1 * x2;
         };
 
-        int previous = 0;
+        double previous = 0;
         for (unsigned i = 0; i < sides; i++) {
             auto product = crossProduct(vertices[i],
                                         vertices[(i + 1) % sides],
                                         vertices[(i + 2) % sides]);
             if (product != 0) {
-                if (product * previous < 0) {
-                    return false;
+                if (product * previous >= 0) {
+                    previous = product;
                 }
                 else {
-                    previous = product;
+                    return false;
                 }
             }
         }
@@ -418,7 +418,7 @@ public:
 
     auto perimeter() -> double
     {
-        double perimeter = SumDistances(vertices);
+        auto perimeter = SumDistances(vertices);
 
         if (vertices.size() > 2) {
             perimeter += vertices.back().distance(vertices.front());
@@ -687,11 +687,11 @@ public:
 // Regular Polygon (x,y)...(xN,yN)
 class RegularPolygon : public Base {
 
-    Point last_center;
-    double last_angle;
-    double last_horizontalRadius;
-    double last_verticalRadius;
-    unsigned last_sides;
+    Point last_center{0, 0};
+    double last_angle{0};
+    double last_horizontalRadius{0};
+    double last_verticalRadius{0};
+    unsigned last_sides{0};
 
     void update()
     {
@@ -703,11 +703,11 @@ class RegularPolygon : public Base {
 
 public:
 
-    Point center;
-    double angle;
-    double horizontalRadius;
-    double verticalRadius;
-    unsigned sides;
+    Point center{0, 0};
+    double angle{0};
+    double horizontalRadius{0};
+    double verticalRadius{0};
+    unsigned sides{0};
 
     // Returns true if data changes.
     auto state() -> bool
@@ -2440,6 +2440,7 @@ auto Load(const string &filePath, string filenameExtension) -> string
                   extension.begin(), ::toupper);
         transform(filenameExtension.begin(), filenameExtension.end(),
                   filenameExtension.begin(), ::toupper);
+
         if (!extension.ends_with(filenameExtension)) {
             cerr << "Invalid file!\n";
             return {};
