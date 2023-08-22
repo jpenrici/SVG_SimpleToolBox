@@ -2,50 +2,6 @@
 
 #include <cassert>
 #include <chrono>
-#include <iostream>
-#include <vector>
-
-using smalltoolbox::Angle;
-using smalltoolbox::Cos;
-using smalltoolbox::Distance;
-using smalltoolbox::Equal;
-using smalltoolbox::Join;
-using smalltoolbox::LineIntersect;
-using smalltoolbox::Load;
-using smalltoolbox::Organize;
-using smalltoolbox::Radians;
-using smalltoolbox::Round;
-using smalltoolbox::Save;
-using smalltoolbox::Sin;
-using smalltoolbox::Sort;
-using smalltoolbox::Split;
-using smalltoolbox::Sum;
-using smalltoolbox::SumDistances;
-using smalltoolbox::Total;
-using smalltoolbox::TriangleArea;
-using smalltoolbox::TriangleHeight;
-using smalltoolbox::Trim;
-using smalltoolbox::LTrim;
-using smalltoolbox::RTrim;
-using smalltoolbox::Replace;
-using smalltoolbox::View;
-
-using smalltoolbox::Origin;
-using smalltoolbox::Zero;
-using smalltoolbox::Point;
-using smalltoolbox::Line;
-using smalltoolbox::Triangle;
-using smalltoolbox::Rectangle;
-using smalltoolbox::Circle;
-using smalltoolbox::Ellipse;
-using smalltoolbox::Base;
-using smalltoolbox::IrregularPolygon;
-using smalltoolbox::RegularPolygon;
-
-using smalltoolbox::Color;
-using smalltoolbox::SVG;
-using smalltoolbox::Sketch;
-using smalltoolbox::Interpreter;
 
 // Tests
 void basic();
@@ -88,68 +44,75 @@ int main()
 
 void basic()
 {
+    using namespace smalltoolbox;
+
     // Math
     std::vector<unsigned> angles {
         0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 225, 270, 315, 360
     };
     for (auto &a : angles) {
-        assert(std::sin(a * std::numbers::pi / 180.0) == Sin(0, 1, a));
-        assert(std::cos(a * std::numbers::pi / 180.0) == Cos(0, 1, a));
+        assert(std::sin(a * std::numbers::pi / 180.0) == Math::sin(0, 1, a));
+        assert(std::cos(a * std::numbers::pi / 180.0) == Math::cos(0, 1, a));
     }
 
-    assert(Radians(360) == 2 * std::numbers::pi);
-    assert(Angle(2 * std::numbers::pi) == 360);
+    assert(Math::radians(360) == 2 * std::numbers::pi);
+    assert(Math::angle(2 * std::numbers::pi) == 360);
 
-    assert(Angle(0.0, 0.0,  0.0,  0.0) == 0);
-    assert(Angle(0.0, 0.0,  1.0,  0.0) == 0);
-    assert(Angle(0.0, 0.0,  0.0,  1.0) == 90);
-    assert(Angle(0.0, 0.0, -1.0,  0.0) == 180);
-    assert(Angle(0.0, 0.0,  0.0, -1.0) == 270);
-    assert(Angle(0.0, 0.0,  1.0,  1.0) == 45);
-    assert(Angle(0.0, 0.0, -1.0,  1.0) == 90 + 45);
-    assert(Angle(0.0, 0.0, -1.0, -1.0) == 180 + 45);
-    assert(Angle(0.0, 0.0,  1.0, -1.0) == 270 + 45);
-    assert(Angle(1.0, 1.0,  0.0,  0.0) == 180 + 45);
+    assert(Math::angle(0.0, 0.0,  0.0,  0.0) == 0);
+    assert(Math::angle(0.0, 0.0,  1.0,  0.0) == 0);
+    assert(Math::angle(0.0, 0.0,  0.0,  1.0) == 90);
+    assert(Math::angle(0.0, 0.0, -1.0,  0.0) == 180);
+    assert(Math::angle(0.0, 0.0,  0.0, -1.0) == 270);
+    assert(Math::angle(0.0, 0.0,  1.0,  1.0) == 45);
+    assert(Math::angle(0.0, 0.0, -1.0,  1.0) == 90 + 45);
+    assert(Math::angle(0.0, 0.0, -1.0, -1.0) == 180 + 45);
+    assert(Math::angle(0.0, 0.0,  1.0, -1.0) == 270 + 45);
+    assert(Math::angle(1.0, 1.0,  0.0,  0.0) == 180 + 45);
 
-    assert(Cos(5, 10,  0) == (5 + 10 * 1));
-    assert(Sin(5, 10,  0) == (5 + 10 * 0));
-    assert(Sin(5, 10, 90) == (5 + 10 * 1));
+    assert(Math::cos(5, 10,  0) == (5 + 10 * 1));
+    assert(Math::sin(5, 10,  0) == (5 + 10 * 0));
+    assert(Math::sin(5, 10, 90) == (5 + 10 * 1));
 
-    assert(Distance(0.0, 0.0, 5.0, 0.0) == 5);
-    assert(Distance(0.0, 0.0, 0.0, 5.0) == 5);
-    assert(Distance(0.0, 0.0, 5.0, 5.0) == std::sqrt(50));
+    assert(Math::distance(0.0, 0.0, 5.0, 0.0) == 5);
+    assert(Math::distance(0.0, 0.0, 0.0, 5.0) == 5);
+    assert(Math::distance(0.0, 0.0, 5.0, 5.0) == std::sqrt(50));
 
     assert(round(0.011) == 0.000);
     assert(round(0.011) != 0.011);
     assert(std::round(0.011) != 0.011);
-    assert(Round(0.0110, 2) == 0.01000000);
-    assert(Round(0.0190, 2) == 0.02000000);
-    assert(Round(0.0101, 3) == 0.0100);
-    assert(Round(0.0109, 3) == 0.0110);
+    assert(Math::round(0.0110, 2) == 0.01000000);
+    assert(Math::round(0.0190, 2) == 0.02000000);
+    assert(Math::round(0.0101, 3) == 0.0100);
+    assert(Math::round(0.0109, 3) == 0.0110);
 
-    assert(TriangleArea(0, 0, 5, 0, 0, 10) == 25.0);    // Triangle
-    assert(TriangleHeight(0, 0, 5, 0, 0, 10) == 10.0);  // Triangle
+    assert(Math::triangleArea(0, 0, 5, 0, 0, 10) == 25.0);    // Triangle
+    assert(Math::triangleHeight(0, 0, 5, 0, 0, 10) == 10.0);  // Triangle
 
     Numbers numbers {10, -1, 2};
     Numbers expected {-1, 2, 10};
-    Numbers inOrder = Sort(numbers);
-    assert(Equal(numbers, expected));         // Order is not important.
-    assert(Equal(inOrder, expected, true));   // Order is important.
+    Numbers inOrder = Math::sort(numbers);
+    assert(Check::equal(numbers, expected));         // Order is not important.
+    assert(Check::equal(inOrder, expected, true));   // Order is important.
 
     // Strings
-    assert(Join(std::vector<std::string> {"Hello", "World!"}, char(32)) == "Hello World!");
-    assert(Equal(Split("Hello World!", char(32)), std::vector<std::string> {"Hello", "World!"}));
-    assert(Equal(Trim(std::vector<std::string> {"100", "001"}, '0'), {"1", "1"}));
-    assert(Replace("010110", '1', "--") == "0--0----0");
-    assert(Trim("0.100", '0') == ".1");
-    assert(LTrim("0001", '0') == "1");
-    assert(RTrim("1000", '0') == "1");
+    assert(Text::join(std::vector<std::string> {"Hello", "World!"}, char(32)) == "Hello World!");
+    assert(Check::equal(Text::split("Hello World!", char(32)), std::vector<std::string> {"Hello", "World!"}));
+    assert(Check::equal(Text::trim(std::vector<std::string> {"100", "001"}, '0'), {"1", "1"}));
+    assert(Text::replace("010110", '1', "--") == "0--0----0");
+    assert(Text::trim("0.100", '0') == ".1");
+    assert(Text::ltrim("0001", '0') == "1");
+    assert(Text::rtrim("1000", '0') == "1");
+
+    assert(Text::strUpper("help") == "HELP");
+    assert(Text::strLower("HelP") == "help");
 
     std::cout << "Basic test finished!\n";
 }
 
 void point()
 {
+    using namespace smalltoolbox;
+
     Point p1, p2; // (0, 0)
 
     assert(p1.equal(p2));
@@ -191,81 +154,83 @@ void point()
     assert(p1.round() == Point(0, 10));
 
     // Output
-    //View(1);
-    //View(0.5);
-    //View(1.5f);
+    //Console::view(1);
+    //Console::view(0.5);
+    //Console::view(1.5f);
 
-    //View(p1);
-    //View(p2);
-    //View(p1.XY());
+    //Console::view(p1);
+    //Console::view(p2);
+    //Console::view(p1.XY());
 
     // Compare point vector.
     Point a(1, 1), b(2, 2), c(3, 3);
-    assert(Equal(Points{a, b}, {b, a}));
-    assert(Equal({a, b, c}, Points{c, b, a}));
-    assert(Equal(Points{a + b, c}, {c, c}));
-    assert(!Equal(Points{a, b}, Points{a, c}));
+    assert(Check::equal(Points{a, b}, {b, a}));
+    assert(Check::equal({a, b, c}, Points{c, b, a}));
+    assert(Check::equal(Points{a + b, c}, {c, c}));
+    assert(!Check::equal(Points{a, b}, Points{a, c}));
 
     // Sum
-    assert(Equal(Sum({Point(1, 1), Point(2, 2)}, 5), {Point(6, 6), Point(7, 7)}));
-    assert(Equal(Sum({Point(1, 1), Point(2, 2)}, Point(1, 2)), {Point(2, 3), Point(3, 4)}));
+    assert(Check::equal(Point::sum({Point(1, 1), Point(2, 2)}, 5), {Point(6, 6), Point(7, 7)}));
+    assert(Check::equal(Point::sum({Point(1, 1), Point(2, 2)}, Point(1, 2)), {Point(2, 3), Point(3, 4)}));
 
     // Sum of distances
-    assert(SumDistances({Origin, Point(10, 0), Point(10, 20), Point(-10, 20)}) == 50.0);
+    assert(Point::sumDistances({Origin, Point(10, 0), Point(10, 20), Point(-10, 20)}) == 50.0);
 
     // Sort X-axis
-    auto points = Sort({Origin, Point(-10, 0), Point(10, 0), Point(-5, -1)});
+    auto points = Point::sort({Origin, Point(-10, 0), Point(10, 0), Point(-5, -1)});
     Points expected = {Point(-10, 0), Point(-5, -1), Origin, Point(10, 0)};
-    assert(Equal(points, expected, true));
-    //View(points);
-    //View(expected);
+    assert(Check::equal(points, expected, true));
+    //Console::view(points);
+    //Console::view(expected);
 
     // Sort Y-axis
-    points = Sort({Origin, Point(-10, 0), Point(10, 0), Point(-5, -1)}, false);
+    points = Point::sort({Origin, Point(-10, 0), Point(10, 0), Point(-5, -1)}, false);
     expected = {Point(-5, -1), Point(-10, 0), Origin, Point(10, 0)};
-    assert(Equal(points, expected, true));
-    //View(points);
-    //View(expected);
+    assert(Check::equal(points, expected, true));
+    //Console::view(points);
+    //Console::view(expected);
 
     // Total
-    assert(Total({Point(1, 1), Point(1, 1), Point(1, 1)}) == Point(3, 3));
+    assert(Point::total({Point(1, 1), Point(1, 1), Point(1, 1)}) == Point(3, 3));
 
     // Average
     Point result;
-    assert(Average({Point(1, 3), Point(2, 1), Point(3, 2)}, result));
+    assert(Point::average({Point(1, 3), Point(2, 1), Point(3, 2)}, result));
     assert(result.equal(Point(2, 2)));
 
     // Organize
-    assert(Organize({}).empty());
-    assert(Equal(Organize({Origin}), {Point(0, 0)}));
-    assert(Equal(Organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-                 {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
-    assert(Equal(Organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-                 {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)}, true));
+    assert(Point::organize({}).empty());
+    assert(Check::equal(Point::organize({Origin}), {Point(0, 0)}));
+    assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
+    {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
+    assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
+    {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)}, true));
 
     // Angle between three points
-    assert(Angle(Origin, Point(1, 1), Point(0, 1))       == 45);
-    assert(Angle(Point(1, 1), Point(2, 2), Point(1, 2))  == 45);
-    assert(Angle(Origin, Point(1, 1), Point(-1,  1))     == 90);
-    assert(Angle(Origin, Point(1, 1), Point(-1, -1))     == 180);
-    assert(Angle(Origin, Point(1, 1), Point(0, -1))      == 180 + 45);
-    assert(Angle(Origin, Point(1, 1), Point(1, -1))      == 270);
-    assert(Angle(Origin, Point(1, 0), Point(0, 1))       == 90);
-    assert(Angle(Origin, Point(1, 0), Point(0, 1), true) == -90);
-    assert(Angle(Origin, Origin, Origin)      == 0);
-    assert(Angle(Origin, Origin, Point(1, 1)) == 45);
+    assert(Point::angle(Origin, Point(1, 1), Point(0, 1))       == 45);
+    assert(Point::angle(Point(1, 1), Point(2, 2), Point(1, 2))  == 45);
+    assert(Point::angle(Origin, Point(1, 1), Point(-1,  1))     == 90);
+    assert(Point::angle(Origin, Point(1, 1), Point(-1, -1))     == 180);
+    assert(Point::angle(Origin, Point(1, 1), Point(0, -1))      == 180 + 45);
+    assert(Point::angle(Origin, Point(1, 1), Point(1, -1))      == 270);
+    assert(Point::angle(Origin, Point(1, 0), Point(0, 1))       == 90);
+    assert(Point::angle(Origin, Point(1, 0), Point(0, 1), true) == -90);
+    assert(Point::angle(Origin, Origin, Origin)                 == 0);
+    assert(Point::angle(Origin, Origin, Point(1, 1))            == 45);
 
     // String
     p1.X.value = 1.101;
     p1.Y.value = 1.202;
     assert(p1.toStr(true) == "1.101,1.202");
-    //View(p1.toStr());
+    //Console::view(p1.toStr());
 
     std::cout << "Point test finished!\n";
 }
 
 void line()
 {
+    using namespace smalltoolbox;
+
     Line line;
 
     assert(line.first == Origin);
@@ -292,8 +257,8 @@ void line()
     Line line1;
     line.setup(Point(2, 2), Point(2, 10));  // Line (2,2)(2,10)
     line1.setup(0, 4, 10, 4);               // Line (0,4)(10,4)
-    //View(line.points());
-    //View(line1.points());
+    //Console::view(line.points());
+    //Console::view(line1.points());
     assert(line.intersection(line1, p));    // Intersect
     assert(p == Point(2, 4));               // at (2,4)
 
@@ -318,22 +283,22 @@ void line()
     assert(Line(0, 0, 1, 1).angle() != Line(1, 1, 0, 0).angle());
 
     // Intersection
-    assert(!LineIntersect(1, 2, 5, 5, 2, 1, 6, 4, p));     // Parallel
-    assert(!LineIntersect(0, 0, 5, 5, 1, 1, 4, 4, p));     // Coincident
-    assert(LineIntersect(1, 1, -1, -1, 2, -2, -2, 2, p));  // Intersection at Origin
-    assert(LineIntersect(2, 2, 2, 10, 0, 4, 10, 4, p));    // Intersection at (2,4)
+    assert(!Point::lineIntersect(1, 2, 5, 5, 2, 1, 6, 4, p));     // Parallel
+    assert(!Point::lineIntersect(0, 0, 5, 5, 1, 1, 4, 4, p));     // Coincident
+    assert(Point::lineIntersect(1, 1, -1, -1, 2, -2, -2, 2, p));  // Intersection at Origin
+    assert(Point::lineIntersect(2, 2, 2, 10, 0, 4, 10, 4, p));    // Intersection at (2,4)
 
-    assert(LineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1), p) == true);
+    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1), p) == true);
     assert(p == Point(0.5, 0.5));
-    assert(LineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2), p) == false);
-    assert(LineIntersect(Line(0, 0, 1, 1), Line(1, 1, 0, 0), p) == false);
+    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2), p) == false);
+    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 1, 0, 0), p) == false);
 
     // Perpendicular
-    assert(Perpendicular(Line(-1, 0, 1, 0), Point(0.5, 2)).round() ==
+    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(0.5, 2)).round() ==
            Line(0.5, 0, 0.5, 2)); // Between the two points.
-    assert(Perpendicular(Line(-1, 0, 1, 0), Point(2.5, 2)).round() ==
+    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(2.5, 2)).round() ==
            Line(2.5, 0, 2.5, 2)); // Out of range.
-    assert(Perpendicular(Line(-1, 0, 1, 0), Point(-1.5, 2)).round() ==
+    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(-1.5, 2)).round() ==
            Line(-0.5, 0, -1.5, 2));// Out of range.
 
     std::cout << "Line test finished!\n";
@@ -341,6 +306,8 @@ void line()
 
 void triangle()
 {
+    using namespace smalltoolbox;
+
     Triangle triangle;
 
     assert(triangle.first == Origin);
@@ -367,18 +334,20 @@ void triangle()
     assert(Triangle(a, b, c) == Triangle(b, a, c));         // Equal
     assert(Triangle(a, b, a + b) == Triangle(c, b, a));     // Equal
     assert(!Triangle(a, b, c).equal(Triangle(a, b, d)));    // Not Equal
-    //View(Triangle(a, b, c).points());
-    //View(Triangle(a, b, c).lengthOfSides());
+    //Console::view(Triangle(a, b, c).points());
+    //Console::view(Triangle(a, b, c).lengthOfSides());
 
     // Area, height
-    assert(TriangleArea(Origin, Point(20, 0), Point(0, 30)) == 300.0);
-    assert(TriangleHeight(Origin, Point(20, 0), Point(0, 30)) == 30.0);
+    assert(Point::triangleArea(Origin, Point(20, 0), Point(0, 30)) == 300.0);
+    assert(Point::triangleHeight(Origin, Point(20, 0), Point(0, 30)) == 30.0);
 
     std::cout << "Triangle test finished!\n";
 }
 
 void rectangle()
 {
+    using namespace smalltoolbox;
+
     Rectangle rectangle;
 
     assert(rectangle.first == Origin);
@@ -394,8 +363,8 @@ void rectangle()
     assert(rectangle.perimeter() == 40);
 
     rectangle.setup(Point(0, 0), 20, 10);
-    //View(rectangle.points());
-    //View(rectangle.lengthOfSides());
+    //Console::view(rectangle.points());
+    //Console::view(rectangle.lengthOfSides());
 
     Point a(1, 1), b(5, 1), c(5, 5), d(1, 5), e(5, 5);
     assert(Rectangle(a, b, c, d) == Rectangle(d, a, b, c));             // Equal
@@ -403,18 +372,20 @@ void rectangle()
     assert(Rectangle(a, b, c, e) == Rectangle(a, b, c, a * 4.0 + 1.0)); // Equal
     assert(Rectangle(a, b, c, d).round().area() == Rectangle(d, a, b, c).round().area());
     assert(Rectangle(a, b, c, d).round().perimeter() == Rectangle(d, a, b, c).round().perimeter());
-    //View(Rectangle(a, b, c, d).points());
-    //View(Rectangle(d, a, b, c).points());
+    //Console::view(Rectangle(a, b, c, d).points());
+    //Console::view(Rectangle(d, a, b, c).points());
 
     std::cout << "Rectangle test finished!\n";
 }
 
 void circle()
 {
+    using namespace smalltoolbox;
+
     Ellipse ellipse(Origin, 8, 2);
     Circle circle(Origin, 4);
-    //View(circle.sides);
-    //View(ellipse.sides);
+    //Console::view(circle.sides);
+    //Console::view(ellipse.sides);
     assert(circle.area() == ellipse.area());
     assert(circle.horizontalRadius != ellipse.horizontalRadius);
     assert(circle.verticalRadius != ellipse.verticalRadius);
@@ -423,6 +394,8 @@ void circle()
 
 void regularPolygons()
 {
+    using namespace smalltoolbox;
+
     // Polygon
     RegularPolygon polygon;
     polygon.setup(Point(0, 0), -1,  0,  0); // Return empty
@@ -434,15 +407,15 @@ void regularPolygons()
     polygon.setup(Point(0, 0),  1,  0,  1); // Return empty
     assert(polygon.points().empty());
 
-    //View(polygon.setup(Point(0, 0),  1,    0,  3)); // Triangle
-    //View(polygon.setup(Point(0, 0),  1,   45,  3)); // Triangle
-    //View(polygon.setup(Point(0, 0),  1,   90,  3)); // Triangle
-    //View(polygon.setup(Point(0, 0),  1,  180,  3)); // Triangle
-    //View(polygon.setup(Point(0, 0),  1,  270,  3)); // Triangle
-    //View(polygon.setup(Point(0, 0),  1,    0,  4)); // Rectangle
-    //View(polygon.setup(Point(0, 0),  2,   45,  4)); // Rectangle
-    //View(polygon.setup(Point(0, 0),  1,    0,  5)); // Pentagon
-    //View(polygon.setup(Point(0, 0),  1,   45,  5)); // Pentagon
+    //Console::view(polygon.setup(Point(0, 0),  1,    0,  3)); // Triangle
+    //Console::view(polygon.setup(Point(0, 0),  1,   45,  3)); // Triangle
+    //Console::view(polygon.setup(Point(0, 0),  1,   90,  3)); // Triangle
+    //Console::view(polygon.setup(Point(0, 0),  1,  180,  3)); // Triangle
+    //Console::view(polygon.setup(Point(0, 0),  1,  270,  3)); // Triangle
+    //Console::view(polygon.setup(Point(0, 0),  1,    0,  4)); // Rectangle
+    //Console::view(polygon.setup(Point(0, 0),  2,   45,  4)); // Rectangle
+    //Console::view(polygon.setup(Point(0, 0),  1,    0,  5)); // Pentagon
+    //Console::view(polygon.setup(Point(0, 0),  1,   45,  5)); // Pentagon
 
     // Rectangle (1,0)(0,1)(-1,0)(0,-1)
     polygon.setup(Point(0, 0),  1,  0,  4);
@@ -451,17 +424,17 @@ void regularPolygons()
     RegularPolygon p1, p2;
     p1.setup(Origin, std::sqrt(2), 0, 4);
     p2.setup(Origin, std::sqrt(2), 90, 4);
-    //View(p1.points());
-    //View(p1.round().points());
-    //View(p2.points());
-    //View(p2.round().points());
+    //Console::view(p1.points());
+    //Console::view(p1.round().points());
+    //Console::view(p2.points());
+    //Console::view(p2.round().points());
     assert(p1.round() == p2.round());       // Equal
     assert(p1.round().equal(p2.round()));   // Equal
     assert(!p1.equal(p2));                  // Same but different precision.
 
     // Rectangle 2 x 2 : (1,1)(-1,1)(-1,-1)(1,-1)
     polygon = RegularPolygon(Origin, std::sqrt(2), 45, 4);
-    //View(polygon.points());
+    //Console::view(polygon.points());
     assert(polygon.isConvex());
     assert(round(polygon.area()) == 4.0);
     assert(round(polygon.perimeter()) == 8.0);
@@ -474,9 +447,9 @@ void regularPolygons()
     // Polygon
     polygon = RegularPolygon(Origin, 1, 0, 5);
     assert(polygon.isConvex());
-    //View(polygon.averageLength());
-    //View(polygon.sideLength());
-    //View(polygon.lengthOfSides());
+    //Console::view(polygon.averageLength());
+    //Console::view(polygon.sideLength());
+    //Console::view(polygon.lengthOfSides());
 
     polygon = RegularPolygon(Origin, 1, 0, 6);
     assert(polygon.isConvex());
@@ -489,16 +462,18 @@ void regularPolygons()
 
 void irregularPolygon()
 {
+    using namespace smalltoolbox;
+
     IrregularPolygon polygon;
 
     polygon.setup({Point(0, 0), Point(0, 1), Point(1, 1)});             // Triangle
     assert(polygon.isConvex());
-    assert(Round(polygon.area(), 2) == 0.5);
+    assert(Math::round(polygon.area(), 2) == 0.5);
     assert(polygon.perimeter() == 2 + std::sqrt(2));
 
     polygon.setup(Triangle(Origin, Point(0, 1), Point(1, 1)).points()); // Triangle
     assert(polygon.isConvex());
-    assert(Round(polygon.area(), 2) == 0.5);
+    assert(Math::round(polygon.area(), 2) == 0.5);
     assert(polygon.perimeter() == 2 + std::sqrt(2));
 
     polygon.setup({Origin, Point(1, 0), Point(1, 1), Point(0, 1)});     // Rectangle
@@ -533,15 +508,17 @@ void irregularPolygon()
 
 void svg()
 {
+    using namespace smalltoolbox;
+
     assert(!Color::RGBA(1, 0, 1, 0).equal(Color::RGBA(0, 1, 0, 1)));
 
-    //View(Color::RGBA(255, 255, 0, 0).toStr());
-    //View(Color::RGBA(255, 255, 0, 0).toStr(false));
-    //View(Color::RGBA(std::vector<int>{1}).toStr(true));
-    //View(Color::RGBA(std::vector<int>{1, 2}).toStr(true));
-    //View(Color::RGBA(std::vector<int>{1, 2, 3}).toStr(true));
-    //View(Color::RGBA(std::vector<int>{1, 2, 3, 4}).toStr(true));
-    //View(Color::RGBA(std::vector<int>{-1, -2, -3, -4}).toStr(true));
+    //Console::view(Color::RGBA(255, 255, 0, 0).toStr());
+    //Console::view(Color::RGBA(255, 255, 0, 0).toStr(false));
+    //Console::view(Color::RGBA(std::vector<int> {1}).toStr(true));
+    //Console::view(Color::RGBA(std::vector<int> {1, 2}).toStr(true));
+    //Console::view(Color::RGBA(std::vector<int> {1, 2, 3}).toStr(true));
+    //Console::view(Color::RGBA(std::vector<int> {1, 2, 3, 4}).toStr(true));
+    //Console::view(Color::RGBA(std::vector<int> {-1, -2, -3, -4}).toStr(true));
 
     assert(SVG::INT2HEX(0) == "00");
     assert(SVG::INT2HEX(10) == "0A");
@@ -557,12 +534,12 @@ void svg()
 
     assert(SVG::HEX2RGB("#").empty());
     assert(SVG::HEX2RGB("#1234567").empty());
-    assert(Equal(SVG::HEX2RGB("#0102"), {1, 2}));
-    assert(Equal(SVG::HEX2RGB("#01020304"), {1, 2, 3, 4}));
-    assert(Equal(SVG::HEX2RGB("#7F7F7F"), {127, 127, 127}));        // RGB
-    assert(Equal(SVG::HEX2RGB("#7F7F7FFF"), {127, 127, 127, 255})); // RGBA
-    //View(SVG::HEX2RGB("#7F7F7FFF"));
-    //View(Color::RGBA(SVG::HEX2RGB("#7F7F7FFF")).toStr());
+    assert(Check::equal(SVG::HEX2RGB("#0102"), {1, 2}));
+    assert(Check::equal(SVG::HEX2RGB("#01020304"), {1, 2, 3, 4}));
+    assert(Check::equal(SVG::HEX2RGB("#7F7F7F"), {127, 127, 127}));        // RGB
+    assert(Check::equal(SVG::HEX2RGB("#7F7F7FFF"), {127, 127, 127, 255})); // RGBA
+    //Console::view(SVG::HEX2RGB("#7F7F7FFF"));
+    //Console::view(Color::RGBA(SVG::HEX2RGB("#7F7F7FFF")).toStr());
 
     std::vector<Base> shapes {
         Line(Point(10, 150), Point(500, 150)),
@@ -571,19 +548,21 @@ void svg()
         Circle(Point(250, 80), 50),
         Ellipse(Point(400, 80), 80, 50),
         RegularPolygon(Point(200, 300), 100, 90, 6),
-        IrregularPolygon(Sum(Polygon(Point(200, 300), 100, 90, 6).points(),
-                             Point(-100, 200)))
+        IrregularPolygon(Point::sum(Polygon(Point(200, 300), 100, 90, 6).points(),
+                                    Point(-100, 200)))
     };
 
     auto svg = Sketch::svg(600, 600, Sketch::Join(shapes), Sketch::Metadata());
-    //Save(svg, "svgOutput.svg");
-    //View(svg);
+    IO::save(svg, "svgOutput.svg");
+    //Console::view(svg);
 
     std::cout << "SVG test finished!\n";
 }
 
 void interpreter()
 {
+    using namespace smalltoolbox;
+
     Interpreter interpreter;
 
     std::vector<std::string> commands {
@@ -615,11 +594,11 @@ void interpreter()
     for (auto command : commands) {
         auto result = interpreter.svg(command, error);
         if (!result.empty()) {
-            View(command);
-            View(result);
+            Console::view(command);
+            Console::view(result);
         }
         else {
-            View(error);
+            Console::view(error);
         }
     }
 
@@ -628,16 +607,18 @@ void interpreter()
 
 void loadTxt()
 {
+    using namespace smalltoolbox;
+
     Interpreter interpreter;
 
     std::string errors;
     auto svg = interpreter.load("Resources/test_commands.txt", errors);
 
     svg = Sketch::svg(100, 100, svg, Sketch::Metadata());
-    Save(svg, "Resources/svgOutput.svg");
+    IO::save(svg, "Resources/svgOutput.svg");
 
-    //View(svg);
-    //View(errors);
+    //Console::view(svg);
+    //Console::view(errors);
 
     std::cout << "Load Text File test finished!\n";
 }

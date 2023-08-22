@@ -15,6 +15,9 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <stdexcept>
+#include <unordered_map>
+#include <locale>
 
 namespace smalltoolbox {
 
@@ -26,100 +29,440 @@ namespace smalltoolbox {
 #define PI          std::numbers::pi
 #define MAXDOUBLE   std::numeric_limits<double>::max()
 
-using std::array;
-using std::cerr;
-using std::cout;
-using std::exception;
-using std::greater;
-using std::ifstream;
-using std::ios;
-using std::less;
-using std::map;
-using std::max;
-using std::min;
-using std::move;
-using std::ofstream;
-using std::string;
-using std::to_string;
-using std::vector;
+class Text {
 
-class Point;
-class Base;
-class Line;
-class Triangles;
-class Rectangle;
-class Circle;
-class Ellipse;
-class RegularPolygon;
-class IrregularPolygon;
+public:
 
-class SVG;
-class Sketch;
-class Interpreter;
+    // Split string by delimiter.
+    static auto split(const std::string &str, char delimiter) -> Strings
+    {
+        Strings result;
+        std::string strTemp{};
+        for (char character : str) {
+            if (character == delimiter) {
+                result.push_back(strTemp);
+                strTemp.clear();
+            }
+            else {
+                strTemp += character;
+            }
+        }
+        if (!strTemp.empty()) {
+            result.push_back(strTemp);
+        }
 
-auto Organize(Points points) -> Points;
-auto Round(Points points, int decimalPlaces = -1) -> Points;
-auto Sort(Points points, bool X_axis = true) -> Points;
-auto Sum(Points group, Point point) -> Points;
-auto Sum(Points group, double value) -> Points;
-auto Total(Points const &points) -> Point;
+        return result;
+    }
 
-auto Average(Points const &points, Point &point) -> bool;
+    // Replace all occurrences of the character with the string.
+    static auto replace(const std::string &str, char character,
+                        const std::string &strReplace) -> std::string
+    {
+        std::string result{};
+        for (char characterTemp : str) {
+            result += (characterTemp == character ? strReplace : std::string{characterTemp});
+        }
 
-auto Perpendicular(Line line, Point point) -> Line;
+        return result;
+    }
 
-auto LineIntersect(Line line1, const Line &line2, Point &point) -> bool;
-auto LineIntersect(double x0, double y0, double x1, double y1, double x2,
-                   double y2, double x3, double y3, Point &point) -> bool;
+    // Replace all occurrences of the character with another character.
+    static auto replace(const std::string &str, char character,
+                        char charReplace) -> std::string
+    {
+        return Text::replace(str, character, std::string{charReplace});
+    }
 
-auto TriangleArea(Point point1, Point point2, Point point3) -> double;
-auto TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2) -> double;
-auto TriangleHeight(Point point1, Point point2, Point point3) -> double;
-auto TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2) -> double;
+    // Trim string.
+    static auto trim(std::string str, char trimmer) -> std::string
+    {
+        return rtrim(ltrim(std::move(str), trimmer), trimmer);
+    }
 
-auto Angle(Point origin, Point first, Point second, bool signal = false) -> double;
-auto Angle(double radians) -> double;
-auto Angle(double x0, double y0, double x1, double y1) -> double;
-auto Cos(double value, double radius, double angle) -> double;
-auto Sin(double value, double radius, double angle) -> double;
-auto Radians(double angle) -> double;
-auto Distance(double x0, double y0, double x1, double y1) -> double;
-auto SumDistances(Points points) -> double;
+    // Trim strings.
+    static auto trim(Strings vStr, char trimmer) -> Strings
+    {
+        for (auto &item : vStr) {
+            item = Text::trim(item, trimmer);
+        }
 
-template<typename T>
-auto Equal(vector<T> group1, vector<T> group2, bool compareOrder = false) -> bool;
+        return vStr;
+    }
 
-auto Sort(Numbers numbers, bool ascendingOrder = true) -> Numbers;
-auto Round(Numbers values, int decimalPlaces = -1)  -> Numbers;
-auto Round(double value, int decimalPlaces = -1) -> double;
+    // Trim string : Remove characters to the left.
+    static auto ltrim(std::string str, char trimmer) -> std::string
+    {
+        int left = 0;
+        auto right = str.size() - 1;
+        right = right < 0 ? 0 : right;
+        while (left < str.size()) {
+            if (str[left] != trimmer) {
+                break;
+            }
+            left++;
+        }
 
-// String
-auto Split(const string &str, char delimiter) -> Strings;
-auto Trim(Strings vStr, char trimmer) -> Strings;
+        return str.substr(left, 1 + right - left);
+    }
 
-auto Replace(const string &str, char character, const string &replace) -> string;
-auto Replace(const string &str, char character, char replace) -> string;
-auto LTrim(string str, char trimmer) -> string;
-auto RTrim(string str, char trimmer) -> string;
-auto Trim(string str, char trimmer) -> string;
-auto Join(Strings vStr, char delimiter) -> string;
+    // Trim string : Remove characters to the right.
+    static auto rtrim(std::string str, char trimmer) -> std::string
+    {
+        int left = 0;
+        auto right = str.size() - 1;
+        right = right < 0 ? 0 : right;
+        while (right >= 0) {
+            if (str[right] != trimmer) {
+                break;
+            }
+            right--;
+        }
 
-// View
-void View(Point point);
-void View(Points points);
-void View(Strings values);
-void View(double value);
-void View(const string &str);
+        return str.substr(left, 1 + right - left);
+    }
 
-template<typename T>
-void View(vector<T> values);
+    // Join strings.
+    static auto join(Strings vStr, char delimiter) -> std::string
+    {
+        std::string result{};
+        for (unsigned i = 0; i < vStr.size(); i++) {
+            result += vStr[i] + (i < vStr.size() - 1 ? std::string{delimiter} : "");
+        }
 
-template<size_t SIZE>
-void View(array<double, SIZE> arr);
+        return result;
+    }
 
-// I/O
-auto Save(const string &text, string filePath = "") -> bool;
-auto Load(const string &filePath, string filenameExtension = "") -> string;
+    // String with all characters in uppercase.
+    static auto strUpper(const std::string &str) -> std::string
+    {
+        std::locale loc;
+        std::string result{str};
+        for (std::string::size_type i = 0; i < result.length(); ++i) {
+            result[i] = toupper(result[i], loc);
+        }
+
+        return result;
+    }
+
+    // String with all characters in lowercase.
+    static auto strLower(const std::string &str) -> std::string
+    {
+        std::locale loc;
+        std::string result{str};
+        for (std::string::size_type i = 0; i < result.length(); ++i) {
+            result[i] = tolower(result[i], loc);
+        }
+
+        return result;
+    }
+
+};
+
+class Math {
+
+public:
+
+    static auto radians(double angle) -> double
+    {
+        return angle * PI / 180.0;
+    }
+
+    static auto angle(double radians) -> double
+    {
+        return radians * 180.0 / PI;
+    }
+
+    // Returns the angle of the line (x0,y0)(x1,y1).
+    static auto angle(double x0, double y0, double x1, double y1) -> double
+    {
+        double result = angle(atan((y1 - y0) / (x1 - x0)));
+
+        if (x0 == x1 && y0 == y1) {
+            result = 0;
+        }
+        if (x0 <  x1 && y0 == y1) {
+            result = 0;
+        }
+        if (x0 == x1 && y0 <  y1) {
+            result = 90;
+        }
+        if (x0 >  x1 && y0 == y1) {
+            result = 180;
+        }
+        if (x0 == x1 && y0 >  y1) {
+            result = 270;
+        }
+        if (x0 >  x1 && y0 <  y1) {
+            result += 180;
+        }
+        if (x0 >  x1 && y0 >  y1) {
+            result += 180;
+        }
+        if (x0 <  x1 && y0 >  y1) {
+            result += 360;
+        }
+
+        return result;
+    }
+
+    // Return: value + radius * cos(angle).
+    static auto cos(double value, double radius, double angle) -> double
+    {
+        return value + radius * std::cos(radians(angle));
+    }
+
+    // Return: value + radius * sin(angle).
+    static auto sin(double value, double radius, double angle) -> double
+    {
+        return value + radius * std::sin(radians(angle));
+    }
+
+    // Returns the distance between two points.
+    static auto distance(double x0, double y0, double x1, double y1) -> double
+    {
+        return std::sqrt(std::pow(x0 - x1, 2) + std::pow(y0 - y1, 2));
+    }
+
+    // Rounds value to N digits after decimal point.
+    // Number of Decimal Places < 0, returns the same value.
+    static auto round(double value, int decimalPlaces = -1) -> double
+    {
+        if (decimalPlaces < 0) {
+            return value;
+        }
+
+        if (decimalPlaces == 0) {
+            return static_cast<int>(value);
+        }
+
+        const int limit = 10;
+        decimalPlaces = decimalPlaces > limit ? limit : decimalPlaces;
+
+        const int base = 10;
+        return std::round(value * std::pow(base, decimalPlaces)) / std::pow(base, decimalPlaces);
+    }
+
+    // Round values.
+    // Number of Decimal Places < 0, returns the same value.
+    static auto round(Numbers values, int decimalPlaces) -> Numbers
+    {
+        for (double &value : values) {
+            values = round(values, decimalPlaces);
+        }
+
+        return values;
+    }
+
+    // Sort numbers.
+    static auto sort(Numbers numbers, bool ascendingOrder = true) -> Numbers
+    {
+        if (ascendingOrder) {
+            std::sort(numbers.begin(), numbers.end(), std::less<>());
+        }
+        else {
+            std::sort(numbers.begin(), numbers.end(), std::greater<>());
+        }
+
+        return numbers;
+    }
+
+    // Calculates the area formed by three coordinates.
+    static auto triangleArea(double x0, double y0,
+                             double x1, double y1,
+                             double x2, double y2) -> double
+    {
+        // Heron's formula
+        auto a = distance(x0, y0, x1, y1);
+        auto b = distance(x1, y1, x2, y2);
+        auto c = distance(x2, y2, x0, y0);
+        auto s = (a + b + c) / 2.0;
+
+        return std::sqrt(s * (s - a) * (s - b) * (s - c));
+    }
+
+    // Calculates the greatest height formed by three coordinates.
+    static auto triangleHeight(double x0, double y0,
+                               double x1, double y1,
+                               double x2, double y2) -> double
+    {
+        auto area = triangleArea(x0, y0, x1, y1, x2, y2);
+        auto height0 = 2 * area / distance(x0, y0, x1, y1);
+        auto height1 = 2 * area / distance(x1, y1, x2, y2);
+        auto height2 = 2 * area / distance(x2, y2, x0, y0);
+
+        return std::max(std::max(height0, height1), height2);
+    }
+
+};
+
+class Check {
+
+public:
+
+    // Compare groups (vector).
+    template<typename T>
+    static auto equal(std::vector<T> group1, std::vector<T> group2,
+                      bool compareOrder = false) -> bool
+    {
+        if (group1.size() != group2.size()) {
+            return false;
+        }
+
+        if (compareOrder) {
+            for (unsigned i = 0; i < group1.size(); i++) {
+                if (!(group1[i] == group2[i])) {
+                    return false;
+                }
+            }
+        }
+
+        for (auto value1 : group1) {
+            bool differentFromEveryone = true;
+            for (auto value2 : group2) {
+                if (value1 == value2) {
+                    differentFromEveryone = false;
+                    break;
+                }
+            }
+            if (differentFromEveryone) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Error message with line indication.
+    static void error(int line, const std::string &message)
+    {
+        throw std::domain_error("[Line: " + std::to_string(line) + "]: " + message);
+    }
+};
+
+class IO {
+
+public:
+
+    // Return the extension of a file.
+    static auto getExtension(const std::string &filePath) -> std::string
+    {
+        auto extFile = std::filesystem::path(filePath).extension();
+
+        return std::string{extFile};
+    }
+
+    // Return the name of a file.
+    static auto getFilename(const std::string &filePath) -> std::string
+    {
+        auto fileName = std::filesystem::path(filePath).filename();
+
+        return std::string{fileName};
+    }
+
+    // Check if file exists.
+    static auto exists(const std::string &filePath) -> bool
+    {
+        if (filePath.empty()) {
+            return false;
+        }
+
+        const auto fpath = std::filesystem::path(filePath);
+        if (!std::filesystem::exists(fpath)) {
+            std::cerr << "File not found!\n";
+            return false;
+        }
+
+        return true;
+    }
+
+    // Checks if the file extension is the expected one.
+    static auto equal(const std::string &filePath,
+                      const std::string &fileExtensionExpected) -> bool
+    {
+        return Text::strUpper(getExtension(filePath)) ==  Text::strUpper(fileExtensionExpected);
+    }
+
+    static auto isBitmap(const std::string &filePath) -> bool
+    {
+        auto extFile = Text::strUpper(getExtension(filePath));
+        return extFile == "PNG" || extFile == "JPEG" || extFile == "JPG" ||
+               extFile == "BMP";
+    }
+
+    static auto isSVG(const std::string &filePath) -> bool
+    {
+        return Text::strUpper(getExtension(filePath)) == "SVG";
+    }
+
+    // Load text file.
+    static auto load(const std::string &filePath, std::string filenameExtension) -> std::string
+    {
+        if (filePath.empty()) {
+            return {};
+        }
+
+        // Check extension.
+        if (!filenameExtension.empty()) {
+            if (!equal(filePath, filenameExtension)) {
+                std::cerr << "Invalid file!\n";
+                return {};
+            }
+
+            if (!IO::exists(filePath)) {
+                return {};
+            }
+        }
+
+        std::string str{};
+        try {
+            std::ifstream fileIn(filePath, std::ios::in);
+            if (fileIn.is_open()) {
+                std::string line{};
+                while (getline(fileIn, line)) {
+                    str += line + "\n";
+                }
+                fileIn.close();
+            }
+        }
+        catch (...) {
+            // pass
+        }
+
+        return str;
+    }
+
+    // Save text file.
+    static auto save(const std::string &text, std::string filePath) -> bool
+    {
+        if (text.empty()) {
+            std::cerr << "Empty text! Export failed!\n";
+            return false;
+        }
+
+        if (filePath.empty()) {
+            filePath = "output.txt";
+        }
+
+        try {
+            std::ofstream file(filePath, std::ios::out);
+            file << text;
+            file.close();
+        }
+        catch (const std::exception &e) {
+            std::cout << "Error handling file writing.\n";
+            std::cerr << e.what() << "\n";
+            return false;
+        }
+
+        return true;
+    }
+
+    // Add suffix to file name.
+    static auto addSuffix(const std::string &filePath, const std::string suffix)
+    {
+        return getFilename(filePath) + suffix + getExtension(filePath);
+    }
+};
 
 // Point 2D (x,y)
 class Point {
@@ -127,9 +470,9 @@ class Point {
     struct Coordinate {
         double value{0};
 
-        auto toStr() const -> string
+        auto toStr() const -> std::string
         {
-            return to_string(value);
+            return std::to_string(value);
         }
     };
 
@@ -218,6 +561,41 @@ public:
         Y.value += y;
     }
 
+    // Returns each coordinate by adding value.
+    template <typename T>
+    static auto sum(Points points, T value) -> Points
+    {
+        Points result{};
+        for (const auto &p : points) {
+            result.push_back(p + value);
+        }
+        return result;
+    }
+
+    // Sum : Point (Total X axis, Total Y axis).
+    static auto total(const Points &points) -> Point
+    {
+        Point sum;
+        for (auto point : points) {
+            sum += point;
+        }
+
+        return sum;
+    }
+
+    // Average : Point (Total X axis / Points, Total Y axis / Points).
+    static auto average(const Points &points, Point &point) -> bool
+    {
+        if (points.empty()) {
+            point = Point(0, 0);
+            return false;
+        }
+
+        point = total(points) * (1.0 / static_cast<double>(points.size())) ;
+
+        return true;
+    }
+
     // X *= x; Y *= y
     void multiply(double x, double y)
     {
@@ -241,27 +619,147 @@ public:
     // Angle of the imaginary line between the current point and the other.
     auto angle(Point point) const -> double
     {
-        return Angle(X.value, Y.value, point.X.value, point.Y.value);
+        return Math::angle(X.value, Y.value, point.X.value, point.Y.value);
+    }
+
+    // Angle between three points.
+    // Signal: True, respects the order of the vectors.
+    static auto angle(Point origin, Point first, Point second,
+                      bool signal = false) -> double
+    {
+        auto angle1 = origin.angle(first);
+        auto angle2 = origin.angle(second);
+
+        if (signal) {
+            return angle1 - angle2;
+        }
+
+        return std::max(angle1, angle2) - std::min(angle1, angle2);
     }
 
     // Distance between the current point and another.
     auto distance(Point point) const -> double
     {
-        return sqrt(pow(X.value - point.X.value, 2) +
-                    pow(Y.value - point.Y.value, 2));
+        return Math::distance(X.value, Y.value, point.X.value, point.Y.value);
+    }
+
+    // Sum all the distances between the vertices.
+    static auto sumDistances(Points points) -> double
+    {
+        double sum{0};
+        for (int i = 1; i < points.size(); ++i) {
+            sum += points[i].distance(points[i - 1]);
+        }
+        return sum;
+    }
+
+    // Position from angle and radius.
+    // Current point as origin.
+    auto position(double angle, double horizontalRadius,
+                  double verticalRadius) const -> Point
+    {
+        return {Math::cos(X.value, horizontalRadius, angle),
+                Math::sin(Y.value, verticalRadius, angle)};
     }
 
     // Position from angle and radius.
     // Current point as origin.
     auto position(double angle, double radius) const -> Point
     {
-        return {Cos(X.value, radius, angle), Sin(Y.value, radius, angle)};
+        return position(angle, radius, radius);
+    }
+
+    // Area formed by the current point and two others.
+    auto triangleArea(Point point1, Point point2)  -> double
+    {
+        return Math::triangleArea(X.value, Y.value,
+                                  point1.X.value, point1.Y.value,
+                                  point2.X.value, point2.Y.value);
+    }
+
+    // Area formed by three points.
+    static auto triangleArea(Point point1, Point point2, Point point3)  -> double
+    {
+        return Math::triangleArea(point1.X.value, point1.Y.value,
+                                  point2.X.value, point2.Y.value,
+                                  point3.X.value, point3.Y.value);
+    }
+
+    // Greatest height formed between current point and two others.
+    auto triangleHeight(Point point1, Point point2) -> double
+    {
+        return Math::triangleHeight(X.value, Y.value,
+                                    point1.X.value, point1.Y.value,
+                                    point2.X.value, point2.Y.value);
+    }
+
+    // Greatest height formed between three points.
+    static auto triangleHeight(Point point1, Point point2, Point point3)  -> double
+    {
+        return Math::triangleHeight(point1.X.value, point1.Y.value,
+                                    point2.X.value, point2.Y.value,
+                                    point3.X.value, point3.Y.value);
+    }
+
+    // Calculates the point of intersection between two lines.
+    // Returns false if the lines are parallel or coincident.
+    // Line 1 (x0, y0) - (x1, y1),
+    // Line 2 (x2, y2) - (x3, y4).
+    static auto lineIntersect(double x0, double y0, double x1, double y1,
+                              double x2, double y2, double x3, double y3,
+                              Point &point) -> bool
+    {
+        double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
+        if (d == 0) {   // Two lines are parallel or coincident ...
+            point.X.value = MAXDOUBLE;
+            point.Y.value = MAXDOUBLE;
+            return false;
+        }
+
+        double t = ((x3 - x2) * (y0 - y2) - (y3 - y2) * (x0 - x2)) / d;
+        double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
+
+        if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
+            point.X.value = x0 + t * (x1 - x0);
+            point.Y.value = y0 + t * (y1 - y0);
+            return true;
+        }
+
+        // Lines do not intersect.
+        return false;
+    }
+
+    // Calculates the point of intersection between two lines.
+    // Returns false if the lines are parallel or coincident.
+    // Line 1 (Point 1) - (Point 2),
+    // Line 2 (Point 3) - (Point 3).
+    static auto lineIntersect(Point point1, Point point2,
+                              Point point3, Point point4,
+                              Point &point) -> bool
+    {
+        return lineIntersect(point1.X.value, point1.Y.value,
+                             point2.X.value, point2.Y.value,
+                             point3.X.value, point3.Y.value,
+                             point4.X.value, point4.Y.value,
+                             point);
     }
 
     // Returns the rounded current coordinates.
     auto round(int decimalPlaces = 2) const -> Point
     {
-        return {Round(X.value, decimalPlaces), Round(Y.value, decimalPlaces)};
+        return {Math::round(X.value, decimalPlaces),
+                Math::round(Y.value, decimalPlaces)};
+    }
+
+    // Round points.
+    // Number of Decimal Places < 0, returns the same value.
+    static auto round(Points points, int decimalPlaces) -> Points
+    {
+        for (auto &point : points) {
+            point = point.round(decimalPlaces);
+        }
+
+        return points;
     }
 
     // Returns Vector[2] with X and Y values.
@@ -270,13 +768,85 @@ public:
         return {X.value, Y.value};
     }
 
-    auto toStr(bool trimmed = false) const -> string
+    // Sort points by X or Y axis.
+    static auto sort(Points points, bool X_axis = true) -> Points
     {
-        if (trimmed) {
-            return RTrim(X.toStr(), '0') + "," + RTrim(Y.toStr(), '0');
+        if (points.empty()) {
+            return {};
         }
 
-        return X.toStr() + "," + Y.toStr();
+        if (points.size() == 1) {
+            return points;
+        }
+
+        std::map<double, Numbers > mapPoint;
+
+        for (auto point : points) {
+            auto key = X_axis ? point.X.value : point.Y.value;
+            auto value = X_axis ? point.Y.value : point.X.value;
+            if (mapPoint.find(key) == mapPoint.end()) {
+                mapPoint.insert({key, {value}});
+            }
+            else {
+                mapPoint[key].push_back(value);
+            }
+        }
+
+        Points result;
+        for (const auto &item : mapPoint) {
+            if (X_axis) {
+                for (auto value : item.second) { // Y
+                    result.emplace_back(Point(item.first, value));
+                }
+            }
+            else {
+                auto values = Math::sort(item.second);
+                for (auto value : values) {     // X
+                    result.emplace_back(Point(value, item.first));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    // Sort the Points clockwise.
+    static auto organize(Points points) -> Points
+    {
+        if (points.size() < 2) {
+            return points;
+        }
+
+        // Map : Angle x Point.
+        std::map<double, Points > mapPoint;
+
+        for (auto value : points) {
+            auto key = Point(0, 0).angle(value);
+            if (mapPoint.find(key) == mapPoint.end()) {
+                mapPoint.insert(make_pair(key, Points{value}));
+            }
+            else {
+                mapPoint[key].push_back(value);
+            }
+        }
+
+        Points result;
+        for (const auto &item : mapPoint) {
+            for (auto point : item.second) {
+                result.push_back(point);
+            }
+        }
+
+        return result;
+    }
+
+    auto toStr(bool trimmed = false) const -> std::string
+    {
+        if (!trimmed) {
+            return X.toStr() + "," + Y.toStr();
+        }
+
+        return Text::rtrim(X.toStr(), '0') + "," + Text::rtrim(Y.toStr(), '0');
     }
 
 };
@@ -336,8 +906,8 @@ public:
         vertices = points;
         first  = vertices[0];
         second = vertices[1];
-        third  = points.size() > 2 ? vertices[2] : Origin;
-        fourth = points.size() > 3 ? vertices[3] : Origin;
+        third  = points.size() > 2 ? vertices[2] : Point();
+        fourth = points.size() > 3 ? vertices[3] : Point();
 
         last_first  = first;
         last_second = second;
@@ -389,7 +959,7 @@ public:
     // Rearrange the polygon points.
     auto organize() -> Points
     {
-        return Organize(vertices);
+        return Point::organize(vertices);
     }
 
     // Calculates the Area by triangular subdivisions.
@@ -401,11 +971,11 @@ public:
 
         double result = 0;
         if (vertices.size() == 3) {
-            result = TriangleArea(vertices[0], vertices[1], vertices[2]);
+            result = Point::triangleArea(vertices[0], vertices[1], vertices[2]);
         }
         else if (isConvex()) {
             for (unsigned i = 2; i < vertices.size(); ++i) {
-                result += TriangleArea(vertices[0], vertices[i - 1], vertices[i]);
+                result += Point::triangleArea(vertices[0], vertices[i - 1], vertices[i]);
             }
         }
         else {
@@ -418,7 +988,7 @@ public:
 
     auto perimeter() -> double
     {
-        auto perimeter = SumDistances(vertices);
+        auto perimeter = Point::sumDistances(vertices);
 
         if (vertices.size() > 2) {
             perimeter += vertices.back().distance(vertices.front());
@@ -427,15 +997,15 @@ public:
         return perimeter;
     }
 
-    auto equal(Base polygon) -> bool
+    auto equal(Base polygon, bool compareOrder = false) -> bool
     {
-        return Equal(points(), polygon.points());
+        return Check::equal(points(), polygon.points());
     }
 
     auto round(int decimalPlaces = 2) -> Base
     {
         Base polygon;
-        polygon.vertices = Round(vertices, decimalPlaces);
+        polygon.vertices = Point::round(vertices, decimalPlaces);
 
         return polygon;
     }
@@ -563,20 +1133,26 @@ public:
     // Returns the intersection point with another line.
     auto intersection(const Line &line, Point &point) -> bool
     {
-        return LineIntersect(first.X.value, first.Y.value,
-                             second.X.value, second.Y.value,
-                             line.first.X.value, line.first.Y.value,
-                             line.second.X.value, line.second.Y.value,
-                             point);
+        return Point::lineIntersect(first.X.value, first.Y.value,
+                                    second.X.value, second.Y.value,
+                                    line.first.X.value, line.first.Y.value,
+                                    line.second.X.value, line.second.Y.value,
+                                    point);
     }
+
+    // Calculates the point of intersection between two lines.
+    // Returns false if the lines are parallel or coincident.
+    static auto lineIntersect(Line line1, const Line &line2, Point &point) -> bool
+    {
+        return line1.intersection(line2, point);
+    }
+
 
     // Perpendicular line passing through the point.
     auto perpendicular(Point point) -> Line
     {
         // Dummy triangle area.
-        double area = TriangleArea(first.X.value, first.Y.value,
-                                   second.X.value, second.Y.value,
-                                   point.X.value, point.Y.value);
+        double area = first.triangleArea(second, point);
         // Pythagorean theorem : a^2 + b^2 = c^2
         double c = first.distance(point);               // hypotenuse
         double b = 2 * area / first.distance(second);   // area = base * height / 2
@@ -584,6 +1160,12 @@ public:
 
         // Line with base slope.
         return {first.position(angle(), a), point};
+    }
+
+    // Perpendicular line passing through the point.
+    static auto perpendicular(Line line, Point point) -> Line
+    {
+        return line.perpendicular(point);
     }
 
 };
@@ -637,7 +1219,7 @@ public:
 
     auto height() -> double
     {
-        return TriangleHeight(first, second, third);
+        return first.triangleHeight(second, third);
     }
 
 };
@@ -776,8 +1358,7 @@ public:
         int end = 360 + static_cast<int>(angle);
         int step = 360 / static_cast<int>(sides);
         for (auto a = begin; a < end; a += step) {
-            points.emplace_back(Point(Cos(center.X.value, horizontalRadius, a),
-                                      Sin(center.Y.value, verticalRadius, a)));
+            points.emplace_back(center.position(a, horizontalRadius, verticalRadius));
         }
 
         return Base::setup(points);
@@ -800,7 +1381,12 @@ public:
 
         auto result = first.distance(second);
 
-        return decimalPlaces < 0 ? result : Round(result, decimalPlaces);
+        if (decimalPlaces > 0) {
+            return result;
+        }
+
+        const int base = 10;
+        return std::round(result * std::pow(base, decimalPlaces)) / std::pow(base, decimalPlaces);
     }
 
     // Returns the current vertices.
@@ -914,14 +1500,14 @@ public:
     // publisherAgentTitle : String with the name of the publisher,
     // date                : String with creation date, if empty use current date.
     struct Metadata {
-        string creator = "SVG created automatically by algorithm in C++.";
-        string title = "SVG";
-        string publisherAgentTitle;
-        string date;
+        std::string creator = "SVG created automatically by algorithm in C++.";
+        std::string title = "SVG";
+        std::string publisherAgentTitle;
+        std::string date;
 
         Metadata() = default;
-        Metadata(string creator, string title, string publisher)
-            : creator{move(creator)}, title{move(title)}, publisherAgentTitle{move(publisher)} {}
+        Metadata(std::string creator, std::string title, std::string publisher)
+            : creator{std::move(creator)}, title{std::move(title)}, publisherAgentTitle{std::move(publisher)} {}
     };
 
     // Drawing setup.
@@ -932,18 +1518,18 @@ public:
     // fillOpacity   : Fill opacity or alpha value from 0 to 255.
     // strokeOpacity : Stroke opacity or alpha value from 0 to 255.
     struct Style {
-        string name{"Shape"}, fill{WHITE}, stroke{BLACK};
+        std::string name{"Shape"}, fill{WHITE}, stroke{BLACK};
         double strokeWidth{1.0};
         double fillOpacity{255.0}, strokeOpacity{255.0}; // 0.0 = 0%; 255 = 1.0 = 100%
 
         Style() = default;
 
-        Style(string name,  string fill, string stroke, double strokeWidth)
-            : name{move(name)}, fill{move(fill)}, stroke{move(stroke)}, strokeWidth{strokeWidth} {}
-        Style(string name,  string fill, string stroke, double strokeWidth,
+        Style(std::string name,  std::string fill, std::string stroke, double strokeWidth)
+            : name{std::move(name)}, fill{std::move(fill)}, stroke{std::move(stroke)}, strokeWidth{strokeWidth} {}
+        Style(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity)
-            : name{move(name)}, fill{move(fill)}, stroke{move(stroke)}, strokeWidth{strokeWidth},
-            fillOpacity{fillOpacity}, strokeOpacity{strokeOpacity} {}
+            : name{std::move(name)}, fill{std::move(fill)}, stroke{std::move(stroke)}, strokeWidth{strokeWidth},
+              fillOpacity{fillOpacity}, strokeOpacity{strokeOpacity} {}
     };
 
     // Polygon and Polyline.
@@ -953,18 +1539,18 @@ public:
 
         Shape() = default;
 
-        Shape(string name,  string fill, string stroke, double strokeWidth)
-            : Style(move(name), move(fill), move(stroke), strokeWidth) {}
-        Shape(string name,  string fill, string stroke, double strokeWidth,
+        Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth)
+            : Style(std::move(name), std::move(fill), std::move(stroke), strokeWidth) {}
+        Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity)
-            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity) {}
+            :  Style(std::move(name),  std::move(fill), std::move(stroke), strokeWidth, fillOpacity, strokeOpacity) {}
 
-        Shape(string name,  string fill, string stroke, double strokeWidth, Points points)
-            :  Style(move(name),  move(fill), move(stroke), strokeWidth), points{move(points)} {}
-        Shape(string name,  string fill, string stroke, double strokeWidth,
+        Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth, Points points)
+            :  Style(std::move(name),  std::move(fill), std::move(stroke), strokeWidth), points{std::move(points)} {}
+        Shape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
               double fillOpacity, double strokeOpacity, Points points)
-            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity),
-            points{move(points)} {}
+            :  Style(std::move(name),  std::move(fill), std::move(stroke), strokeWidth, fillOpacity, strokeOpacity),
+               points{std::move(points)} {}
     };
 
     // Circle and Ellipse.
@@ -978,28 +1564,28 @@ public:
 
         CircleShape() = default;
 
-        CircleShape(string name,  string fill, string stroke, double strokeWidth)
-            : Style(move(name),  move(fill), move(stroke), strokeWidth) {}
-        CircleShape(string name,  string fill, string stroke, double strokeWidth,
+        CircleShape(std::string name,  std::string fill, std::string stroke, double strokeWidth)
+            : Style(std::move(name),  std::move(fill), std::move(stroke), strokeWidth) {}
+        CircleShape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
                     double fillOpacity, double strokeOpacity)
-            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity) {}
+            :  Style(std::move(name),  std::move(fill), std::move(stroke), strokeWidth, fillOpacity, strokeOpacity) {}
 
-        CircleShape(string name,  string fill, string stroke, double strokeWidth,
+        CircleShape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
                     Point center, double horizontalRadius, double verticalRadius)
-            :  Style(move(name),  move(fill), move(stroke), strokeWidth), center(center),
-            horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
-        CircleShape(string name,  string fill, string stroke, double strokeWidth,
+            :  Style(std::move(name),  std::move(fill), std::move(stroke), strokeWidth), center(center),
+               horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
+        CircleShape(std::string name,  std::string fill, std::string stroke, double strokeWidth,
                     double fillOpacity, double strokeOpacity,
                     Point center, double horizontalRadius, double verticalRadius)
-            :  Style(move(name),  move(fill), move(stroke), strokeWidth, fillOpacity, strokeOpacity),
-            center(center), horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
+            :  Style(std::move(name),  std::move(fill), std::move(stroke), strokeWidth, fillOpacity, strokeOpacity),
+               center(center), horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
     };
 
     // Converts decimal value to hexadecimal.
-    static auto INT2HEX(unsigned value) -> string
+    static auto INT2HEX(unsigned value) -> std::string
     {
-        string digits = "0123456789ABCDEF";
-        string result;
+        std::string digits = "0123456789ABCDEF";
+        std::string result;
         if (value < 16) {
             result.push_back('0');
             result.push_back(digits[value % 16]);
@@ -1014,7 +1600,7 @@ public:
     }
 
     // Converts hexadecimal value to decimal
-    static auto HEX2INT(string value) -> unsigned
+    static auto HEX2INT(std::string value) -> int
     {
         if (value.starts_with('#')) {
             value = value.substr(1);
@@ -1036,7 +1622,7 @@ public:
     }
 
     // Return vector unsigned {Red, Green, Blue, Alpha}
-    static auto HEX2RGB(string value) -> vector<unsigned>
+    static auto HEX2RGB(std::string value) -> std::vector<int>
     {
         if (value.starts_with('#')) {
             value = value.substr(1);
@@ -1050,10 +1636,10 @@ public:
             value = value.substr(0, 8);
         }
 
-        vector<unsigned> result;
+        std::vector<int> result;
         if (value.size() % 2 == 0) {
             while (!value.empty()) {
-                string num = value.substr(0, 2);
+                std::string num = value.substr(0, 2);
                 value = value.substr(2);
                 result.push_back(static_cast<unsigned>(HEX2INT(num)));
             }
@@ -1063,19 +1649,19 @@ public:
     }
 
     // Formats values (Red, Green, Blue) to "#RRGGBB" hexadecimal.
-    static auto RGB2HEX(unsigned R, unsigned G, unsigned B) -> string
+    static auto RGB2HEX(int R, int G, int B) -> std::string
     {
         return "#" + INT2HEX(R) + INT2HEX(G) + INT2HEX(B);
     }
 
     // Formats values (Red, Green, Blue, Alpha) to "#RRGGBBAA" hexadecimal.
-    static auto RGBA2HEX(unsigned R, unsigned G, unsigned B, unsigned A) -> string
+    static auto RGBA2HEX(int R, int G, int B, int A) -> std::string
     {
         return RGB2HEX(R, G, B) + INT2HEX(A);
     }
 
     // Returns SVG: <g> Elements </g>
-    static auto group(string id, const string &elements) -> string
+    static auto group(std::string id, const std::string &elements) -> std::string
     {
         id = id.empty() ? "<g>\n" : "<g id=\"" + id + "\" >\n";
         return elements.empty() ? "" : id + elements + "</g>\n";
@@ -1084,32 +1670,32 @@ public:
 private:
 
     // Validates and formats entries.
-    static auto style(Style style, const string &name) -> string
+    static auto style(Style style, const std::string &name) -> std::string
     {
         style.name = name.empty() ? "Shape" : name;
         style.stroke = style.stroke.empty() ? "#000000" : style.stroke;
-        style.fillOpacity = style.fillOpacity < 0 ? 0 : min(style.fillOpacity / 255, 1.0);
-        style.strokeOpacity = style.strokeOpacity < 0 ? 0 : min(style.strokeOpacity / 255, 1.0);
+        style.fillOpacity = style.fillOpacity < 0 ? 0 : std::min(style.fillOpacity / 255, 1.0);
+        style.strokeOpacity = style.strokeOpacity < 0 ? 0 : std::min(style.strokeOpacity / 255, 1.0);
 
         return {
-                "id=\"" + style.name + "\"\nstyle=\"" +
-                "opacity:" + to_string(style.fillOpacity) + ";fill:" + style.fill +
-                ";stroke:" + style.stroke + ";stroke-width:" + to_string(style.strokeWidth) +
-                ";stroke-opacity:" + to_string(style.strokeOpacity) +
-                ";stroke-linejoin:round;stroke-linecap:round\"\n" };
+            "id=\"" + style.name + "\"\nstyle=\"" +
+            "opacity:" + std::to_string(style.fillOpacity) + ";fill:" + style.fill +
+            ";stroke:" + style.stroke + ";stroke-width:" + std::to_string(style.strokeWidth) +
+            ";stroke-opacity:" + std::to_string(style.strokeOpacity) +
+            ";stroke-linejoin:round;stroke-linecap:round\"\n" };
     }
 
 public:
 
     // Return SVG: <polyline ... />
-    static auto polyline(const Shape &shape) -> string
+    static auto polyline(const Shape &shape) -> std::string
     {
 
         if (shape.points.empty()) {
             return "<!-- Empty -->\n";
         }
 
-        string values;
+        std::string values;
         for (const auto &point : shape.points) {
             values += point.toStr() + " ";
         }
@@ -1120,13 +1706,13 @@ public:
     }
 
     // Return SVG: <path ... />
-    static auto polygon(Shape shape) -> string
+    static auto polygon(Shape shape) -> std::string
     {
         if (shape.points.empty()) {
             return "<!-- Empty -->\n";
         }
 
-        string values;
+        std::string values;
         for (unsigned i = 0; i < shape.points.size() - 1; i++) {
             values += shape.points[i].toStr() + " L ";
         }
@@ -1138,7 +1724,7 @@ public:
     }
 
     // Return SVG : <ellipse ... />
-    static auto circle(const CircleShape &circle) -> string
+    static auto circle(const CircleShape &circle) -> std::string
     {
         if (circle.horizontalRadius < 1 || circle.verticalRadius < 1) {
             return "<!-- Empty -->\n";
@@ -1147,20 +1733,20 @@ public:
             "<ellipse\n" + style(circle, circle.name) +
             "cx=\"" + circle.center.X.toStr() + "\" " +
             "cy=\"" + circle.center.Y.toStr() + "\" " +
-            "rx=\"" + to_string(circle.horizontalRadius) + "\" " +
-            "ry=\"" + to_string(circle.verticalRadius) + "\" />\n"
+            "rx=\"" + std::to_string(circle.horizontalRadius) + "\" " +
+            "ry=\"" + std::to_string(circle.verticalRadius) + "\" />\n"
         };
     }
 
     // Return full SVG.
-    static auto svg(int width, int height, const string &xml,
-                    Metadata metadata) -> string
+    static auto svg(int width, int height, const std::string &xml,
+                    Metadata metadata) -> std::string
     {
-        string now;
+        std::string now;
         try {
             time_t t = time(nullptr);
             tm *const pTm = localtime(&t);
-            now = to_string(1900 + pTm->tm_year);
+            now = std::to_string(1900 + pTm->tm_year);
         }
         catch (...) {
             // pass
@@ -1177,9 +1763,9 @@ public:
             "xmlns:svg=\"http://www.w3.org/2000/svg\"\n"
             "xmlns=\"http://www.w3.org/2000/svg\"\n"
             "xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n"
-            "width=\"" + to_string(width) + "\"\n" +
-            "height=\"" + to_string(height) + "\"\n" +
-            "viewBox= \"0 0 " + to_string(width) + " " + to_string(height) + "\"\n" +
+            "width=\"" + std::to_string(width) + "\"\n" +
+            "height=\"" + std::to_string(height) + "\"\n" +
+            "viewBox= \"0 0 " + std::to_string(width) + " " + std::to_string(height) + "\"\n" +
             "version=\"1.1\"\n" +
             "id=\"svg8\">\n" +
             "<title\n" +
@@ -1249,12 +1835,12 @@ public:
         RGBA() = default;
 
         RGBA(int r, int g, int b, int a)
-            : RGBA(vector<int>
-                   {
-                       r, g, b, a
-                   }) {}
+            : RGBA(std::vector<int>
+        {
+            r, g, b, a
+        }) {}
 
-        explicit RGBA(vector<int> rgba)
+        explicit RGBA(std::vector<int> rgba)
             : RGBA()
         {
             switch (rgba.size()) {
@@ -1292,11 +1878,11 @@ public:
             return R == rgba.R && G == rgba.G && B == rgba.B && A == rgba.A;
         }
 
-        auto toStr(bool alpha = true) const  ->string
+        auto toStr(bool alpha = true) const  ->std::string
         {
             return {
-                to_string(R) + "," + to_string(G) + "," +
-                to_string(B) + (alpha ? "," + to_string(A) : "")
+                std::to_string(R) + "," + std::to_string(G) + "," +
+                std::to_string(B) + (alpha ? "," + std::to_string(A) : "")
             };
         }
     };
@@ -1310,20 +1896,20 @@ class Sketch : public SVG, public Color {
 public:
 
     // Return basic SVG::Shape with Polygon base.
-    static auto Shape(Base base, string label) -> SVG::Shape
+    static auto Shape(Base base, std::string label) -> SVG::Shape
     {
         SVG::Shape shape;
-        shape.name = move(label);
+        shape.name = std::move(label);
         shape.points = base.points();
 
         return shape;
     }
 
     // Return basic SVG::CircleShape with Ellipse base.
-    static auto CircleShape(const Ellipse &ellipse, string label) -> SVG::CircleShape
+    static auto CircleShape(const Ellipse &ellipse, std::string label) -> SVG::CircleShape
     {
         SVG::CircleShape shape;
-        shape.name = move(label);
+        shape.name = std::move(label);
         shape.center = ellipse.center;
         shape.horizontalRadius = ellipse.horizontalRadius;
         shape.verticalRadius = ellipse.verticalRadius;
@@ -1332,17 +1918,17 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto SvgPolyline(const Base &base, string label) -> string
+    static auto SvgPolyline(const Base &base, std::string label) -> std::string
     {
 
-        return SVG::polygon(Shape(base, move(label)));
+        return SVG::polygon(Shape(base, std::move(label)));
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto SvgPolyline(Base base, string label, RGBA fill, RGBA stroke) -> string
+    static auto SvgPolyline(Base base, std::string label, RGBA fill, RGBA stroke) -> std::string
     {
 
-        return SVG::polyline(SVG::Shape(move(label),
+        return SVG::polyline(SVG::Shape(std::move(label),
                                         SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                         SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                         1.0,    // strokeWidth
@@ -1350,11 +1936,11 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
-                            double fillOpacity, double strokeOpacity) -> string
+    static auto SvgPolyline(Base base, std::string label, RGBA fill, RGBA stroke,
+                            double fillOpacity, double strokeOpacity) -> std::string
     {
 
-        return SVG::polyline(SVG::Shape(move(label),
+        return SVG::polyline(SVG::Shape(std::move(label),
                                         SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                         SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                         1.0,    // strokeWidth
@@ -1364,12 +1950,12 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto SvgPolyline(Base base, string label, RGBA fill, RGBA stroke,
+    static auto SvgPolyline(Base base, std::string label, RGBA fill, RGBA stroke,
                             double fillOpacity, double strokeOpacity,
-                            double strokeWidth) -> string
+                            double strokeWidth) -> std::string
     {
 
-        return SVG::polyline(SVG::Shape(move(label),
+        return SVG::polyline(SVG::Shape(std::move(label),
                                         SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                         SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                         strokeWidth,
@@ -1379,17 +1965,17 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto SvgPolygon(const Base &base, string label) -> string
+    static auto SvgPolygon(const Base &base, std::string label) -> std::string
     {
 
-        return SVG::polygon(Shape(base, move(label)));
+        return SVG::polygon(Shape(base, std::move(label)));
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto SvgPolygon(Base base, string label, RGBA fill, RGBA stroke) -> string
+    static auto SvgPolygon(Base base, std::string label, RGBA fill, RGBA stroke) -> std::string
     {
 
-        return SVG::polygon(SVG::Shape(move(label),
+        return SVG::polygon(SVG::Shape(std::move(label),
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                        1.0, // strokeWidth
@@ -1397,11 +1983,11 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto SvgPolygon(Base base, string label, RGBA fill, RGBA stroke,
-                           double fillOpacity, double strokeOpacity) -> string
+    static auto SvgPolygon(Base base, std::string label, RGBA fill, RGBA stroke,
+                           double fillOpacity, double strokeOpacity) -> std::string
     {
 
-        return SVG::polygon(SVG::Shape(move(label),
+        return SVG::polygon(SVG::Shape(std::move(label),
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                        1.0, // strokeWidth
@@ -1411,12 +1997,12 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto SvgPolygon(Base base, string label, RGBA fill, RGBA stroke,
+    static auto SvgPolygon(Base base, std::string label, RGBA fill, RGBA stroke,
                            double fillOpacity, double strokeOpacity,
-                           double strokeWidth) -> string
+                           double strokeWidth) -> std::string
     {
 
-        return SVG::polygon(SVG::Shape(move(label),
+        return SVG::polygon(SVG::Shape(std::move(label),
                                        SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                        SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                        strokeWidth,
@@ -1426,15 +2012,15 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto SvgCircle(const Ellipse &ellipse, string label) -> string
+    static auto SvgCircle(const Ellipse &ellipse, std::string label) -> std::string
     {
-        return SVG::circle(CircleShape(ellipse, move(label)));
+        return SVG::circle(CircleShape(ellipse, std::move(label)));
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto SvgCircle(const Ellipse &ellipse, string label, RGBA fill, RGBA stroke) -> string
+    static auto SvgCircle(const Ellipse &ellipse, std::string label, RGBA fill, RGBA stroke) -> std::string
     {
-        return SVG::circle(SVG::CircleShape(move(label),
+        return SVG::circle(SVG::CircleShape(std::move(label),
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             1.0,    // strokeWidth
@@ -1446,10 +2032,10 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto SvgCircle(const Ellipse &ellipse, string label, RGBA fill, RGBA stroke,
-                          double fillOpacity, double strokeOpacity) -> string
+    static auto SvgCircle(const Ellipse &ellipse, std::string label, RGBA fill, RGBA stroke,
+                          double fillOpacity, double strokeOpacity) -> std::string
     {
-        return SVG::circle(SVG::CircleShape(move(label),
+        return SVG::circle(SVG::CircleShape(std::move(label),
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             1.0,    // strokeWidth
@@ -1461,11 +2047,11 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto SvgCircle(const Ellipse &ellipse, string label, RGBA fill, RGBA stroke,
+    static auto SvgCircle(const Ellipse &ellipse, std::string label, RGBA fill, RGBA stroke,
                           double fillOpacity, double strokeOpacity,
-                          double strokeWidth) -> string
+                          double strokeWidth) -> std::string
     {
-        return SVG::circle(SVG::CircleShape(move(label),
+        return SVG::circle(SVG::CircleShape(std::move(label),
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             strokeWidth,
@@ -1477,9 +2063,9 @@ public:
     }
 
     // Returns SVG Elements.
-    static auto Join(const vector<Base> &bases, const string &label = "") -> string
+    static auto Join(const std::vector<Base> &bases, const std::string &label = "") -> std::string
     {
-        string strShape{};
+        std::string strShape{};
         for (const auto &item : bases) {
             strShape += Sketch::SvgPolygon(item, label);
         }
@@ -1503,30 +2089,30 @@ class Interpreter {
     };
 
     const char SPACE = static_cast<char>(32);
-    const string ERROR   = "\tERROR";
-    const string WARNING = "\tWARNING";
+    const std::string ERROR   = "\tERROR";
+    const std::string WARNING = "\tWARNING";
 
 public:
 
     Interpreter() = default;
     ~Interpreter() = default;
 
-    auto svg(string line, string &error) -> string
+    auto svg(std::string line, std::string &error) -> std::string
     {
         if (line.empty()) {
             error = "[LINE EMPTY]\n";
             return {};
         }
 
-        string result{};
-        string bkp = line;
+        std::string result{};
+        std::string bkp = line;
 
         // Prepare
-        line = Trim(line, SPACE); // Remove spaces from the ends.
+        line = Text::trim(line, SPACE); // Remove spaces from the ends.
         transform(line.begin(), line.end(), line.begin(), ::toupper); // Format.
 
         // Check command.
-        string command{};
+        std::string command{};
         unsigned element = EMPTY;
         for (unsigned i = 1; i < labelType.size(); i++) {
             command = labelType[i] + ":";   // Syntax.
@@ -1545,17 +2131,17 @@ public:
 
         // Check points container: { }
         auto counter = count_if(line.begin(), line.end(),
-                                [](char c) {
-                                    return c == '{';
-                                });
+        [](char c) {
+            return c == '{';
+        });
         if (counter > 1) {
             error = bkp + ERROR + "[Curly braces]\n";
             return result;
         }
         counter -= count_if(line.begin(), line.end(),
-                            [](char c) {
-                                return c == '}';
-                            });
+        [](char c) {
+            return c == '}';
+        });
         if (counter != 0) {
             error = bkp + ERROR + "[Curly braces]\n";
             return result;
@@ -1563,13 +2149,13 @@ public:
 
         // Check coordinates container. ( )
         counter = count_if(line.begin(), line.end(),
-                           [](char c) {
-                               return c == '(';
-                           }) -
-                  count_if(line.begin(), line.end(),
-                           [](char c) {
-                               return c == ')';
-                           });
+        [](char c) {
+            return c == '(';
+        }) -
+        count_if(line.begin(), line.end(),
+        [](char c) {
+            return c == ')';
+        });
         if (counter != 0) {
             error = bkp + ERROR + "[Parentheses]\n";
             return result;
@@ -1587,13 +2173,13 @@ public:
         double strokeOpacity{255};
         double strokeWidth{1.0};
         unsigned sides{0};
-        string label{};
+        std::string label{};
         Color::RGBA fillColor(255, 255, 255, 255);
         Color::RGBA strokeColor(0, 0, 0, 255);
 
         // Check content between braces.
         // Expected: {(x0,y1)(xN,yN)}
-        string content{};
+        std::string content{};
         unsigned first = line.find_first_of('{');
         unsigned second = line.find_first_of('}');
         if (second < first) {   // } {
@@ -1605,14 +2191,14 @@ public:
             line = line.substr(0, first) + line.substr(second + 1);
         }
         if (!content.empty()) {
-            content = Replace(content, SPACE, "");  // (x0, y0)( x1,y1) to (x0,y0)(x1,y1)
-            content = Replace(content, '(', " (");  // (x0,y0)(x1,y1) to (x0,y0) (x1,y1)
-            for (auto str : Split(content, SPACE)) {
-                str = Trim(str, SPACE);
+            content = Text::replace(content, SPACE, "");  // (x0, y0)( x1,y1) to (x0,y0)(x1,y1)
+            content = Text::replace(content, '(', " (");  // (x0,y0)(x1,y1) to (x0,y0) (x1,y1)
+            for (auto str : Text::split(content, SPACE)) {
+                str = Text::trim(str, SPACE);
                 if (str.starts_with('(') && str.ends_with(')')) { // (x,y)
-                    str = Trim(Trim(str, '('), ')');              //  x,y
+                    str = Text::trim(Text::trim(str, '('), ')');              //  x,y
                     try {
-                        auto values = Split(str, ',');            //  x y
+                        auto values = Text::split(str, ',');            //  x y
                         if (values.size() == 2) {
                             // Convert to Point.
                             points.emplace_back(Point(stod(values[0]),
@@ -1633,8 +2219,8 @@ public:
         }
 
         // Check other arguments.
-        for (const auto &str : Split(line, SPACE)) {
-            vector<string> complements {
+        for (const auto &str : Text::split(line, SPACE)) {
+            Strings complements {
                 "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "RADIUS", "HRADIUS", "VRADIUS",
                 "STROKEW"
             };
@@ -1679,7 +2265,7 @@ public:
                     }
                 }
             }
-            string arg = "LABEL=";
+            std::string arg = "LABEL=";
             if (str.starts_with(arg)) {
                 try {
                     label = str.substr(arg.size());
@@ -1691,7 +2277,7 @@ public:
             arg = "FILL=";
             if (str.starts_with("FILL=")) {
                 try {
-                    auto numbers = Split(str.substr(arg.size()), ',');
+                    auto numbers = Text::split(str.substr(arg.size()), ',');
                     fillColor = Color::RGBA(stoi(numbers[0]),
                                             stoi(numbers[1]),
                                             stoi(numbers[2]),
@@ -1705,7 +2291,7 @@ public:
             arg = "STROKE=";
             if (str.starts_with(arg)) {
                 try {
-                    auto numbers = Split(str.substr(arg.size()), ',');
+                    auto numbers = Text::split(str.substr(arg.size()), ',');
                     strokeColor = Color::RGBA(stoi(numbers[0]),
                                               stoi(numbers[1]),
                                               stoi(numbers[2]),
@@ -1805,7 +2391,7 @@ public:
         case POLYGON:
             if (points.size() == 1 && horizontalRadius > 0 && angle > 0 && sides > 2) {
                 result = Sketch::SvgPolygon(RegularPolygon(points.front(),
-                                                           horizontalRadius, angle, sides),
+                                            horizontalRadius, angle, sides),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
             }
@@ -1828,30 +2414,30 @@ public:
         return result;
     }
 
-    auto load(const string &path, string &errors) -> string
+    auto load(const std::string &path, std::string &errors) -> std::string
     {
-        auto text = Load(path, ".txt");
+        auto text = IO::load(path, ".txt");
         if (text.empty()) {
             errors = path + ERROR + "[FILE EMPTY]\n";
             return {};
         }
 
-        string result{};
+        std::string result{};
         errors.clear();
-        auto lines = Split(text, '\n');
+        auto lines = Text::split(text, '\n');
         for (unsigned i = 0; i < lines.size(); i++) {
             auto line = lines[i];
             if (line.starts_with('#')) {
-                errors += to_string(i + 1) + ": [COMMENT LINE]\n";
+                errors += std::to_string(i + 1) + ": [COMMENT LINE]\n";
                 continue;
             }
-            string error{};
+            std::string error{};
             auto res = svg(line, error);
             if (!res.empty()) {
                 result += res;
             }
             else {
-                errors += to_string(i + 1) + ": " + error;
+                errors += std::to_string(i + 1) + ": " + error;
             }
         }
 
@@ -1860,636 +2446,78 @@ public:
 
 };
 
-// Generic
+class Console {
 
-auto Radians(double angle) -> double
-{
-    return angle * PI / 180.0;
-}
+public:
 
-auto Angle(double radians) -> double
-{
-    return radians * 180.0 / PI;
-}
-
-// Returns the angle of the line (x0,y0)(x1,y1).
-auto Angle(double x0, double y0, double x1, double y1) -> double
-{
-    double result = Angle(atan((y1 - y0) / (x1 - x0)));
-
-    if (x0 == x1 && y0 == y1) {
-        result = 0;
-    }
-    if (x0 <  x1 && y0 == y1) {
-        result = 0;
-    }
-    if (x0 == x1 && y0 <  y1) {
-        result = 90;
-    }
-    if (x0 >  x1 && y0 == y1) {
-        result = 180;
-    }
-    if (x0 == x1 && y0 >  y1) {
-        result = 270;
-    }
-    if (x0 >  x1 && y0 <  y1) {
-        result += 180;
-    }
-    if (x0 >  x1 && y0 >  y1) {
-        result += 180;
-    }
-    if (x0 <  x1 && y0 >  y1) {
-        result += 360;
+    // Std::cout : double.
+    static void view(double value)
+    {
+        std::cout << std::to_string(value) << '\n';
     }
 
-    return result;
-}
-
-// Angle between three points.
-// Sign : True, respects the order of the vectors.
-auto Angle(Point origin, Point first, Point second, bool signal) -> double
-{
-    auto angle1 = origin.angle(first);
-    auto angle2 = origin.angle(second);
-
-    if (signal) {
-        return angle1 - angle2;
+    // Std::cout : Point(x,y).
+    static void view(Point point)
+    {
+        std::cout << "(" << point.toStr() << ")" << '\n';
     }
 
-    return max(angle1, angle2) - min(angle1, angle2);
-}
-
-// Return: value + radius * cos(angle).
-auto Cos(double value, double radius, double angle) -> double
-{
-    return value + radius * cos(Radians(angle));
-}
-
-// Return: value + radius * sin(angle).
-auto Sin(double value, double radius, double angle) -> double
-{
-    return value + radius * sin(Radians(angle));
-}
-
-// Returns the distance between two points.
-auto Distance(double x0, double y0, double x1, double y1) -> double
-{
-    return sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
-}
-
-// Rounds value to N digits after decimal point.
-// Number of Decimal Places < 0, returns the same value.
-auto Round(double value, int decimalPlaces) -> double
-{
-    if (decimalPlaces < 0) {
-        return value;
-    }
-
-    if (decimalPlaces == 0) {
-        return static_cast<int>(value);
-    }
-
-    const int limit = 10;
-    decimalPlaces = decimalPlaces > limit ? limit : decimalPlaces;
-
-    const int base = 10;
-    return round(value * pow(base, decimalPlaces)) / pow(base, decimalPlaces);
-}
-
-// Round values.
-// Number of Decimal Places < 0, returns the same value.
-auto Round(Numbers values, int decimalPlaces) -> Numbers
-{
-    for (double &value : values) {
-        values = Round(values, decimalPlaces);
-    }
-
-    return values;
-}
-
-// Round points.
-// Number of Decimal Places < 0, returns the same value.
-auto Round(Points points, int decimalPlaces) -> Points
-{
-    for (auto &point : points) {
-        point = point.round(decimalPlaces);
-    }
-
-    return points;
-}
-
-// Triangle area.
-auto TriangleArea(double x0, double y0, double x1, double y1, double x2, double y2) -> double
-{
-    // Heron's formula
-    auto a = Distance(x0, y0, x1, y1);
-    auto b = Distance(x1, y1, x2, y2);
-    auto c = Distance(x2, y2, x0, y0);
-    auto s = (a + b + c) / 2.0;
-
-    return sqrt(s * (s - a) * (s - b) * (s - c));
-}
-
-// Triangle area using points.
-auto TriangleArea(Point point1, Point point2, Point point3) -> double
-{
-    return TriangleArea(point1.X.value, point1.Y.value,
-                        point2.X.value, point2.Y.value,
-                        point3.X.value, point3.Y.value);
-}
-
-// Triangle height.
-auto TriangleHeight(double x0, double y0, double x1, double y1, double x2, double y2) -> double
-{
-    auto area = TriangleArea(x0, y0, x1, y1, x2, y2);
-    auto height0 = 2 * area / Distance(x0, y0, x1, y1);
-    auto height1 = 2 * area / Distance(x1, y1, x2, y2);
-    auto height2 = 2 * area / Distance(x2, y2, x0, y0);
-
-    return max(max(height0, height1), height2);
-}
-
-// Triangle height using points.
-auto TriangleHeight(Point point1, Point point2, Point point3) -> double
-{
-    return TriangleHeight(point1.X.value, point1.Y.value,
-                          point2.X.value, point2.Y.value,
-                          point3.X.value, point3.Y.value);
-}
-
-// Calculates the point of intersection between two lines.
-// Returns false if the lines are parallel or coincident.
-// Line 1 (x0, y0) - (x1, y1),
-// Line 2 (x2, y2) - (x3, y4).
-auto LineIntersect(double x0, double y0, double x1, double y1,
-                   double x2, double y2, double x3, double y3,
-                   Point &point) -> bool
-{
-    double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
-    if (d == 0) {   // Two lines are parallel or coincident ...
-        point.X.value = MAXDOUBLE;
-        point.Y.value = MAXDOUBLE;
-        return false;
-    }
-
-    double t = ((x3 - x2) * (y0 - y2) - (y3 - y2) * (x0 - x2)) / d;
-    double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
-
-    if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
-        point.X.value = x0 + t * (x1 - x0);
-        point.Y.value = y0 + t * (y1 - y0);
-        return true;
-    }
-
-    // Lines do not intersect.
-    return false;
-}
-
-// Calculates the point of intersection between two lines.
-// Returns false if the lines are parallel or coincident.
-auto LineIntersect(Line line1, const Line &line2, Point &point) -> bool
-{
-    return line1.intersection(line2, point);
-}
-
-// Perpendicular line passing through the point.
-auto Perpendicular(Line line, Point point) -> Line
-{
-    return line.perpendicular(point);
-}
-
-// Compare groups.
-template<typename T>
-auto Equal(vector<T> group1, vector<T> group2, bool compareOrder) -> bool
-{
-    if (group1.size() != group2.size()) {
-        return false;
-    }
-
-    if (compareOrder) {
-        for (unsigned i = 0; i < group1.size(); i++) {
-            if (!(group1[i] == group2[i])) {
-                return false;
-            }
+    // Std::cout : Vector of Point(x,y).
+    static void view(Points points)
+    {
+        std::string str{};
+        for (unsigned i = 0; i < points.size(); i++) {
+            str += "(" + points[i].toStr() + ")" + (i < points.size() - 1 ? "," : "");
         }
-    }
 
-    for (auto value1 : group1) {
-        bool differentFromEveryone = true;
-        for (auto value2 : group2) {
-            if (value1 == value2) {
-                differentFromEveryone = false;
-                break;
-            }
-        }
-        if (differentFromEveryone) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// Returns Points updated with the sum.
-auto Sum(Points group, double value) -> Points
-{
-    for (auto &item : group) {
-        item += value;
-    }
-
-    return group;
-}
-
-// Returns Points updated with the sum.
-auto Sum(Points group, Point point) -> Points
-{
-    for (auto &item : group) {
-        item += point;
-    }
-
-    return group;
-}
-
-// Sum all the distances, point by point.
-auto SumDistances(Points points) -> double
-{
-    if (points.empty()) {
-        return 0;
-    }
-
-    if (points.size() == 1) {
-        return 0;
-    }
-
-    if (points.size() == 2) {
-        return points.front().distance(points.back());
-    }
-
-    double sum = 0;
-    for (unsigned i = 1; i < points.size(); i++) {
-        sum += points[i].distance(points[i - 1]);
-    }
-
-    return sum;
-}
-
-// Sum : Point (Total X axis, Total Y axis).
-auto Total(const Points &points) -> Point
-{
-    Point sum;
-    for (auto point : points) {
-        sum += point;
-    }
-
-    return sum;
-}
-
-// Average : Point (Total X axis / Points, Total Y axis / Points).
-auto  Average(const Points &points, Point &point) -> bool
-{
-    if (points.empty()) {
-        point = Origin;
-        return false;
-    }
-
-    point = Total(points) * (1.0 / static_cast<double>(points.size())) ;
-
-    return true;
-}
-
-// Sort numbers.
-auto Sort(Numbers numbers, bool ascendingOrder) -> Numbers
-{
-    if (ascendingOrder) {
-        sort(numbers.begin(), numbers.end(), less<>());
-    }
-    else {
-        sort(numbers.begin(), numbers.end(), greater<>());
-    }
-
-    return numbers;
-}
-
-// Sort points by X or Y axis.
-auto Sort(Points points, bool X_axis) -> Points
-{
-    if (points.empty()) {
-        return {};
-    }
-
-    if (points.size() == 1) {
-        return points;
-    }
-
-    map<double, Numbers > mapPoint;
-
-    for (auto point : points) {
-        auto key = X_axis ? point.X.value : point.Y.value;
-        auto value = X_axis ? point.Y.value : point.X.value;
-        if (mapPoint.find(key) == mapPoint.end()) {
-            mapPoint.insert({key, {value}});
+        if (str.empty()) {
+            std::cout << "Empty\n";
         }
         else {
-            mapPoint[key].push_back(value);
+            std::cout << str << '\n';
         }
     }
 
-    Points result;
-    for (const auto &item : mapPoint) {
-        if (X_axis) {
-            for (auto value : item.second) { // Y
-                result.emplace_back(Point(item.first, value));
-            }
+    // Std::cout : Vector of numbers.
+    template<typename T>
+    static void view(std::vector<T> values)
+    {
+        std::string str{};
+        for (unsigned i = 0; i < values.size(); i++) {
+            str += std::to_string(values[i]) + (i < values.size() - 1 ? "," : "");
         }
-        else {
-            auto values = Sort(item.second);
-            for (auto value : values) {     // X
-                result.emplace_back(Point(value, item.first));
-            }
-        }
-    }
 
-    return result;
-}
-
-// Sort the Points clockwise.
-auto Organize(Points points) -> Points
-{
-    if (points.size() < 2) {
-        return points;
-    }
-
-    // Map : Angle x Point.
-    map<double, Points > mapPoint;
-
-    for (auto value : points) {
-        auto key = Point(0, 0).angle(value);
-        if (mapPoint.find(key) == mapPoint.end()) {
-            mapPoint.insert(make_pair(key, Points{value}));
+        if (str.empty()) {
+            std::cout << "Empty\n";
         }
         else {
-            mapPoint[key].push_back(value);
+            std::cout << str << '\n';
         }
     }
 
-    Points result;
-    for (const auto &item : mapPoint) {
-        for (auto vPoints : item.second) {
-            result.push_back(vPoints);
+    // Std::cout : Vector of strings.
+    static void view(Strings values)
+    {
+        std::string str{};
+        for (unsigned i = 0; i < values.size(); i++) {
+            str += values[i] + (i < values.size() - 1 ? "," : "");
         }
-    }
 
-    return result;
-}
-
-// Join strings.
-auto Join(Strings vStr, char delimiter) -> string
-{
-    string result{};
-    for (unsigned i = 0; i < vStr.size(); i++) {
-        result += vStr[i] + (i < vStr.size() - 1 ? string{delimiter} : "");
-    }
-
-    return result;
-}
-
-// Trim string : Remove characters to the left.
-auto LTrim(string str, char trimmer) -> string
-{
-    int left = 0;
-    auto right = str.size() - 1;
-    right = right < 0 ? 0 : right;
-    while (left < str.size()) {
-        if (str[left] != trimmer) {
-            break;
-        }
-        left++;
-    }
-
-    return str.substr(left, 1 + right - left);
-}
-
-// Trim string : Remove characters to the right.
-auto RTrim(string str, char trimmer) -> string
-{
-    int left = 0;
-    auto right = str.size() - 1;
-    right = right < 0 ? 0 : right;
-    while (right >= 0) {
-        if (str[right] != trimmer) {
-            break;
-        }
-        right--;
-    }
-
-    return str.substr(left, 1 + right - left);
-
-}
-
-// Trim string.
-auto Trim(string str, char trimmer) -> string
-{
-    return RTrim(LTrim(move(str), trimmer), trimmer);
-}
-
-// Trim strings.
-auto Trim(Strings vStr, char trimmer) -> Strings
-{
-    for (auto &item : vStr) {
-        item = Trim(item, trimmer);
-    }
-
-    return vStr;
-}
-
-// Replace all occurrences.
-auto Replace(const string &str, char character, const string &replace) -> string
-{
-    string result{};
-    for (char characterTemp : str) {
-        result += (characterTemp == character ? replace : string{characterTemp});
-    }
-
-    return result;
-}
-
-// Replace all occurrences.
-auto Replace(const string &str, char character, char replace) -> string
-{
-    return Replace(str, character, string{replace});
-}
-
-// Split string.
-auto Split(const string &str, char delimiter) -> Strings
-{
-    Strings result;
-    string strTemp{};
-    for (char character : str) {
-        if (character == delimiter) {
-            result.push_back(strTemp);
-            strTemp = "";
+        if (str.empty()) {
+            std::cout << "Empty\n";
         }
         else {
-            strTemp += character;
-        }
-    }
-    if (!strTemp.empty()) {
-        result.push_back(strTemp);
-    }
-
-    return result;
-}
-
-// Input/Output
-
-// Std::cout : double.
-void View(double value)
-{
-    cout << to_string(value) << '\n';
-}
-
-// Std::cout : Point(x,y).
-void View(Point point)
-{
-    cout << "(" << point.toStr() << ")" << '\n';
-}
-
-// Std::cout : Array of double.
-template<size_t SIZE>
-void View(array<double, SIZE> arr)
-{
-    unsigned counter = 0;
-    for (const auto &value : arr) {
-        cout << "[" << counter << "]: " << Round(value) << '\n';
-        counter++;
-    }
-}
-
-// Std::cout : Vector of Point(x,y).
-void View(Points points)
-{
-    string str{};
-    for (unsigned i = 0; i < points.size(); i++) {
-        str += "(" + points[i].toStr() + ")" + (i < points.size() - 1 ? "," : "");
-    }
-
-    if (str.empty()) {
-        cout << "Empty\n";
-    }
-    else {
-        cout << str << '\n';
-    }
-}
-
-// Std::cout : Vector of numbers.
-template<typename T>
-void View(vector<T> values)
-{
-    string str{};
-    for (unsigned i = 0; i < values.size(); i++) {
-        str += to_string(values[i]) + (i < values.size() - 1 ? "," : "");
-    }
-
-    if (str.empty()) {
-        cout << "Empty\n";
-    }
-    else {
-        cout << str << '\n';
-    }
-}
-
-// Std::cout : Vector of strings.
-void View(Strings values)
-{
-    string str{};
-    for (unsigned i = 0; i < values.size(); i++) {
-        str += values[i] + (i < values.size() - 1 ? "," : "");
-    }
-
-    if (str.empty()) {
-        cout << "Empty\n";
-    }
-    else {
-        cout << str << '\n';
-    }
-}
-
-// Std::cout : string.
-void View(const string &str)
-{
-    cout << str << '\n';
-}
-
-// Load text file.
-auto Load(const string &filePath, string filenameExtension) -> string
-{
-    if (filePath.empty()) {
-        return {};
-    }
-
-    // Check extension.
-    if (!filenameExtension.empty()) {
-        const auto fpath = std::filesystem::path(filePath);
-        if (!exists(fpath)) {
-            cerr << "File not found!\n";
-            return {};
-        }
-
-        string extension{fpath.extension()};
-        transform(extension.begin(), extension.end(),
-                  extension.begin(), ::toupper);
-        transform(filenameExtension.begin(), filenameExtension.end(),
-                  filenameExtension.begin(), ::toupper);
-
-        if (!extension.ends_with(filenameExtension)) {
-            cerr << "Invalid file!\n";
-            return {};
+            std::cout << str << '\n';
         }
     }
 
-    string str{};
-    try {
-        ifstream fileIn(filePath, ios::in);
-        if (fileIn.is_open()) {
-            string line{};
-            while (getline(fileIn, line)) {
-                str += line + "\n";
-            }
-            fileIn.close();
-        }
-    }
-    catch (...) {
-        // pass
+    // Std::cout : string.
+    static void view(const std::string &str)
+    {
+        std::cout << str << '\n';
     }
 
-    return str;
-}
-
-// Save text file.
-auto Save(const string &text, string filePath) -> bool
-{
-    if (text.empty()) {
-        cerr << "Empty text! Export failed!\n";
-        return false;
-    }
-
-    if (filePath.empty()) {
-        filePath = "output.txt";
-    }
-
-    try {
-        ofstream file(filePath, ios::out);
-        file << text;
-        file.close();
-    }
-    catch (const exception &e) {
-        cout << "Error handling file writing.\n";
-        cerr << e.what() << "\n";
-        return false;
-    }
-
-    return true;
-}
+};
 
 } // namespace smalltoolbox
 
