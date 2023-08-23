@@ -206,9 +206,9 @@ void point()
     assert(Point::organize({}).empty());
     assert(Check::equal(Point::organize({Origin}), {Point(0, 0)}));
     assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-    {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
+                        {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
     assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-    {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)}, true));
+                        {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)}, true));
 
     // Angle between three points
     assert(Point::angle(Origin, Point(1, 1), Point(0, 1))       == 45);
@@ -556,7 +556,16 @@ void svg()
                                     Point(-100, 200)))
     };
 
-    auto svg = Sketch::svg(600, 600, Sketch::Join(shapes), Sketch::Metadata());
+    auto label = "TriOriginal"; // Reference for the clones.
+    Triangle triAngle(Point(-50, 0), Point(-25, -50), Point(0, 0)); // Original object.
+    auto svgOriginal = SVG::polygon(SVG::NormalShape(label, SVG::RED, SVG::BLUE, 2.0, triAngle.points()));
+    auto svgClone1 = SVG::clone(label, 60, triAngle.first, Point(180, 180));
+    auto svgClone2 = SVG::clone(label, 60, triAngle.first, Point(180, 380));
+
+    auto svgShapes = Sketch::join(shapes);
+    svgShapes = Text::join({svgShapes, svgOriginal, svgClone1, svgClone2}, '\n');
+
+    auto svg = Sketch::svg(600, 600, svgShapes, Sketch::Metadata());
     IO::save(svg, "Resources/svgOutput1.svg");
     //Console::view(svg);
 
