@@ -103,6 +103,10 @@ void basic()
     assert(Text::ltrim("0001", '0') == "1");
     assert(Text::rtrim("1000", '0') == "1");
 
+    assert(Text::trimZeros(1000) == "1000.0");
+    assert(Text::trimZeros(1000.50) == "1000.50");
+    //Console::view(1000.50); // 1000.500000
+
     assert(Text::strUpper("help") == "HELP");
     assert(Text::strLower("HelP") == "help");
 
@@ -221,7 +225,7 @@ void point()
     // String
     p1.X.value = 1.101;
     p1.Y.value = 1.202;
-    assert(p1.toStr(true) == "1.101,1.202");
+    assert(p1.toStr(true) == "1.1010,1.2020");
     //Console::view(p1.toStr());
 
     std::cout << "Point test finished!\n";
@@ -553,7 +557,7 @@ void svg()
     };
 
     auto svg = Sketch::svg(600, 600, Sketch::Join(shapes), Sketch::Metadata());
-    IO::save(svg, "svgOutput.svg");
+    IO::save(svg, "Resources/svgOutput1.svg");
     //Console::view(svg);
 
     std::cout << "SVG test finished!\n";
@@ -615,7 +619,7 @@ void loadTxt()
     auto svg = interpreter.load("Resources/test_commands.txt", errors);
 
     svg = Sketch::svg(100, 100, svg, Sketch::Metadata());
-    IO::save(svg, "Resources/svgOutput.svg");
+    IO::save(svg, "Resources/svgOutput2.svg");
 
     //Console::view(svg);
     //Console::view(errors);
