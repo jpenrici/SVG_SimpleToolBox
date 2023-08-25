@@ -16,7 +16,7 @@ void svg();
 void interpreter();
 void loadTxt();
 
-int main()
+auto main() -> int
 {
     std::cout << "Start tests ...\n";
     const auto start = std::chrono::steady_clock::now();
@@ -206,9 +206,9 @@ void point()
     assert(Point::organize({}).empty());
     assert(Check::equal(Point::organize({Origin}), {Point(0, 0)}));
     assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-                        {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
+    {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
     assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-                        {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)}, true));
+    {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)}, true));
 
     // Angle between three points
     assert(Point::angle(Origin, Point(1, 1), Point(0, 1))       == 45);
@@ -394,6 +394,11 @@ void circle()
     assert(circle.horizontalRadius != ellipse.horizontalRadius);
     assert(circle.verticalRadius != ellipse.verticalRadius);
 
+    assert(Math::round(Ellipse(Origin, 10, 10).perimeter(), 3) == 62.832); // Circle
+    assert(Math::round(Ellipse(Origin, 10,  5).perimeter(), 3) == 48.442);
+    assert(Math::round(Ellipse(Origin, 10,  3).perimeter(), 3) == 43.859);
+    assert(Math::round(Ellipse(Origin, 10,  1).perimeter(), 3) == 40.639);
+
 }
 
 void regularPolygons()
@@ -468,27 +473,27 @@ void irregularPolygon()
 {
     using namespace smalltoolbox;
 
-    IrregularPolygon polygon;
+    IrregularPolygon iPolygon;
 
-    polygon.setup({Point(0, 0), Point(0, 1), Point(1, 1)});             // Triangle
-    assert(polygon.isConvex());
-    assert(Math::round(polygon.area(), 2) == 0.5);
-    assert(polygon.perimeter() == 2 + std::sqrt(2));
+    iPolygon.setup({Point(0, 0), Point(0, 1), Point(1, 1)});             // Triangle
+    assert(iPolygon.isConvex());
+    assert(Math::round(iPolygon.area(), 2) == 0.5);
+    assert(iPolygon.perimeter() == 2 + std::sqrt(2));
 
-    polygon.setup(Triangle(Origin, Point(0, 1), Point(1, 1)).points()); // Triangle
-    assert(polygon.isConvex());
-    assert(Math::round(polygon.area(), 2) == 0.5);
-    assert(polygon.perimeter() == 2 + std::sqrt(2));
+    iPolygon.setup(Triangle(Origin, Point(0, 1), Point(1, 1)).points()); // Triangle
+    assert(iPolygon.isConvex());
+    assert(Math::round(iPolygon.area(), 2) == 0.5);
+    assert(iPolygon.perimeter() == 2 + std::sqrt(2));
 
-    polygon.setup({Origin, Point(1, 0), Point(1, 1), Point(0, 1)});     // Rectangle
-    assert(polygon.isConvex());
-    assert(round(polygon.area()) == 1.0);
-    assert(round(polygon.perimeter()) == 4.0);
+    iPolygon.setup({Origin, Point(1, 0), Point(1, 1), Point(0, 1)});     // Rectangle
+    assert(iPolygon.isConvex());
+    assert(round(iPolygon.area()) == 1.0);
+    assert(round(iPolygon.perimeter()) == 4.0);
 
-    polygon.setup(Rectangle(Origin, 50, 20).points());                  // Rectangle
-    assert(polygon.isConvex());
-    assert(round(polygon.area()) == 50 * 20);
-    assert(round(polygon.perimeter()) == 2 * 50 + 2 * 20);
+    iPolygon.setup(Rectangle(Origin, 50, 20).points());                  // Rectangle
+    assert(iPolygon.isConvex());
+    assert(round(iPolygon.area()) == 50 * 20);
+    assert(round(iPolygon.perimeter()) == 2 * 50 + 2 * 20);
 
     // Point type behavior. Returning empty.
     assert(IrregularPolygon({Point(1, 1)}).points().empty());
@@ -498,14 +503,20 @@ void irregularPolygon()
     assert(IrregularPolygon(Line(Origin, Point(1, 1)).points()).points().size() == 2);
 
     // Convex polygon
-    polygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(-1, -1),
-                                Point(1, -1), Point(2, 1)});
-    assert(polygon.isConvex());
+    iPolygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(-1, -1), Point(1, -1), Point(2, 1)});
+    assert(iPolygon.isConvex());
+    assert(Math::round(iPolygon.area(), 0) == 8.0);
+    assert(Math::round(iPolygon.averageLength(), 1) == 2.2);
 
     // Concave polygon
-    polygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(1, 0),
-                                Point(-1, -1), Point(1, -1), Point(2, 1)});
-    assert(!polygon.isConvex());
+    iPolygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(1, 0), Point(-1, -1), Point(1, -1), Point(2, 1)});
+    assert(!iPolygon.isConvex());
+    assert(iPolygon.area() == 5.5);
+
+    iPolygon = IrregularPolygon({Point(-3, -2), Point(-1, 4), Point(6, 1), Point(3, 10), Point(-4, 9)});
+    //Console::view(iPolygon);
+    assert(!iPolygon.isConvex());
+    assert(iPolygon.area() == 60.0);
 
     std::cout << "Irregular Polygon test finished!\n";
 }
@@ -552,11 +563,10 @@ void svg()
         Circle(Point(250, 80), 50),
         Ellipse(Point(400, 80), 80, 50),
         RegularPolygon(Point(200, 300), 100, 90, 6),
-        IrregularPolygon(Point::sum(Polygon(Point(200, 300), 100, 90, 6).points(),
-                                    Point(-100, 200)))
+        IrregularPolygon(Point::sum(Polygon(Point(200, 300), 100, 90, 6).points(), Point(-100, 200)))
     };
 
-    auto label = "TriOriginal"; // Reference for the clones.
+    std::string label = "TriOriginal"; // Reference for the clones.
     Triangle triAngle(Point(-50, 0), Point(-25, -50), Point(0, 0)); // Original object.
     auto svgOriginal = SVG::polygon(SVG::NormalShape(label, SVG::RED, SVG::BLUE, 2.0, triAngle.points()));
     auto svgClone1 = SVG::clone(label, 60, triAngle.first, Point(180, 180));
