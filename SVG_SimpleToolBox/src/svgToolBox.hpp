@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // svgToolBox.hpp
 // Small tools for building applications from SVG images.
-// 2023-08-25
+// 2023-08-28
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SMALLTOOLBOX_H_
@@ -215,13 +215,13 @@ public:
         return result;
     }
 
-    // Return: value + radius * cos(angle).
+    // Returns : value + radius * cos(angle).
     static auto cos(const double &value, const double &radius, const double &angle) -> double
     {
         return value + radius * std::cos(radians(angle));
     }
 
-    // Return: value + radius * sin(angle).
+    // Returns : value + radius * sin(angle).
     static auto sin(const double &value, const double &radius, const double &angle) -> double
     {
         return value + radius * std::sin(radians(angle));
@@ -253,7 +253,7 @@ public:
         return std::round(value * std::pow(base, decimalPlaces)) / std::pow(base, decimalPlaces);
     }
 
-    // Round values.
+    // Rounds values.
     // Number of Decimal Places < 0, returns the same value.
     static auto round(Numbers values, int decimalPlaces) -> Numbers
     {
@@ -353,7 +353,7 @@ class IO {
 
 public:
 
-    // Return the extension of a file.
+    // Returns the extension of a file.
     static auto getExtension(const std::string &filePath) -> std::string
     {
         auto extFile = std::filesystem::path(filePath).extension();
@@ -361,7 +361,7 @@ public:
         return std::string{extFile};
     }
 
-    // Return the name of a file.
+    // Returns the name of a file.
     static auto getFilename(const std::string &filePath) -> std::string
     {
         auto fileName = std::filesystem::path(filePath).filename();
@@ -597,14 +597,17 @@ public:
     }
 
     // Average : Point (Total X axis / Points, Total Y axis / Points).
-    static auto average(const Points &points, Point &point) -> bool
+    static auto average(const Points &points, Point *midPoint) -> bool
     {
         if (points.empty()) {
-            point = Point(0, 0);
             return false;
         }
 
-        point = total(points) * (1.0 / static_cast<double>(points.size())) ;
+        if (midPoint == nullptr) {
+            return false;
+        }
+
+        *midPoint = total(points) * (1.0 / static_cast<double>(points.size())) ;
 
         return true;
     }
@@ -714,16 +717,20 @@ public:
 
     // Calculates the point of intersection between two lines.
     // Returns false if the lines are parallel or coincident.
+    // Returns Point equal null if the lines are parallel or coincident.
     // Line 1 (x0, y0) - (x1, y1),
     // Line 2 (x2, y2) - (x3, y4).
     static auto lineIntersect(const double &x0, const double &y0, const double &x1, const double &y1,
                               const double &x2, const double &y2, const double &x3, const double &y3,
-                              Point &point) -> bool
+                              Point *intersectionPoint) -> bool
     {
         double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
         if (d == 0) {   // Two lines are parallel or coincident ...
-            point.X.value = MAXDOUBLE;
-            point.Y.value = MAXDOUBLE;
+            intersectionPoint = nullptr;
+            return false;
+        }
+
+        if (intersectionPoint  == nullptr) {
             return false;
         }
 
@@ -731,8 +738,7 @@ public:
         double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
 
         if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
-            point.X.value = x0 + t * (x1 - x0);
-            point.Y.value = y0 + t * (y1 - y0);
+            *intersectionPoint = {x0 + t *(x1 - x0), y0 + t *(y1 - y0)};
             return true;
         }
 
@@ -742,17 +748,18 @@ public:
 
     // Calculates the point of intersection between two lines.
     // Returns false if the lines are parallel or coincident.
+    // Returns Point equal nullptr if the lines are parallel or coincident.
     // Line 1 (Point 1) - (Point 2),
     // Line 2 (Point 3) - (Point 3).
     static auto lineIntersect(const Point &point1, const Point &point2,
                               const Point &point3, const Point &point4,
-                              Point &point) -> bool
+                              Point *intersectionPoint) -> bool
     {
         return lineIntersect(point1.X.value, point1.Y.value,
                              point2.X.value, point2.Y.value,
                              point3.X.value, point3.Y.value,
                              point4.X.value, point4.Y.value,
-                             point);
+                             intersectionPoint);
     }
 
     // Returns the rounded current coordinates.
@@ -930,11 +937,6 @@ public:
         last_fourth = fourth;
 
         return vertices;
-    }
-
-    auto operator==(const Base &polygon) -> bool
-    {
-        return equal(polygon);
     }
 
     auto isConvex() -> bool
@@ -1155,22 +1157,24 @@ public:
     }
 
     // Returns the intersection point with another line.
-    auto intersection(const Line &line, Point &point) -> bool
+    // Returns false if the lines are parallel or coincident.
+    // Returns Point equal null if the lines are parallel or coincident.
+    auto intersection(const Line &line, Point *intersectionPoint) -> bool
     {
         return Point::lineIntersect(first.X.value, first.Y.value,
                                     second.X.value, second.Y.value,
                                     line.first.X.value, line.first.Y.value,
                                     line.second.X.value, line.second.Y.value,
-                                    point);
+                                    intersectionPoint);
     }
 
     // Calculates the point of intersection between two lines.
     // Returns false if the lines are parallel or coincident.
-    static auto lineIntersect(Line line1, const Line &line2, Point &point) -> bool
+    // Returns Point equal null if the lines are parallel or coincident.
+    static auto lineIntersect(Line line1, const Line &line2, Point *intersectionPoint) -> bool
     {
-        return line1.intersection(line2, point);
+        return line1.intersection(line2, intersectionPoint);
     }
-
 
     // Perpendicular line passing through the point.
     auto perpendicular(const Point &point) -> Line
@@ -1541,7 +1545,7 @@ public:
 
         Metadata() = default;
         Metadata(const std::string &creator, const std::string &title, const std::string &publisher)
-            : creator{creator}, title{title}, publisherAgentTitle{publisher} {}
+            : creator(creator), title(title), publisherAgentTitle(publisher) {}
     };
 
     // Drawing setup.
@@ -1560,11 +1564,11 @@ public:
 
         Style(const std::string &name, const std::string &fill, const std::string &stroke,
               const double &strokeWidth)
-            : name{name}, fill{fill}, stroke{stroke}, strokeWidth{strokeWidth} {}
+            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth) {}
         Style(const std::string &name, const std::string &fill, const std::string &stroke,
               const double &strokeWidth, const double &fillOpacity, const double &strokeOpacity)
-            : name{name}, fill{fill}, stroke{stroke}, strokeWidth{strokeWidth}, fillOpacity{fillOpacity},
-              strokeOpacity{strokeOpacity} {}
+            : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth), fillOpacity(fillOpacity),
+              strokeOpacity(strokeOpacity) {}
     };
 
     // Polygon and Polyline.
@@ -1583,11 +1587,11 @@ public:
 
         NormalShape(const std::string &name, const std::string &fill, const std::string &stroke,
                     const double &strokeWidth, const Points &points)
-            :  Style(name, fill, stroke, strokeWidth), points{points} {}
+            :  Style(name, fill, stroke, strokeWidth), points(points) {}
         NormalShape(const std::string &name, const std::string &fill, const std::string &stroke,
                     const double &strokeWidth, const double &fillOpacity, const double &strokeOpacity,
                     const Points &points)
-            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity), points{points} {}
+            :  Style(name,  fill, stroke, strokeWidth, fillOpacity, strokeOpacity), points(points) {}
     };
 
     // Circle and Ellipse.
@@ -1649,9 +1653,9 @@ public:
             return 0;
         }
 
-        unsigned result = 0;
+        int result = 0;
         try {
-            result = stoul(value, nullptr, 16);
+            result = std::stoi(value, nullptr, 16);
         }
         catch (...) {
             // pass
@@ -1729,7 +1733,6 @@ public:
     // Return SVG: <polyline ... />
     static auto polyline(const NormalShape &shape) -> std::string
     {
-
         if (shape.points.empty()) {
             return "<!-- Empty -->\n";
         }
@@ -1987,7 +1990,7 @@ public:
     static auto normalShape(Base base, const std::string &label) -> SVG::NormalShape
     {
         SVG::NormalShape shape;
-        shape.name = std::move(label);
+        shape.name = label;
         shape.points = base.points();
 
         return shape;
@@ -1997,7 +2000,7 @@ public:
     static auto circleShape(const Ellipse &ellipse, const std::string &label) -> SVG::CircleShape
     {
         SVG::CircleShape shape;
-        shape.name = std::move(label);
+        shape.name = label;
         shape.center = ellipse.center;
         shape.horizontalRadius = ellipse.horizontalRadius;
         shape.verticalRadius = ellipse.verticalRadius;
@@ -2009,14 +2012,14 @@ public:
     static auto svgPolyline(const Base &base, const std::string &label) -> std::string
     {
 
-        return SVG::polygon(normalShape(base, std::move(label)));
+        return SVG::polygon(normalShape(base, label));
     }
 
     // Return SVG::polyline with Polygon base.
     static auto svgPolyline(Base base, const std::string &label, const RGBA &fill, const RGBA &stroke) -> std::string
     {
 
-        return SVG::polyline(SVG::NormalShape(std::move(label),
+        return SVG::polyline(SVG::NormalShape(label,
                                               SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                               SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                               1.0,    // strokeWidth
@@ -2028,7 +2031,7 @@ public:
                             const double &fillOpacity, const double &strokeOpacity) -> std::string
     {
 
-        return SVG::polyline(SVG::NormalShape(std::move(label),
+        return SVG::polyline(SVG::NormalShape(label,
                                               SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                               SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                               1.0,    // strokeWidth
@@ -2043,7 +2046,7 @@ public:
                             const double &strokeWidth) -> std::string
     {
 
-        return SVG::polyline(SVG::NormalShape(std::move(label),
+        return SVG::polyline(SVG::NormalShape(label,
                                               SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                               SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                               strokeWidth,
@@ -2056,14 +2059,14 @@ public:
     static auto svgPolygon(const Base &base, const std::string &label) -> std::string
     {
 
-        return SVG::polygon(normalShape(base, std::move(label)));
+        return SVG::polygon(normalShape(base, label));
     }
 
     // Return SVG::polygon with Polygon base.
     static auto svgPolygon(Base base, const std::string &label, const RGBA &fill, const RGBA &stroke) -> std::string
     {
 
-        return SVG::polygon(SVG::NormalShape(std::move(label),
+        return SVG::polygon(SVG::NormalShape(label,
                                              SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                              SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                              1.0, // strokeWidth
@@ -2075,7 +2078,7 @@ public:
                            const double &fillOpacity, const double &strokeOpacity) -> std::string
     {
 
-        return SVG::polygon(SVG::NormalShape(std::move(label),
+        return SVG::polygon(SVG::NormalShape(label,
                                              SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                              SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                              1.0, // strokeWidth
@@ -2090,7 +2093,7 @@ public:
                            const double &strokeWidth) -> std::string
     {
 
-        return SVG::polygon(SVG::NormalShape(std::move(label),
+        return SVG::polygon(SVG::NormalShape(label,
                                              SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                              SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                              strokeWidth,
@@ -2102,14 +2105,14 @@ public:
     // Return SVG::circle with Ellipse base.
     static auto svgCircle(const Ellipse &ellipse, const std::string &label) -> std::string
     {
-        return SVG::circle(circleShape(ellipse, std::move(label)));
+        return SVG::circle(circleShape(ellipse, label));
     }
 
     // Return SVG::circle with Ellipse base.
     static auto svgCircle(const Ellipse &ellipse, const std::string &label, const RGBA &fill,
                           const RGBA &stroke) -> std::string
     {
-        return SVG::circle(SVG::CircleShape(std::move(label),
+        return SVG::circle(SVG::CircleShape(label,
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             1.0,    // strokeWidth
@@ -2124,7 +2127,7 @@ public:
     static auto svgCircle(const Ellipse &ellipse, const std::string &label, const RGBA &fill,
                           const RGBA &stroke, const double &fillOpacity, const double &strokeOpacity) -> std::string
     {
-        return SVG::circle(SVG::CircleShape(std::move(label),
+        return SVG::circle(SVG::CircleShape(label,
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             1.0,    // strokeWidth
@@ -2140,7 +2143,7 @@ public:
                           const RGBA &stroke, const double &fillOpacity, const double &strokeOpacity,
                           const double &strokeWidth) -> std::string
     {
-        return SVG::circle(SVG::CircleShape(std::move(label),
+        return SVG::circle(SVG::CircleShape(label,
                                             SVG::RGB2HEX(fill.R, fill.G, fill.B),
                                             SVG::RGB2HEX(stroke.R, stroke.G, stroke.B),
                                             strokeWidth,
@@ -2286,8 +2289,7 @@ public:
                         auto values = Text::split(str, ',');      //  x y
                         if (values.size() == 2) {
                             // Convert to Point.
-                            points.emplace_back(Point(stod(values[0]),
-                                                      stod(values[1])));
+                            points.emplace_back(stod(values[0]), stod(values[1]));
                         }
                     }
                     catch (...) {

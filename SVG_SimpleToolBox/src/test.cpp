@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <memory>
 
 // Tests
 void basic();
@@ -35,9 +36,9 @@ auto main() -> int
     loadTxt();
 
     const auto end = std::chrono::steady_clock::now();
-    const std::chrono::duration<double> elapsed_seconds = end - start;
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-    std::cout << "Finished tests.\nElapsed: " << elapsed_seconds << '\n';
+    std::cout << "Finished tests.\nElapsed: " << milliseconds << " miliseconds\n";
 
     return 0;
 }
@@ -199,8 +200,10 @@ void point()
 
     // Average
     Point result;
-    assert(Point::average({Point(1, 3), Point(2, 1), Point(3, 2)}, result));
-    assert(result.equal(Point(2, 2)));
+    assert(!Point::average({}, &result));                                        // !False
+    assert(result.equal(Point(0, 0)));                                           // True
+    assert(Point::average({Point(1, 3), Point(2, 1), Point(3, 2)}, &result));    // True
+    assert(result.equal(Point(2, 2)));                                           // True
 
     // Organize
     assert(Point::organize({}).empty());
@@ -257,17 +260,18 @@ void line()
     line.setup(Origin, 90, 10);
     assert(line.second.round() == Point(0, 10));
 
-    Point p;
     Line line1;
     line.setup(Point(2, 2), Point(2, 10));  // Line (2,2)(2,10)
     line1.setup(0, 4, 10, 4);               // Line (0,4)(10,4)
     //Console::view(line.points());
     //Console::view(line1.points());
-    assert(line.intersection(line1, p));    // Intersect
-    assert(p == Point(2, 4));               // at (2,4)
+
+    Point p;
+    assert(line.intersection(line1, &p));    // Intersect
+    assert(p == Point(2, 4));                // at (2,4)
 
     Point a(1, 1), b(2, 2), c(3, 3);
-    assert(Line(a, b) == Line(a, b));           // Equal
+    assert(Line(a, b).equal(Line(a, b)));       // Equal
     assert(Line(b, a).equal(Line(a, b)));       // Equal
     assert(Line(a, b).equal(Line(b, a)));       // Equal
     assert(Line(a, a).equal(Line(a, a)));       // Equal
@@ -276,10 +280,10 @@ void line()
 
     assert(Line(0, 0, 0, 10).length() == 10.0);
 
-    assert(Line(Point(-1, 0), Point(10, 0)).perpendicular(Point(0, 10)).round() ==
-           Line(Point(0, 0), Point(0, 10)).round());
-    assert(Line(Point(0, 1), Point(0, 10)).perpendicular(Point(5, 5)).round() ==
-           Line(Point(0, 5), Point(5, 5)).round());
+    assert(Line(Point(-1, 0), Point(10, 0)).perpendicular(Point(0, 10)).round()
+           .equal(Line(Point(0, 0), Point(0, 10)).round()));
+    assert(Line(Point(0, 1), Point(0, 10)).perpendicular(Point(5, 5)).round()
+           .equal(Line(Point(0, 5), Point(5, 5)).round()));
 
     // Angle : line direction
     assert(Line(0, 0, 1, 1).angle() == 45);
@@ -287,23 +291,26 @@ void line()
     assert(Line(0, 0, 1, 1).angle() != Line(1, 1, 0, 0).angle());
 
     // Intersection
-    assert(!Point::lineIntersect(1, 2, 5, 5, 2, 1, 6, 4, p));     // Parallel
-    assert(!Point::lineIntersect(0, 0, 5, 5, 1, 1, 4, 4, p));     // Coincident
-    assert(Point::lineIntersect(1, 1, -1, -1, 2, -2, -2, 2, p));  // Intersection at Origin
-    assert(Point::lineIntersect(2, 2, 2, 10, 0, 4, 10, 4, p));    // Intersection at (2,4)
+    assert(!Point::lineIntersect(1, 2, 5, 5, 2, 1, 6, 4, &p));       // Parallel
+    assert(!Point::lineIntersect(0, 0, 5, 5, 1, 1, 4, 4, &p));       // Coincident
+    assert(Point::lineIntersect(1, 1, -1, -1, 2, -2, -2, 2, &p));    // Intersection at Origin
+    assert(Point::lineIntersect(2, 2, 2, 10, 0, 4, 10, 4,   &p));    // Intersection at (2,4)
+    assert(Point::lineIntersect({2, 2}, {2, 10}, {0, 4}, {10, 4}, &p)); // Points
 
-    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1), p) == true);
+    line = Line(0, 0, 1, 1);
+    assert(line.intersection(Line(1, 0, 0, 1), &p) == true);
+    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1), &p) == true);
     assert(p == Point(0.5, 0.5));
-    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2), p) == false);
-    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 1, 0, 0), p) == false);
+    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2), &p) == false);
+    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 1, 0, 0), &p) == false);
 
     // Perpendicular
-    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(0.5, 2)).round() ==
-           Line(0.5, 0, 0.5, 2)); // Between the two points.
-    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(2.5, 2)).round() ==
-           Line(2.5, 0, 2.5, 2)); // Out of range.
-    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(-1.5, 2)).round() ==
-           Line(-0.5, 0, -1.5, 2));// Out of range.
+    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(0.5, 2)).round()
+           .equal(Line(0.5, 0, 0.5, 2))); // Between the two points.
+    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(2.5, 2)).round()
+           .equal(Line(2.5, 0, 2.5, 2))); // Out of range.
+    assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(-1.5, 2)).round()
+           .equal(Line(-0.5, 0, -1.5, 2)));// Out of range.
 
     std::cout << "Line test finished!\n";
 }
@@ -335,8 +342,8 @@ void triangle()
     assert(triangle.perimeter() == 10 + 10 + std::sqrt(200));
 
     Point a(1, 1), b(2, 2), c(3, 3), d(4, 4);
-    assert(Triangle(a, b, c) == Triangle(b, a, c));         // Equal
-    assert(Triangle(a, b, a + b) == Triangle(c, b, a));     // Equal
+    assert(Triangle(a, b, c).equal(Triangle(b, a, c)));     // Equal
+    assert(Triangle(a, b, a + b).equal(Triangle(c, b, a))); // Equal
     assert(!Triangle(a, b, c).equal(Triangle(a, b, d)));    // Not Equal
     //Console::view(Triangle(a, b, c).points());
     //Console::view(Triangle(a, b, c).lengthOfSides());
@@ -371,9 +378,9 @@ void rectangle()
     //Console::view(rectangle.lengthOfSides());
 
     Point a(1, 1), b(5, 1), c(5, 5), d(1, 5), e(5, 5);
-    assert(Rectangle(a, b, c, d) == Rectangle(d, a, b, c));             // Equal
-    assert(Rectangle(a, b, c, e) == Rectangle(a, b, c, a + a + c));     // Equal
-    assert(Rectangle(a, b, c, e) == Rectangle(a, b, c, a * 4.0 + 1.0)); // Equal
+    assert(Rectangle(a, b, c, d).equal(Rectangle(d, a, b, c)));             // Equal
+    assert(Rectangle(a, b, c, e).equal(Rectangle(a, b, c, a + a + c)));     // Equal
+    assert(Rectangle(a, b, c, e).equal(Rectangle(a, b, c, a * 4.0 + 1.0))); // Equal
     assert(Rectangle(a, b, c, d).round().area() == Rectangle(d, a, b, c).round().area());
     assert(Rectangle(a, b, c, d).round().perimeter() == Rectangle(d, a, b, c).round().perimeter());
     //Console::view(Rectangle(a, b, c, d).points());
@@ -430,16 +437,15 @@ void regularPolygons()
     polygon.setup(Point(0, 0),  1,  0,  4);
     assert(round(polygon.sideLength()) == round(Point(1, 0).distance(Point(0, 1))));
 
-    RegularPolygon p1, p2;
-    p1.setup(Origin, std::sqrt(2), 0, 4);
-    p2.setup(Origin, std::sqrt(2), 90, 4);
+    RegularPolygon rPolygon1, rPolygon2;
+    rPolygon1.setup(Origin, std::sqrt(2), 0, 4);
+    rPolygon2.setup(Origin, std::sqrt(2), 90, 4);
     //Console::view(p1.points());
     //Console::view(p1.round().points());
     //Console::view(p2.points());
     //Console::view(p2.round().points());
-    assert(p1.round() == p2.round());       // Equal
-    assert(p1.round().equal(p2.round()));   // Equal
-    assert(!p1.equal(p2));                  // Same but different precision.
+    assert(rPolygon1.round().equal(rPolygon2.round()));   // Equal
+    assert(!rPolygon1.equal(rPolygon2));                  // Same but different precision.
 
     // Rectangle 2 x 2 : (1,1)(-1,1)(-1,-1)(1,-1)
     polygon = RegularPolygon(Origin, std::sqrt(2), 45, 4);
