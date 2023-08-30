@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // svgToolBox.hpp
 // Small tools for building applications from SVG images.
-// 2023-08-28
+// 2023-08-30
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SMALLTOOLBOX_H_
@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <vector>
 
 namespace smalltoolbox {
@@ -486,6 +487,12 @@ class Point {
         }
     };
 
+    static auto response(const Point &point, bool status) -> std::tuple<Point, bool>
+    {
+        return std::make_tuple(point, status);
+    }
+
+
 public:
 
     // Axis
@@ -597,19 +604,14 @@ public:
     }
 
     // Average : Point (Total X axis / Points, Total Y axis / Points).
-    static auto average(const Points &points, Point *midPoint) -> bool
+    // Returns Point(0,0) if vector<Point> empty.
+    static auto average(const Points &points) -> std::tuple<Point, bool>
     {
         if (points.empty()) {
-            return false;
+            return response(Point(), false);
         }
 
-        if (midPoint == nullptr) {
-            return false;
-        }
-
-        *midPoint = total(points) * (1.0 / static_cast<double>(points.size())) ;
-
-        return true;
+        return response(total(points) * (1.0 / static_cast<double>(points.size())), true);
     }
 
     // X *= x; Y *= y
@@ -716,50 +718,40 @@ public:
     }
 
     // Calculates the point of intersection between two lines.
-    // Returns false if the lines are parallel or coincident.
-    // Returns Point equal null if the lines are parallel or coincident.
+    // Returns Point(0,0) and false if the lines are parallel or coincident.
     // Line 1 (x0, y0) - (x1, y1),
     // Line 2 (x2, y2) - (x3, y4).
     static auto lineIntersect(const double &x0, const double &y0, const double &x1, const double &y1,
-                              const double &x2, const double &y2, const double &x3, const double &y3,
-                              Point *intersectionPoint) -> bool
+                              const double &x2, const double &y2, const double &x3, const double &y3)
+    -> std::tuple<Point, bool>
     {
         double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
         if (d == 0) {   // Two lines are parallel or coincident ...
-            intersectionPoint = nullptr;
-            return false;
-        }
-
-        if (intersectionPoint  == nullptr) {
-            return false;
+            return response(Point(0, 0), false);
         }
 
         double t = ((x3 - x2) * (y0 - y2) - (y3 - y2) * (x0 - x2)) / d;
         double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
 
         if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
-            *intersectionPoint = {x0 + t *(x1 - x0), y0 + t *(y1 - y0)};
-            return true;
+            return response({x0 + t * (x1 - x0), y0 + t * (y1 - y0)}, true);
         }
 
         // Lines do not intersect.
-        return false;
+        return response(Point(0, 0), false);
     }
 
     // Calculates the point of intersection between two lines.
-    // Returns false if the lines are parallel or coincident.
-    // Returns Point equal nullptr if the lines are parallel or coincident.
+    // Returns Point(0,0) and false if the lines are parallel or coincident.
     // Line 1 (Point 1) - (Point 2),
     // Line 2 (Point 3) - (Point 3).
     static auto lineIntersect(const Point &point1, const Point &point2,
-                              const Point &point3, const Point &point4,
-                              Point *intersectionPoint) -> bool
+                              const Point &point3, const Point &point4) -> std::tuple<Point, bool>
     {
         return lineIntersect(point1.X.value, point1.Y.value,
                              point2.X.value, point2.Y.value,
                              point3.X.value, point3.Y.value,
-                             point4.X.value, point4.Y.value,
-                             intersectionPoint);
+                             point4.X.value, point4.Y.value);
     }
 
     // Returns the rounded current coordinates.
@@ -1157,23 +1149,20 @@ public:
     }
 
     // Returns the intersection point with another line.
-    // Returns false if the lines are parallel or coincident.
-    // Returns Point equal null if the lines are parallel or coincident.
-    auto intersection(const Line &line, Point *intersectionPoint) -> bool
+    // Returns Point(0,0) and false if the lines are parallel or coincident.
+    auto intersection(const Line &line) -> std::tuple<Point, bool>
     {
         return Point::lineIntersect(first.X.value, first.Y.value,
                                     second.X.value, second.Y.value,
                                     line.first.X.value, line.first.Y.value,
-                                    line.second.X.value, line.second.Y.value,
-                                    intersectionPoint);
+                                    line.second.X.value, line.second.Y.value);
     }
 
     // Calculates the point of intersection between two lines.
-    // Returns false if the lines are parallel or coincident.
-    // Returns Point equal null if the lines are parallel or coincident.
-    static auto lineIntersect(Line line1, const Line &line2, Point *intersectionPoint) -> bool
+    // Returns Point(0,0) and false if the lines are parallel or coincident.
+    static auto lineIntersect(Line line1, const Line &line2) -> std::tuple<Point, bool>
     {
-        return line1.intersection(line2, intersectionPoint);
+        return line1.intersection(line2);
     }
 
     // Perpendicular line passing through the point.

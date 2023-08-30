@@ -199,11 +199,14 @@ void point()
     assert(Point::total({Point(1, 1), Point(1, 1), Point(1, 1)}) == Point(3, 3));
 
     // Average
+    bool status;
     Point result;
-    assert(!Point::average({}, &result));                                        // !False
-    assert(result.equal(Point(0, 0)));                                           // True
-    assert(Point::average({Point(1, 3), Point(2, 1), Point(3, 2)}, &result));    // True
-    assert(result.equal(Point(2, 2)));                                           // True
+    std::tie(result, status) = Point::average({});
+    assert(status == false);
+    assert(result.equal(Point(0, 0)));
+    std::tie(result, status) = Point::average({Point(1, 3), Point(2, 1), Point(3, 2)});
+    assert(status == true);
+    assert(result.equal(Point(2, 2)));
 
     // Organize
     assert(Point::organize({}).empty());
@@ -266,9 +269,12 @@ void line()
     //Console::view(line.points());
     //Console::view(line1.points());
 
-    Point p;
-    assert(line.intersection(line1, &p));    // Intersect
-    assert(p == Point(2, 4));                // at (2,4)
+
+    bool status;
+    Point result;
+    std::tie(result, status) = line.intersection(line1);
+    assert(status);                               // Intersect
+    assert(result == Point(2, 4));                // at (2,4)
 
     Point a(1, 1), b(2, 2), c(3, 3);
     assert(Line(a, b).equal(Line(a, b)));       // Equal
@@ -291,18 +297,32 @@ void line()
     assert(Line(0, 0, 1, 1).angle() != Line(1, 1, 0, 0).angle());
 
     // Intersection
-    assert(!Point::lineIntersect(1, 2, 5, 5, 2, 1, 6, 4, &p));       // Parallel
-    assert(!Point::lineIntersect(0, 0, 5, 5, 1, 1, 4, 4, &p));       // Coincident
-    assert(Point::lineIntersect(1, 1, -1, -1, 2, -2, -2, 2, &p));    // Intersection at Origin
-    assert(Point::lineIntersect(2, 2, 2, 10, 0, 4, 10, 4,   &p));    // Intersection at (2,4)
-    assert(Point::lineIntersect({2, 2}, {2, 10}, {0, 4}, {10, 4}, &p)); // Points
+    std::tie(result, status) = Point::lineIntersect(1, 2, 5, 5, 2, 1, 6, 4);
+    assert(status == false); // Parallel
+    assert(result == Point(0, 0));
+    std::tie(result, status) = Point::lineIntersect(0, 0, 5, 5, 1, 1, 4, 4);
+    assert(status == false); // Coincident
+    assert(result == Point(0, 0));
+    std::tie(result, status) = Point::lineIntersect(1, 1, -1, -1, 2, -2, -2, 2);
+    assert(status == true); // Intersection at Origin
+    assert(result == Point(0, 0));
+    std::tie(result, status) = Point::lineIntersect(2, 2, 2, 10, 0, 4, 10, 4);
+    assert(status == true); // Intersection at (2,4)
+    assert(result == Point(2, 4));
+    std::tie(result, status) = Point::lineIntersect({2, 2}, {2, 10}, {0, 4}, {10, 4}); // Points
+    assert(status == true); // Intersection at (2,4)
+    assert(result == Point(2, 4));
 
     line = Line(0, 0, 1, 1);
-    assert(line.intersection(Line(1, 0, 0, 1), &p) == true);
-    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1), &p) == true);
-    assert(p == Point(0.5, 0.5));
-    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2), &p) == false);
-    assert(Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 1, 0, 0), &p) == false);
+    std::tie(result, status) = line.intersection(Line(1, 0, 0, 1));
+    assert(status == true);
+    std::tie(result, status) = Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1));
+    assert(status == true);
+    assert(result == Point(0.5, 0.5));
+    std::tie(result, status) = Line::lineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2));
+    assert(status  == false);
+    std::tie(result, status) = Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 1, 0, 0));
+    assert(status  == false);
 
     // Perpendicular
     assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(0.5, 2)).round()
