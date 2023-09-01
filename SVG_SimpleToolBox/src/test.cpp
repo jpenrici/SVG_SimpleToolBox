@@ -92,13 +92,14 @@ void basic()
     Numbers numbers {10, -1, 2};
     Numbers expected {-1, 2, 10};
     Numbers inOrder = Math::sort(numbers);
-    assert(Check::equal(numbers, expected));         // Order is not important.
-    assert(Check::equal(inOrder, expected, true));   // Order is important.
+    assert(Check::equal(numbers, expected) == true);         // Order is not important.
+    assert(Check::equal(inOrder, expected, true) == true);   // Order is important.
 
     // Strings
     assert(Text::join(std::vector<std::string> {"Hello", "World!"}, char(32)) == "Hello World!");
-    assert(Check::equal(Text::split("Hello World!", char(32)), std::vector<std::string> {"Hello", "World!"}));
-    assert(Check::equal(Text::trim(std::vector<std::string> {"100", "001"}, '0'), {"1", "1"}));
+    assert(Check::equal(Text::split("Hello World!", char(32)),
+                        std::vector<std::string> {"Hello", "World!"}) == true);
+    assert(Check::equal(Text::trim(std::vector<std::string> {"100", "001"}, '0'), {"1", "1"}) == true);
     assert(Text::replace("010110", '1', "--") == "0--0----0");
     assert(Text::trim("0.100", '0') == ".1");
     assert(Text::ltrim("0001", '0') == "1");
@@ -120,7 +121,7 @@ void point()
 
     Point p1, p2; // (0, 0)
 
-    assert(p1.equal(p2));
+    assert(p1.equal(p2) == true);
     assert(p1 == Point(0, 0));
     assert(p1 + Point(1, 1) == Point(1,  1));
     assert(p1 - Point(1, 1) == Point(-1, -1));
@@ -169,52 +170,52 @@ void point()
 
     // Compare point vector.
     Point a(1, 1), b(2, 2), c(3, 3);
-    assert(Check::equal(Points{a, b}, {b, a}));
-    assert(Check::equal({a, b, c}, Points{c, b, a}));
-    assert(Check::equal(Points{a + b, c}, {c, c}));
-    assert(!Check::equal(Points{a, b}, Points{a, c}));
+    assert(Check::equal(Points{a, b}, {b, a}) == true);
+    assert(Check::equal({a, b, c}, Points{c, b, a}) == true);
+    assert(Check::equal(Points{a + b, c}, {c, c}) == true);
+    assert(Check::equal(Points{a, b}, Points{a, c}) == false);
 
     // Sum
-    assert(Check::equal(Point::sum({Point(1, 1), Point(2, 2)}, 5), {Point(6, 6), Point(7, 7)}));
-    assert(Check::equal(Point::sum({Point(1, 1), Point(2, 2)}, Point(1, 2)), {Point(2, 3), Point(3, 4)}));
+    assert(Check::equal(Point::sum({ {1, 1},  {2, 2} }, 5), { {6, 6},  {7, 7} }) == true);
+    assert(Check::equal(Point::sum({ {1, 1}, {2, 2} }, Point(1, 2)), { {2, 3}, {3, 4} }) == true);
 
     // Sum of distances
-    assert(Point::sumDistances({Origin, Point(10, 0), Point(10, 20), Point(-10, 20)}) == 50.0);
+    assert(Point::sumDistances({Origin,  {10, 0},  {10, 20},  {-10, 20} }) == 50.0);
 
     // Sort X-axis
-    auto points = Point::sort({Origin, Point(-10, 0), Point(10, 0), Point(-5, -1)});
-    Points expected = {Point(-10, 0), Point(-5, -1), Origin, Point(10, 0)};
-    assert(Check::equal(points, expected, true));
+    auto points = Point::sort({Origin,  {-10, 0},  {10, 0},  {-5, -1} });
+    Points expected = { {-10, 0},  {-5, -1}, Origin,  {10, 0} };
+    assert(Check::equal(points, expected, true) == true);
     //Console::view(points);
     //Console::view(expected);
 
     // Sort Y-axis
-    points = Point::sort({Origin, Point(-10, 0), Point(10, 0), Point(-5, -1)}, false);
-    expected = {Point(-5, -1), Point(-10, 0), Origin, Point(10, 0)};
-    assert(Check::equal(points, expected, true));
+    points = Point::sort({Origin,  {-10, 0},  {10, 0},  {-5, -1} }, false);
+    expected = { {-5, -1},  {-10, 0}, Origin, {10, 0} };
+    assert(Check::equal(points, expected, true) == true);
     //Console::view(points);
     //Console::view(expected);
 
     // Total
-    assert(Point::total({Point(1, 1), Point(1, 1), Point(1, 1)}) == Point(3, 3));
+    assert(Point::total({ {1, 1},  {1, 1},  {1, 1} }) == Point(3, 3));
 
     // Average
     bool status;
     Point result;
     std::tie(result, status) = Point::average({});
     assert(status == false);
-    assert(result.equal(Point(0, 0)));
-    std::tie(result, status) = Point::average({Point(1, 3), Point(2, 1), Point(3, 2)});
+    assert(result == Point(0, 0));
+    std::tie(result, status) = Point::average({ {1, 3},  {2, 1},  {3, 2} });
     assert(status == true);
-    assert(result.equal(Point(2, 2)));
+    assert(result == Point(2, 2));
 
     // Organize
     assert(Point::organize({}).empty());
-    assert(Check::equal(Point::organize({Origin}), {Point(0, 0)}));
-    assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-    {Point(1, 1), Point(-1, -1), Point(1, -1), Point(-1, 1)}));
-    assert(Check::equal(Point::organize({Point(-1, -1), Point(-1, 1), Point(1, -1), Point(1, 1)}),
-    {Point(1, 1), Point(-1, 1), Point(-1, -1), Point(1, -1)}, true));
+    assert(Check::equal(Point::organize({Origin}), {Point(0, 0)}) == true);
+    assert(Check::equal(Point::organize({ {-1, -1}, {-1, 1}, {1, -1}, {1, 1} }),
+    { {1, 1}, {-1, -1}, {1, -1}, {-1, 1} }) == true);
+    assert(Check::equal(Point::organize({ {-1, -1}, {-1, 1}, {1, -1}, {1, 1} }),
+    { {1, 1}, {-1, 1}, {-1, -1}, {1, -1} }, true) == true);
 
     // Angle between three points
     assert(Point::angle(Origin, Point(1, 1), Point(0, 1))       == 45);
@@ -244,52 +245,53 @@ void line()
     Line line;
 
     assert(line.first == Origin);
-    assert(line.second.equal(Origin));
+    assert(line.second.equal(Origin) == true);
 
-    line.setup(Point(1, 1), Point(2, 2));
+    line.setup({1, 1},  {2, 2});
     assert(line.first == Point(1, 1));
-    assert(line.second.equal(Point(2, 2)));
+    assert(line.second.equal(Point(2, 2)) == true);
 
-    line.setup(Origin, Point(1, 0));
+    line.setup(Origin,  {1, 0});
     assert(line.angle() == 0.0);
     assert(line.length() == 1.0);
     assert(line.middle() == Point(0.5, 0));
 
-    line.setup(Origin, Point(1, 1));
+    line.setup(Origin,  {1, 1});
     assert(line.angle() == 45);
     assert(line.length() == std::sqrt(2));
-    assert(line.middle().round().equal(Point(0.5, 0.5)));
+    assert(line.middle().round().equal(Point(0.5, 0.5)) == true);
 
     line.setup(Origin, 90, 10);
     assert(line.second.round() == Point(0, 10));
 
     Line line1;
-    line.setup(Point(2, 2), Point(2, 10));  // Line (2,2)(2,10)
-    line1.setup(0, 4, 10, 4);               // Line (0,4)(10,4)
+    line.setup({2, 2},  {2, 10});   // Line (2,2)(2,10)
+    line1.setup(0, 4, 10, 4);       // Line (0,4)(10,4)
     //Console::view(line.points());
     //Console::view(line1.points());
 
-
-    bool status;
-    Point result;
-    std::tie(result, status) = line.intersection(line1);
-    assert(status);                               // Intersect
-    assert(result == Point(2, 4));                // at (2,4)
+    // tuple[Point, int]
+    auto [result, status] = line.intersection(line1);
+    assert(status != 0);            // Parallel or not intersect
+    assert(status != 1);            // Coincident
+    assert(status == 2);            // Intersect in range
+    assert(status != 3);            // Intersect not in range
+    assert(result == Point(2, 4));  // Intersection Point(2,4)
 
     Point a(1, 1), b(2, 2), c(3, 3);
-    assert(Line(a, b).equal(Line(a, b)));       // Equal
-    assert(Line(b, a).equal(Line(a, b)));       // Equal
-    assert(Line(a, b).equal(Line(b, a)));       // Equal
-    assert(Line(a, a).equal(Line(a, a)));       // Equal
-    assert(Line(a + b, a).equal(Line(c, a)));   // Equal
-    assert(!Line(a, b).equal(Line(c, b)));      // Not equal
+    assert(Line(a, b).equal(Line(a, b)) == true);       // Equal
+    assert(Line(b, a).equal(Line(a, b)) == true);       // Equal
+    assert(Line(a, b).equal(Line(b, a)) == true);       // Equal
+    assert(Line(a, a).equal(Line(a, a)) == true);       // Equal
+    assert(Line(a + b, a).equal(Line(c, a)) == true);   // Equal
+    assert(Line(a, b).equal(Line(c, b)) == false);      // Not equal
 
     assert(Line(0, 0, 0, 10).length() == 10.0);
 
-    assert(Line(Point(-1, 0), Point(10, 0)).perpendicular(Point(0, 10)).round()
-           .equal(Line(Point(0, 0), Point(0, 10)).round()));
-    assert(Line(Point(0, 1), Point(0, 10)).perpendicular(Point(5, 5)).round()
-           .equal(Line(Point(0, 5), Point(5, 5)).round()));
+    assert(Line({-1, 0}, {10, 0}).perpendicular({0, 10}).round()
+           .equal(Line({0, 0},  {0, 10}).round()) == true);
+    assert(Line({0, 1}, {0, 10}).perpendicular({5, 5}).round()
+           .equal(Line({0, 5},  {5, 5}).round()) == true);
 
     // Angle : line direction
     assert(Line(0, 0, 1, 1).angle() == 45);
@@ -298,39 +300,49 @@ void line()
 
     // Intersection
     std::tie(result, status) = Point::lineIntersect(1, 2, 5, 5, 2, 1, 6, 4);
-    assert(status == false); // Parallel
-    assert(result == Point(0, 0));
+    assert(status == 0); // Parallel
+    assert(result == Point(MAXNUMBER, MAXNUMBER));
     std::tie(result, status) = Point::lineIntersect(0, 0, 5, 5, 1, 1, 4, 4);
-    assert(status == false); // Coincident
+    assert(status == 1); // Coincident
     assert(result == Point(0, 0));
     std::tie(result, status) = Point::lineIntersect(1, 1, -1, -1, 2, -2, -2, 2);
-    assert(status == true); // Intersection at Origin
+    assert(status == 2); // Intersection at Origin
     assert(result == Point(0, 0));
     std::tie(result, status) = Point::lineIntersect(2, 2, 2, 10, 0, 4, 10, 4);
-    assert(status == true); // Intersection at (2,4)
+    assert(status == 2); // Intersection at (2,4)
     assert(result == Point(2, 4));
-    std::tie(result, status) = Point::lineIntersect({2, 2}, {2, 10}, {0, 4}, {10, 4}); // Points
-    assert(status == true); // Intersection at (2,4)
+    std::tie(result, status) = Point::lineIntersect({2, 2}, {2, 10}, {0, 4}, {10, 4});
+    assert(status == 2); // Intersection at (2,4)
     assert(result == Point(2, 4));
+    std::tie(result, status) = Point::lineIntersect(Origin, {1, 1}, {2, 0}, {1.5, 1});
+    assert(status < 0); // Not intersect
+    assert(result == Point(MAXNUMBER, MAXNUMBER));
 
     line = Line(0, 0, 1, 1);
     std::tie(result, status) = line.intersection(Line(1, 0, 0, 1));
-    assert(status == true);
+    assert(status == 2);
     std::tie(result, status) = Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 0, 0, 1));
-    assert(status == true);
+    assert(status == 2);
     assert(result == Point(0.5, 0.5));
     std::tie(result, status) = Line::lineIntersect(Line(0, 0, 1, 1), Line(0, 1, 1, 2));
-    assert(status  == false);
+    assert(status  == 0);
     std::tie(result, status) = Line::lineIntersect(Line(0, 0, 1, 1), Line(1, 1, 0, 0));
-    assert(status  == false);
+    assert(status  == 1);
 
     // Perpendicular
     assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(0.5, 2)).round()
-           .equal(Line(0.5, 0, 0.5, 2))); // Between the two points.
+           .equal(Line(0.5, 0, 0.5, 2)) == true); // Between the two points.
     assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(2.5, 2)).round()
-           .equal(Line(2.5, 0, 2.5, 2))); // Out of range.
+           .equal(Line(2.5, 0, 2.5, 2)) == true); // Out of range.
     assert(Line::perpendicular(Line(-1, 0, 1, 0), Point(-1.5, 2)).round()
-           .equal(Line(-0.5, 0, -1.5, 2)));// Out of range.
+           .equal(Line(-0.5, 0, -1.5, 2)) == true); // Out of range.
+
+    // Contains
+    assert(line.contains(Origin) == true); // Line(0, 0, 1, 1);
+    assert(line.contains({1, 1}) == true);
+    assert(line.contains({0.5, 0.5}) == true);
+    assert(line.contains({0.3, 0.2}) == false);
+    assert(line.contains({0.1, 0.3}) == false);
 
     std::cout << "Line test finished!\n";
 }
@@ -354,23 +366,32 @@ void triangle()
     assert(triangle.third.round() == Point(0, 10));
 
     // Base 2, height 10 : Area (2 * 10 / 2)
-    triangle.setup(Point(-2, 0), Point(0, 0), Point(0, 10));
+    triangle.setup({-2, 0},  {0, 0},  {0, 10});
     assert(triangle.area() == (2 * 10 / 2.0));
     assert(triangle.height() == 10.0);
 
-    triangle.setup(Origin, Point(10, 0), Point(0, 10));
+    triangle.setup(Origin,  {10, 0},  {0, 10});
     assert(triangle.perimeter() == 10 + 10 + std::sqrt(200));
 
     Point a(1, 1), b(2, 2), c(3, 3), d(4, 4);
-    assert(Triangle(a, b, c).equal(Triangle(b, a, c)));     // Equal
-    assert(Triangle(a, b, a + b).equal(Triangle(c, b, a))); // Equal
-    assert(!Triangle(a, b, c).equal(Triangle(a, b, d)));    // Not Equal
+    assert(Triangle(a, b, c).equal(Triangle(b, a, c)) == true);     // Equal
+    assert(Triangle(a, b, a + b).equal(Triangle(c, b, a)) == true); // Equal
+    assert(Triangle(a, b, c).equal(Triangle(a, b, d)) == false);    // Not Equal
     //Console::view(Triangle(a, b, c).points());
     //Console::view(Triangle(a, b, c).lengthOfSides());
 
     // Area, height
-    assert(Point::triangleArea(Origin, Point(20, 0), Point(0, 30)) == 300.0);
-    assert(Point::triangleHeight(Origin, Point(20, 0), Point(0, 30)) == 30.0);
+    assert(Point::triangleArea(Origin, {20, 0}, {0, 30}) == 300.0);
+    assert(Point::triangleHeight(Origin, {20, 0}, {0, 30}) == 30.0);
+
+    // Contains
+    assert(triangle.contains(Origin) == true);      // Origin, {10, 0}, {0, 10}
+    assert(triangle.contains({10,  0}) == true);
+    assert(triangle.contains({ 0, 10}) == true);
+    assert(triangle.contains({ 5,  5}) == true);
+    assert(triangle.contains({-1,  5}) == false);
+    assert(triangle.contains({ 6,  5}) == false);
+    assert(triangle.contains({ 5, -1}) == false);
 
     std::cout << "Triangle test finished!\n";
 }
@@ -398,9 +419,9 @@ void rectangle()
     //Console::view(rectangle.lengthOfSides());
 
     Point a(1, 1), b(5, 1), c(5, 5), d(1, 5), e(5, 5);
-    assert(Rectangle(a, b, c, d).equal(Rectangle(d, a, b, c)));             // Equal
-    assert(Rectangle(a, b, c, e).equal(Rectangle(a, b, c, a + a + c)));     // Equal
-    assert(Rectangle(a, b, c, e).equal(Rectangle(a, b, c, a * 4.0 + 1.0))); // Equal
+    assert(Rectangle(a, b, c, d).equal(Rectangle(d, a, b, c)) == true);             // Equal
+    assert(Rectangle(a, b, c, e).equal(Rectangle(a, b, c, a + a + c)) == true);     // Equal
+    assert(Rectangle(a, b, c, e).equal(Rectangle(a, b, c, a * 4.0 + 1.0)) == true); // Equal
     assert(Rectangle(a, b, c, d).round().area() == Rectangle(d, a, b, c).round().area());
     assert(Rectangle(a, b, c, d).round().perimeter() == Rectangle(d, a, b, c).round().perimeter());
     //Console::view(Rectangle(a, b, c, d).points());
@@ -426,6 +447,23 @@ void circle()
     assert(Math::round(Ellipse(Origin, 10,  3).perimeter(), 3) == 43.859);
     assert(Math::round(Ellipse(Origin, 10,  1).perimeter(), 3) == 40.639);
 
+    // Contains
+    assert(ellipse.contains(Origin) == true);
+    assert(ellipse.contains(Origin + Point(8, 0)) == true);
+    assert(ellipse.contains(Origin + Point(0, 2)) == true);
+    assert(ellipse.contains(Origin + Point(-8, 0)) == true);
+    assert(ellipse.contains(Origin + Point(0, -2)) == true);
+    assert(ellipse.contains(Point(8.1, 0)) == false);
+    assert(ellipse.contains(Point(0, 2.1)) == false);
+
+    assert(circle.contains(Point(4, 0)) == true);
+    assert(circle.contains(Point(0, 4)) == true);
+    assert(circle.contains(Point(-4, 0)) == true);
+    assert(circle.contains(Point(0, -4)) == true);
+    assert(circle.contains(Point(5, 1)) == false);
+    assert(circle.contains(Point(4.001, 0)) == false);
+
+    std::cout << "Circle test finished!\n";
 }
 
 void regularPolygons()
@@ -435,13 +473,13 @@ void regularPolygons()
     // Polygon
     RegularPolygon polygon;
     polygon.setup(Point(0, 0), -1,  0,  0); // Return empty
-    assert(polygon.points().empty());
+    assert(polygon.points().empty() == true);
     polygon.setup(Point(0, 0),  0,  0, -1); // Return empty
-    assert(polygon.points().empty());
+    assert(polygon.points().empty() == true);
     polygon.setup(Point(1, 1),  0,  0,  0); // Return empty
-    assert(polygon.points().empty());
+    assert(polygon.points().empty() == true);
     polygon.setup(Point(0, 0),  1,  0,  1); // Return empty
-    assert(polygon.points().empty());
+    assert(polygon.points().empty() == true);
 
     //Console::view(polygon.setup(Point(0, 0),  1,    0,  3)); // Triangle
     //Console::view(polygon.setup(Point(0, 0),  1,   45,  3)); // Triangle
@@ -455,7 +493,7 @@ void regularPolygons()
 
     // Rectangle (1,0)(0,1)(-1,0)(0,-1)
     polygon.setup(Point(0, 0),  1,  0,  4);
-    assert(round(polygon.sideLength()) == round(Point(1, 0).distance(Point(0, 1))));
+    assert(round(polygon.sideLength()) == round(Point(1, 0).distance({0, 1})));
 
     RegularPolygon rPolygon1, rPolygon2;
     rPolygon1.setup(Origin, std::sqrt(2), 0, 4);
@@ -464,13 +502,13 @@ void regularPolygons()
     //Console::view(p1.round().points());
     //Console::view(p2.points());
     //Console::view(p2.round().points());
-    assert(rPolygon1.round().equal(rPolygon2.round()));   // Equal
-    assert(!rPolygon1.equal(rPolygon2));                  // Same but different precision.
+    assert(rPolygon1.round().equal(rPolygon2.round()) == true);   // Equal
+    assert(rPolygon1.equal(rPolygon2) == false);                  // Same but different precision.
 
     // Rectangle 2 x 2 : (1,1)(-1,1)(-1,-1)(1,-1)
     polygon = RegularPolygon(Origin, std::sqrt(2), 45, 4);
     //Console::view(polygon.points());
-    assert(polygon.isConvex());
+    assert(polygon.isConvex() == true);
     assert(round(polygon.area()) == 4.0);
     assert(round(polygon.perimeter()) == 8.0);
     assert(round(polygon.sideLength()) == 2.0);
@@ -481,16 +519,16 @@ void regularPolygons()
 
     // Polygon
     polygon = RegularPolygon(Origin, 1, 0, 5);
-    assert(polygon.isConvex());
+    assert(polygon.isConvex() == true);
     //Console::view(polygon.averageLength());
     //Console::view(polygon.sideLength());
     //Console::view(polygon.lengthOfSides());
 
     polygon = RegularPolygon(Origin, 1, 0, 6);
-    assert(polygon.isConvex());
+    assert(polygon.isConvex() == true);
 
     polygon = RegularPolygon(Origin, 1, 0, 360);
-    assert(polygon.isConvex());
+    assert(polygon.isConvex() == true);
 
     std::cout << "Polygon test finished!\n";
 }
@@ -501,48 +539,101 @@ void irregularPolygon()
 
     IrregularPolygon iPolygon;
 
-    iPolygon.setup({Point(0, 0), Point(0, 1), Point(1, 1)});             // Triangle
-    assert(iPolygon.isConvex());
+    iPolygon.setup({ {0, 0}, {0, 1}, {1, 1} });                // Triangle
+    assert(iPolygon.isConvex() == true);
     assert(Math::round(iPolygon.area(), 2) == 0.5);
     assert(iPolygon.perimeter() == 2 + std::sqrt(2));
 
-    iPolygon.setup(Triangle(Origin, Point(0, 1), Point(1, 1)).points()); // Triangle
-    assert(iPolygon.isConvex());
+    iPolygon.setup(Triangle(Origin, {0, 1}, {1, 1}).points()); // Triangle
+    assert(iPolygon.isConvex() == true);
     assert(Math::round(iPolygon.area(), 2) == 0.5);
     assert(iPolygon.perimeter() == 2 + std::sqrt(2));
 
-    iPolygon.setup({Origin, Point(1, 0), Point(1, 1), Point(0, 1)});     // Rectangle
-    assert(iPolygon.isConvex());
+    iPolygon.setup({Origin, {1, 0}, {1, 1}, {0, 1} });         // Rectangle
+    assert(iPolygon.isConvex() == true);
     assert(round(iPolygon.area()) == 1.0);
     assert(round(iPolygon.perimeter()) == 4.0);
 
-    iPolygon.setup(Rectangle(Origin, 50, 20).points());                  // Rectangle
-    assert(iPolygon.isConvex());
+    iPolygon.setup(Rectangle(Origin, 50, 20).points());        // Rectangle
+    assert(iPolygon.isConvex() == true);
     assert(round(iPolygon.area()) == 50 * 20);
     assert(round(iPolygon.perimeter()) == 2 * 50 + 2 * 20);
 
     // Point type behavior. Returning empty.
-    assert(IrregularPolygon({Point(1, 1)}).points().empty());
+    assert(IrregularPolygon({ {1, 1} }).points().empty() == true);
 
     // Line type behavior.
-    assert(!IrregularPolygon(Line(Origin, Point(1, 1)).points()).points().empty());
-    assert(IrregularPolygon(Line(Origin, Point(1, 1)).points()).points().size() == 2);
+    assert(IrregularPolygon(Line(Origin, {1, 1}).points()).points().empty() == false);
+    assert(IrregularPolygon(Line(Origin, {1, 1}).points()).points().size() == 2);
 
     // Convex polygon
-    iPolygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(-1, -1), Point(1, -1), Point(2, 1)});
-    assert(iPolygon.isConvex());
+    iPolygon = IrregularPolygon({ {0, 2}, {-2, 1}, {-1, -1}, {1, -1}, {2, 1} });
+    assert(iPolygon.isConvex() == true);
     assert(Math::round(iPolygon.area(), 0) == 8.0);
     assert(Math::round(iPolygon.averageLength(), 1) == 2.2);
 
     // Concave polygon
-    iPolygon = IrregularPolygon({Point(0, 2), Point(-2, 1), Point(1, 0), Point(-1, -1), Point(1, -1), Point(2, 1)});
-    assert(!iPolygon.isConvex());
+    iPolygon = IrregularPolygon({ {0, 2}, {-2, 1}, {1, 0}, {-1, -1}, {1, -1}, {2, 1} });
+    assert(iPolygon.isConvex() == false);
     assert(iPolygon.area() == 5.5);
 
-    iPolygon = IrregularPolygon({Point(-3, -2), Point(-1, 4), Point(6, 1), Point(3, 10), Point(-4, 9)});
+    // Check if polygon contains point.
+    iPolygon = IrregularPolygon({ {0, 0}, {10, 0}, {10, 10}, {0, 10} });
     //Console::view(iPolygon);
-    assert(!iPolygon.isConvex());
+    assert(iPolygon.isConvex() == true);
+    assert(iPolygon.area() == 100.0);                   // 100
+    assert(iPolygon.contains({ 0,  0}) == true);
+    assert(iPolygon.contains({10,  0}) == true);
+    assert(iPolygon.contains({10, 10}) == true);
+    assert(iPolygon.contains({ 0, 10}) == true);
+    assert(iPolygon.contains({ 5,  5}) == true);
+    assert(iPolygon.contains({ 0,  5}) == true);
+    assert(iPolygon.contains({ 5,  0}) == true);
+    assert(iPolygon.contains({ 5, 10}) == true);
+    assert(iPolygon.contains({10,  5}) == true);
+    assert(iPolygon.contains({-1,  5}) == false);
+    assert(iPolygon.contains({ 5, -1}) == false);
+    assert(iPolygon.contains({11,  5}) == false);
+    assert(iPolygon.contains({ 5, 11}) == false);
+
+    iPolygon = IrregularPolygon({ {-10, 0}, {10, 0}, {10, 0}, {0, -10} });
+    //Console::view(iPolygon);
+    assert(iPolygon.isConvex() == true);
+    assert(Math::round(iPolygon.area(), 2) == 100.0);   // 100.00000000000001
+    assert(iPolygon.contains({  6,   5}) == false);
+    assert(iPolygon.contains({  6,  -5}) == false);
+    assert(iPolygon.contains({ 11,   0}) == false);
+    assert(iPolygon.contains({ 11,  10}) == false);
+    assert(iPolygon.contains({ 11, -10}) == false);
+    assert(iPolygon.contains({ -6,   5}) == false);
+    assert(iPolygon.contains({ -6,  -5}) == false);
+    assert(iPolygon.contains({-11,   0}) == false);
+    assert(iPolygon.contains({-11,  10}) == false);
+    assert(iPolygon.contains({-11, -10}) == false);
+
+    iPolygon = IrregularPolygon({ {-3, -2}, {-1, 4}, {6, 1}, {3, 10}, {-4, 9} });
+    //Console::view(iPolygon);
+    assert(iPolygon.isConvex() == false);
     assert(iPolygon.area() == 60.0);
+    assert(iPolygon.contains({ 0, 5}) == true);
+    assert(iPolygon.contains({ 5, 3}) == true);
+    assert(iPolygon.contains({-3, 5}) == true);
+    assert(iPolygon.contains({-2, 2}) == true);
+    assert(iPolygon.contains({-3, 2}) == true);
+    assert(iPolygon.contains({ 0, 3}) == false);
+    assert(iPolygon.contains({ 2, 2}) == false);
+    assert(iPolygon.contains({ 5, 5}) == false);
+    assert(iPolygon.contains({-4, 2}) == false);
+    assert(iPolygon.contains({-4, 5}) == false);
+    assert(iPolygon.contains({10, 0}) == false);
+
+    // Check if polygon contains points.
+    auto iPolygon1 = IrregularPolygon({ {0, 5}, {-5, 0}, {0, -5}, {5, 0} });
+    auto iPolygon2 = IrregularPolygon({ {0, 1}, {-1, 0}, {0, -1}, {1, 0} });
+    auto [result, status] = iPolygon1.contains(iPolygon2);
+    assert(status == true);
+    std::tie(result, status) = iPolygon2.contains(iPolygon1);
+    assert(status == false);
 
     std::cout << "Irregular Polygon test finished!\n";
 }
@@ -551,7 +642,7 @@ void svg()
 {
     using namespace smalltoolbox;
 
-    assert(!Color::RGBA(1, 0, 1, 0).equal(Color::RGBA(0, 1, 0, 1)));
+    assert(Color::RGBA(1, 0, 1, 0).equal(Color::RGBA(0, 1, 0, 1)) == false);
 
     //Console::view(Color::RGBA(255, 255, 0, 0).toStr());
     //Console::view(Color::RGBA(255, 255, 0, 0).toStr(false));
@@ -583,17 +674,17 @@ void svg()
     //Console::view(Color::RGBA(SVG::HEX2RGB("#7F7F7FFF")).toStr());
 
     std::vector<Base> shapes {
-        Line(Point(10, 150), Point(500, 150)),
-        Triangle(Point(10, 120), Point(150, 120), -100),
-        Rectangle(Point(300, 160), 150, 300),
-        Circle(Point(250, 80), 50),
-        Ellipse(Point(400, 80), 80, 50),
-        RegularPolygon(Point(200, 300), 100, 90, 6),
-        IrregularPolygon(Point::sum(Polygon(Point(200, 300), 100, 90, 6).points(), Point(-100, 200)))
+        Line({10, 150},  {500, 150}),
+        Triangle({10, 120},  {150, 120}, -100),
+        Rectangle({300, 160}, 150, 300),
+        Circle({250, 80}, 50),
+        Ellipse({400, 80}, 80, 50),
+        RegularPolygon({200, 300}, 100, 90, 6),
+        IrregularPolygon(Point::sum(Polygon({200, 300}, 100, 90, 6).points(), Point(-100, 200)))
     };
 
     std::string label = "TriOriginal"; // Reference for the clones.
-    Triangle triAngle(Point(-50, 0), Point(-25, -50), Point(0, 0)); // Original object.
+    Triangle triAngle({-50, 0}, {-25, -50},  {0, 0});  // Original object.
     auto svgOriginal = SVG::polygon(SVG::NormalShape(label, SVG::RED, SVG::BLUE, 2.0, triAngle.points()));
     auto svgClone1 = SVG::clone(label, 60, triAngle.first, Point(180, 180));
     auto svgClone2 = SVG::clone(label, 60, triAngle.first, Point(180, 380));

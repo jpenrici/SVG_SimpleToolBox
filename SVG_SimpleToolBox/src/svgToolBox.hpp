@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // svgToolBox.hpp
 // Small tools for building applications from SVG images.
-// 2023-08-30
+// 2023-09-01
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SMALLTOOLBOX_H_
@@ -33,7 +33,7 @@ namespace smalltoolbox {
 #define Polygon     smalltoolbox::RegularPolygon
 #define Strings     std::vector<std::string>
 #define PI          std::numbers::pi
-#define MAXDOUBLE   std::numeric_limits<double>::max()
+#define MAXNUMBER   std::numeric_limits<float>::max()
 
 class Text {
 
@@ -487,12 +487,6 @@ class Point {
         }
     };
 
-    static auto response(const Point &point, bool status) -> std::tuple<Point, bool>
-    {
-        return std::make_tuple(point, status);
-    }
-
-
 public:
 
     // Axis
@@ -604,14 +598,14 @@ public:
     }
 
     // Average : Point (Total X axis / Points, Total Y axis / Points).
-    // Returns Point(0,0) if vector<Point> empty.
+    // Returns Point(0,0) and false if vector<Point> empty.
     static auto average(const Points &points) -> std::tuple<Point, bool>
     {
         if (points.empty()) {
-            return response(Point(), false);
+            return {Point(), false};
         }
 
-        return response(total(points) * (1.0 / static_cast<double>(points.size())), true);
+        return {total(points) *(1.0 / static_cast<double>(points.size())), true};
     }
 
     // X *= x; Y *= y
@@ -718,35 +712,57 @@ public:
     }
 
     // Calculates the point of intersection between two lines.
-    // Returns Point(0,0) and false if the lines are parallel or coincident.
+    // Returns Point(max X, max Y) and -1 if not intersect.
+    // Returns Point(max X, max Y) and 0 if the lines are parallel.
+    // Returns Point(x0, y0) and 1 if the lines coincident.
+    // Return the intersection point and 2 if they are in range.
+    // Return the intersection point and 3 if not in range.
     // Line 1 (x0, y0) - (x1, y1),
     // Line 2 (x2, y2) - (x3, y4).
     static auto lineIntersect(const double &x0, const double &y0, const double &x1, const double &y1,
                               const double &x2, const double &y2, const double &x3, const double &y3)
-    -> std::tuple<Point, bool>
+    -> std::tuple<Point, int>
     {
+        // Check if lines are coincident or parallel.
         double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
-        if (d == 0) {   // Two lines are parallel or coincident ...
-            return response(Point(0, 0), false);
+        double a = (x3 - x2) * (y0 - y2) - (y3 - y2) * (x0 - x2);
+        double b = (x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2);
+
+        if (d == 0) {
+            if (a == 0 && b == 0) {
+                return {Point(x0, y0), 1}; // Coincident.
+            }
+            return {Point(MAXNUMBER, MAXNUMBER), 0}; // Parallel.
         }
 
-        double t = ((x3 - x2) * (y0 - y2) - (y3 - y2) * (x0 - x2)) / d;
-        double u = ((x1 - x0) * (y0 - y2) - (y1 - y0) * (x0 - x2)) / d;
+        double t =  a / d;
+        double u =  b / d;
 
         if (t >= 0.0 && t <= 1.0 && u >= 0 && u <= 1.0) {
-            return response({x0 + t * (x1 - x0), y0 + t * (y1 - y0)}, true);
+            Point p{x0 + t *(x1 - x0), y0 + t *(y1 - y0)};
+            // Check if the intersection point belongs to the two lines.
+            if ((p.distance({x0, y0}) + p.distance({x1, y1}) == Point(x0, y0).distance({x1, y1}))
+                    && (p.distance({x2, y2}) + p.distance({x3, y3}) == Point(x2, y2).distance({x3, y3}))) {
+                return {p, 2};
+            }
+            // Intersection outside the line range.
+            return {p, 3};
         }
 
         // Lines do not intersect.
-        return response(Point(0, 0), false);
+        return {Point(MAXNUMBER, MAXNUMBER), -1};
     }
 
     // Calculates the point of intersection between two lines.
-    // Returns Point(0,0) and false if the lines are parallel or coincident.
+    // Returns Point(max X, max Y) and -1 if not intersect.
+    // Returns Point(max X, max Y) and 0 if the lines are parallel.
+    // Returns Point(x0, y0) and 1 if the lines coincident.
+    // Return the intersection point and 2 if they are in range.
+    // Return the intersection point and 3 if not in range.
     // Line 1 (Point 1) - (Point 2),
     // Line 2 (Point 3) - (Point 3).
     static auto lineIntersect(const Point &point1, const Point &point2,
-                              const Point &point3, const Point &point4) -> std::tuple<Point, bool>
+                              const Point &point3, const Point &point4) -> std::tuple<Point, int>
     {
         return lineIntersect(point1.X.value, point1.Y.value,
                              point2.X.value, point2.Y.value,
@@ -965,6 +981,60 @@ public:
         return true;
     }
 
+    // Polygon contains point.
+    auto contains(const Point &point) -> bool
+    {
+        int counter{0};
+        for (auto i = 0; i < vertices.size(); ++i) {
+            auto i1 = (i + 1) % vertices.size();
+            // Check if point equal vertices.
+            if (point == vertices[i] || point == vertices[i1]) {
+                return true;
+            }
+            // An imaginary horizontal line intersects an edge.
+            auto [result, status] = Point::lineIntersect(point, Point(MAXNUMBER, point.Y.value), vertices[i], vertices[i1]);
+            if (status == 1) {  // Coincident.
+                // Check if it is out of range.
+                if (point.X.value < std::min(vertices[i].X.value, vertices[i1].X.value) ||
+                        point.X.value > std::max(vertices[i].X.value, vertices[i1].X.value)) {
+                    return false;
+                }
+                // It's on the range.
+                return true;
+            }
+            if (status == 2) { // Intersect
+                if (result == point) {
+                    return true;
+                }
+                counter++;
+            }
+        }
+        if (counter % 2 == 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // Polygon contains points
+    auto contains(const Points &points) -> std::tuple<Points, bool>
+    {
+        Points pointsInPolygon;
+        for (const auto &p : points) {
+            if (contains(p)) {
+                pointsInPolygon.emplace_back(p);
+            }
+        }
+
+        return {pointsInPolygon, !pointsInPolygon.empty()};
+    }
+
+    // Polygon contains Polygon
+    auto contains(const Base &polygon) -> std::tuple<Points, bool>
+    {
+        return contains(polygon.vertices);
+    }
+
     // Rearrange the polygon points.
     auto organize() -> Points
     {
@@ -1149,8 +1219,12 @@ public:
     }
 
     // Returns the intersection point with another line.
-    // Returns Point(0,0) and false if the lines are parallel or coincident.
-    auto intersection(const Line &line) -> std::tuple<Point, bool>
+    // Returns Point(max X, max Y) and -1 if not intersect.
+    // Returns Point(max X, max Y) and 0 if the lines are parallel.
+    // Returns Point(x0, y0) and 1 if the lines coincident.
+    // Return the intersection point and 2 if they are in range.
+    // Return the intersection point and 3 if not in range.
+    auto intersection(const Line &line) -> std::tuple<Point, int>
     {
         return Point::lineIntersect(first.X.value, first.Y.value,
                                     second.X.value, second.Y.value,
@@ -1159,8 +1233,12 @@ public:
     }
 
     // Calculates the point of intersection between two lines.
-    // Returns Point(0,0) and false if the lines are parallel or coincident.
-    static auto lineIntersect(Line line1, const Line &line2) -> std::tuple<Point, bool>
+    // Returns Point(max X, max Y) and -1 if not intersect.
+    // Returns Point(max X, max Y) and 0 if the lines are parallel.
+    // Returns Point(x0, y0) and 1 if the lines coincident.
+    // Return the intersection point and 2 if they are in range.
+    // Return the intersection point and 3 if not in range.
+    static auto lineIntersect(Line line1, const Line &line2) -> std::tuple<Point, int>
     {
         return line1.intersection(line2);
     }
@@ -1455,6 +1533,15 @@ public:
 
         return PI * (a + b) * (1 + ((3 * h) / (10 + std::sqrt(4 - 3 * h))));
     }
+
+    auto contains(const Point &point) -> bool
+    {
+        auto result = (std::pow((point.X.value - center.X.value), 2) / std::pow(horizontalRadius, 2)) +
+                      (std::pow((point.Y.value - center.Y.value), 2) / std::pow(verticalRadius, 2));
+
+        return result <= 1;
+    }
+
 };
 
 class Circle : public Ellipse {
