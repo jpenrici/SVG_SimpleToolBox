@@ -1,4 +1,4 @@
-# SmallToolBox
+# Small ToolBox
 
 Simple resources to help build C++ applications with SVG, Game, among others.<br>
 
