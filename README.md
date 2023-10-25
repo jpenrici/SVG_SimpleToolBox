@@ -1,6 +1,6 @@
-# SVG_SimpleToolBox
+# SmallToolBox
 
-Simple functionality to generate SVG images using C++.<br>
+Simple resources to help build C++ applications with SVG, Game, among others.<br>
 
 ## Test
 
@@ -18,4 +18,4 @@ Simple functionality to generate SVG images using C++.<br>
 
 ## Display
 
-![display](https://github.com/jpenrici/SVG_SimpleToolBox/blob/main/display/display_interpreter.png)
+![display](https://github.com/jpenrici/SmallToolBox/blob/main/display/display_interpreter.png)
