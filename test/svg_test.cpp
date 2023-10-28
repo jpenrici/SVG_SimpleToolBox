@@ -28,6 +28,8 @@ auto main() -> int
 
 void color()
 {
+    using namespace stbox;
+
     assert(Image::Color::RGBA(1, 0, 1, 0).equal(Image::Color::RGBA(0, 1, 0, 1)) == false);
     assert(Image::Color::int2hex(0) == "00");
     assert(Image::Color::int2hex(10) == "0A");
@@ -51,6 +53,8 @@ void color()
 
 void svg()
 {
+    using namespace stbox;
+
     std::vector<Math::Base> shapes {
         Math::Line({10, 150},  {500, 150}),
         Math::Triangle({10, 120},  {150, 120}, -100),
@@ -76,6 +80,8 @@ void svg()
 
 void interpreter()
 {
+    using namespace stbox;
+
     Interpreter interpreter;
 
     std::vector<std::string> commands {
@@ -118,6 +124,8 @@ void interpreter()
 
 void loadTxt()
 {
+    using namespace stbox;
+
     Interpreter interpreter;
 
     std::string errors;

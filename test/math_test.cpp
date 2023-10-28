@@ -8,8 +8,8 @@
 #define PI          std::numbers::pi
 
 using Numbers = std::vector<double>;
-using Points  = std::vector<Math::Point>;
-using Polygon = Math::RegularPolygon;
+using Points  = std::vector<stbox::Math::Point>;
+using Polygon = stbox::Math::RegularPolygon;
 using Strings = std::vector<std::string>;
 
 
@@ -40,6 +40,8 @@ auto main() -> int
 
 void numbers()
 {
+    using namespace stbox;
+
     std::vector<unsigned> angles {
         0, 15, 30, 45, 60, 90, 120, 135, 150, 180, 225, 270, 315, 360
     };
@@ -90,6 +92,8 @@ void numbers()
 
 void point()
 {
+    using namespace stbox;
+
     Math::Point p1, p2; // (0, 0)
 
     assert(p1.equal(p2) == true);
@@ -190,6 +194,8 @@ void point()
 
 void line()
 {
+    using namespace stbox;
+
     Math::Line line;
 
     assert(line.first == Math::Origin);
@@ -293,6 +299,8 @@ void line()
 
 void triangle()
 {
+    using namespace stbox;
+
     Math::Triangle triangle;
 
     assert(triangle.first == Math::Origin);
@@ -336,6 +344,8 @@ void triangle()
 
 void rectangle()
 {
+    using namespace stbox;
+
     Math::Rectangle rectangle;
 
     assert(rectangle.first == Math::Origin);
@@ -371,6 +381,8 @@ void rectangle()
 
 void circle()
 {
+    using namespace stbox;
+
     Math::Ellipse ellipse(Math::Origin, 8, 2);
     Math::Circle circle(Math::Origin, 4);
     assert(circle.area() == ellipse.area());
@@ -401,6 +413,8 @@ void circle()
 
 void regularPolygons()
 {
+    using namespace stbox;
+
     Math::RegularPolygon polygon;
     polygon.setup(Math::Point(0, 0), -1,  0,  0); // Return empty
     assert(polygon.points().empty() == true);
@@ -445,6 +459,8 @@ void regularPolygons()
 
 void irregularPolygon()
 {
+    using namespace stbox;
+
     Math::IrregularPolygon iPolygon;
 
     iPolygon.setup({ {0, 0}, {0, 1}, {1, 1} });                // Triangle

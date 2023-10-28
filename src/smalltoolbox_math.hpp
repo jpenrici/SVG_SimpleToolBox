@@ -11,6 +11,8 @@
 #include <vector>
 
 
+namespace stbox {
+
 namespace Math {
 
 template<typename T = float>
@@ -473,7 +475,7 @@ public:
     // Line 2 (x2, y2) - (x3, y4).
     static auto lineIntersect(const double &x0, const double &y0, const double &x1, const double &y1,
                               const double &x2, const double &y2, const double &x3, const double &y3)
-    -> std::tuple<Point, int>
+        -> std::tuple<Point, int>
     {
         // Check if lines are coincident or parallel.
         double d = (y3 - y2) * (x1 - x0) - (x3 - x2) * (y1 - y0);
@@ -494,7 +496,7 @@ public:
             Point p{x0 + t *(x1 - x0), y0 + t *(y1 - y0)};
             // Check if the intersection point belongs to the two lines.
             if ((p.distance({x0, y0}) + p.distance({x1, y1}) == Point(x0, y0).distance({x1, y1}))
-                    && (p.distance({x2, y2}) + p.distance({x3, y3}) == Point(x2, y2).distance({x3, y3}))) {
+                && (p.distance({x2, y2}) + p.distance({x3, y3}) == Point(x2, y2).distance({x3, y3}))) {
                 return {p, 2};
             }
             // Intersection outside the line range.
@@ -752,7 +754,7 @@ public:
             if (status == 1) {  // Coincident.
                 // Check if it is out of range.
                 if (point.X.value < std::min(m_vertices[i].X.value, m_vertices[i1].X.value) ||
-                        point.X.value > std::max(m_vertices[i].X.value, m_vertices[i1].X.value)) {
+                    point.X.value > std::max(m_vertices[i].X.value, m_vertices[i1].X.value)) {
                     return false;
                 }
                 // It's on the range.
@@ -801,7 +803,7 @@ public:
         for (unsigned i = 0; i < vPoly1.size(); ++i) {
             for (unsigned j = 0; j < polygonPoints.size(); ++j) {
                 std::tie(point, result) = Point::lineIntersect(vPoly1[i % vPoly1.size()], vPoly1[(i + 1) % vPoly1.size()],
-                                          polygonPoints[j % polygonPoints.size()], polygonPoints[(j + 1) % polygonPoints.size()]);
+                                                               polygonPoints[j % polygonPoints.size()], polygonPoints[(j + 1) % polygonPoints.size()]);
                 if (result == 2) {
                     vertices.emplace_back(point);
                 }
@@ -1383,7 +1385,8 @@ public:
     ~IrregularPolygon() = default;
 };
 
-
 }; // namespace Math
+
+}; // namespace stbox
 
 #endif // SMALLTOOLBOX_MATH_H

@@ -8,8 +8,8 @@
 
 auto main() -> int
 {
-    Sys::Console::view(std::vector<std::string> {"A", "B", "C"});
-    Sys::Console::view(std::vector<double> {1.1, 2.2, 3.3});
+    stbox::Sys::Console::view(std::vector<std::string> {"A", "B", "C"});
+    stbox::Sys::Console::view(std::vector<double> {1.1, 2.2, 3.3});
 
     std::cout << "System test finished!\n";
 

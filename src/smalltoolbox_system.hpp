@@ -7,6 +7,8 @@
 #include <vector>
 
 
+namespace stbox {
+
 namespace Sys {
 
 class IO {
@@ -164,5 +166,7 @@ public:
 };
 
 }; // namespace Sys
+
+}; // namespace stbox
 
 #endif // SMALLTOOLBOX_SYSTEM_H

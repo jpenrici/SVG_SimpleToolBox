@@ -8,6 +8,8 @@
 #include <vector>
 
 
+namespace stbox {
+
 namespace Image {
 
 class Color {
@@ -26,9 +28,9 @@ public:
 
         RGBA(const unsigned char  &r, const unsigned char  &g, const unsigned char  &b, const unsigned char &a = 255)
             : RGBA(std::vector<unsigned char>
-        {
-            r, g, b, a
-        }) {}
+                   {
+                       r, g, b, a
+                   }) {}
 
         explicit RGBA(const std::vector<unsigned char> &rgba)
             : RGBA()
@@ -196,7 +198,7 @@ public:
         Style(const std::string &name, const std::string &fill, const std::string &stroke,
               const double &strokeWidth, const double &fillOpacity, const double &strokeOpacity)
             : name(name), fill(fill), stroke(stroke), strokeWidth(strokeWidth), fillOpacity(fillOpacity),
-              strokeOpacity(strokeOpacity) {}
+            strokeOpacity(strokeOpacity) {}
     };
 
     // Polygon and Polyline.
@@ -244,12 +246,12 @@ public:
                     const double &strokeWidth, const std::array<double, 2> &center, const double &horizontalRadius,
                     const double &verticalRadius)
             :  Style(name, fill, stroke, strokeWidth), center(center),
-               horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
+            horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
         CircleShape(const std::string &name, const std::string &fill, const std::string &stroke,
                     const double &strokeWidth, const double &fillOpacity, const double &strokeOpacity,
                     const std::array<double, 2> &center, const double &horizontalRadius, const double &verticalRadius)
             :  Style(name, fill, stroke, strokeWidth, fillOpacity, strokeOpacity),
-               center(center), horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
+            center(center), horizontalRadius(horizontalRadius), verticalRadius(verticalRadius) {}
     };
 
     // Returns SVG: <g> Elements </g>
@@ -270,11 +272,11 @@ private:
         style.strokeOpacity = style.strokeOpacity < 0 ? 0 : std::min(style.strokeOpacity / 255, 1.0);
 
         return {
-            "id=\"" + style.name + "\"\nstyle=\"" +
-            "opacity:" + std::to_string(style.fillOpacity) + ";fill:" + style.fill +
-            ";stroke:" + style.stroke + ";stroke-width:" + std::to_string(style.strokeWidth) +
-            ";stroke-opacity:" + std::to_string(style.strokeOpacity) +
-            ";stroke-linejoin:round;stroke-linecap:round\"\n" };
+                "id=\"" + style.name + "\"\nstyle=\"" +
+                "opacity:" + std::to_string(style.fillOpacity) + ";fill:" + style.fill +
+                ";stroke:" + style.stroke + ";stroke-width:" + std::to_string(style.strokeWidth) +
+                ";stroke-opacity:" + std::to_string(style.strokeOpacity) +
+                ";stroke-linejoin:round;stroke-linecap:round\"\n" };
     }
 
 public:
@@ -465,6 +467,8 @@ public:
     }
 };
 
-};
+}; // namespace Image
+
+}; // namespace stbox
 
 #endif // SMALLTOOLBOX_IMAGE_H

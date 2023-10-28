@@ -6,6 +6,8 @@
 
 auto main() -> int
 {
+    using namespace stbox;
+
     assert(Text::join(std::vector<std::string> {"Hello", "World!"}, char(32)) == "Hello World!");
     assert((Text::split("Hello World!", char(32)) == std::vector<std::string> {"Hello", "World!"}));
     assert((Text::trim(std::vector<std::string> {"100", "001"}, '0') == std::vector <std::string> {"1", "1"}));

@@ -6,11 +6,13 @@
 #include <vector>
 
 
+namespace stbox {
+
 namespace Text {
 
 // Value to string.
 template <typename T>
-static inline auto toStr(T value) -> std::string
+static auto toStr(T value) -> std::string
 {
     std::stringstream ss;
     ss << value;
@@ -20,14 +22,14 @@ static inline auto toStr(T value) -> std::string
 
 // Values to string.
 template<typename T, typename... Args>
-static inline auto toStr(T value, Args... args) -> std::string
+static auto toStr(T value, Args... args) -> std::string
 {
     return toStr(value) + toStr(args...);
 }
 
 // Initializer list to string.
 template <class T>
-static inline auto toStr(std::initializer_list<T> list) -> std::string
+static auto toStr(std::initializer_list<T> list) -> std::string
 {
     std::string result;
     for (auto value : list) {
@@ -165,6 +167,8 @@ static auto strLower(const std::string &str) -> std::string
     return result;
 }
 
-};
+}; // namespace Text
+
+}; // namespace stbox
 
 #endif // SMALLTOOLBOX_TEXT_H

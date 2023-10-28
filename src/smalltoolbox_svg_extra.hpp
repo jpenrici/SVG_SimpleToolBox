@@ -11,14 +11,14 @@
 
 // Sketch
 // Organizes SVG development.
-class Sketch : public Image::SVG, public Image::Color {
+class Sketch : public stbox::Image::SVG, public stbox::Image::Color {
 
 public:
 
     // Return basic SVG::Shape with Polygon base.
-    static auto normalShape(Math::Base base, const std::string &label) -> Image::SVG::NormalShape
+    static auto normalShape(stbox::Math::Base base, const std::string &label) -> stbox::Image::SVG::NormalShape
     {
-        Image::SVG::NormalShape shape;
+        stbox::Image::SVG::NormalShape shape;
         shape.name = label;
         shape.points = base.pointsXY();
 
@@ -26,9 +26,9 @@ public:
     }
 
     // Return basic SVG::CircleShape with Ellipse base.
-    static auto circleShape(const Math::Ellipse &ellipse, const std::string &label) -> Image::SVG::CircleShape
+    static auto circleShape(const stbox::Math::Ellipse &ellipse, const std::string &label) -> stbox::Image::SVG::CircleShape
     {
-        Image::SVG::CircleShape shape;
+        stbox::Image::SVG::CircleShape shape;
         shape.name = label;
         shape.center = std::array<double, 2>{ellipse.center.X.value, ellipse.center.Y.value};
         shape.horizontalRadius = ellipse.horizontalRadius;
@@ -38,18 +38,18 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto svgPolyline(const Math::Base &base, const std::string &label) -> std::string
+    static auto svgPolyline(const stbox::Math::Base &base, const std::string &label) -> std::string
     {
 
-        return Image::SVG::polygon(normalShape(base, label));
+        return stbox::Image::SVG::polygon(normalShape(base, label));
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto svgPolyline(Math::Base base, const std::string &label, const Image::Color::RGBA &fill,
-                            const Image::Color::RGBA &stroke) -> std::string
+    static auto svgPolyline(stbox::Math::Base base, const std::string &label, const stbox::Image::Color::RGBA &fill,
+                            const stbox::Image::Color::RGBA &stroke) -> std::string
     {
 
-        return Image::SVG::polyline(Image::SVG::NormalShape(label,
+        return stbox::Image::SVG::polyline(stbox::Image::SVG::NormalShape(label,
                                               RGB2hex(fill.R, fill.G, fill.B),
                                               RGB2hex(stroke.R, stroke.G, stroke.B),
                                               1.0,    // strokeWidth
@@ -57,11 +57,12 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto svgPolyline(Math::Base base, const std::string &label, const Image::Color::RGBA &fill, const Image::Color::RGBA &stroke,
+    static auto svgPolyline(stbox::Math::Base base, const std::string &label, const stbox::Image::Color::RGBA &fill,
+                            const stbox::Image::Color::RGBA &stroke,
                             const double &fillOpacity, const double &strokeOpacity) -> std::string
     {
 
-        return Image::SVG::polyline(Image::SVG::NormalShape(label,
+        return stbox::Image::SVG::polyline(stbox::Image::SVG::NormalShape(label,
                                               RGB2hex(fill.R, fill.G, fill.B),
                                               RGB2hex(stroke.R, stroke.G, stroke.B),
                                               1.0,    // strokeWidth
@@ -71,12 +72,13 @@ public:
     }
 
     // Return SVG::polyline with Polygon base.
-    static auto svgPolyline(Math::Base base, const std::string &label, const Image::Color::RGBA &fill, const Image::Color::RGBA &stroke,
+    static auto svgPolyline(stbox::Math::Base base, const std::string &label, const stbox::Image::Color::RGBA &fill,
+                            const stbox::Image::Color::RGBA &stroke,
                             const double &fillOpacity, const double &strokeOpacity,
                             const double &strokeWidth) -> std::string
     {
 
-        return Image::SVG::polyline(Image::SVG::NormalShape(label,
+        return stbox::Image::SVG::polyline(stbox::Image::SVG::NormalShape(label,
                                               RGB2hex(fill.R, fill.G, fill.B),
                                               RGB2hex(stroke.R, stroke.G, stroke.B),
                                               strokeWidth,
@@ -86,17 +88,18 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto svgPolygon(const Math::Base &base, const std::string &label) -> std::string
+    static auto svgPolygon(const stbox::Math::Base &base, const std::string &label) -> std::string
     {
 
-        return Image::SVG::polygon(normalShape(base, label));
+        return stbox::Image::SVG::polygon(normalShape(base, label));
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto svgPolygon(Math::Base base, const std::string &label, const Image::Color::RGBA &fill, const Image::Color::RGBA &stroke) -> std::string
+    static auto svgPolygon(stbox::Math::Base base, const std::string &label, const stbox::Image::Color::RGBA &fill,
+                           const stbox::Image::Color::RGBA &stroke) -> std::string
     {
 
-        return Image::SVG::polygon(Image::SVG::NormalShape(label,
+        return stbox::Image::SVG::polygon(stbox::Image::SVG::NormalShape(label,
                                              RGB2hex(fill.R, fill.G, fill.B),
                                              RGB2hex(stroke.R, stroke.G, stroke.B),
                                              1.0, // strokeWidth
@@ -104,11 +107,12 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto svgPolygon(Math::Base base, const std::string &label, const Image::Color::RGBA &fill, const Image::Color::RGBA &stroke,
+    static auto svgPolygon(stbox::Math::Base base, const std::string &label, const stbox::Image::Color::RGBA &fill,
+                           const stbox::Image::Color::RGBA &stroke,
                            const double &fillOpacity, const double &strokeOpacity) -> std::string
     {
 
-        return Image::SVG::polygon(Image::SVG::NormalShape(label,
+        return stbox::Image::SVG::polygon(stbox::Image::SVG::NormalShape(label,
                                              RGB2hex(fill.R, fill.G, fill.B),
                                              RGB2hex(stroke.R, stroke.G, stroke.B),
                                              1.0, // strokeWidth
@@ -118,12 +122,13 @@ public:
     }
 
     // Return SVG::polygon with Polygon base.
-    static auto svgPolygon(Math::Base base, const std::string &label, const Image::Color::RGBA &fill, const Image::Color::RGBA &stroke,
+    static auto svgPolygon(stbox::Math::Base base, const std::string &label, const stbox::Image::Color::RGBA &fill,
+                           const stbox::Image::Color::RGBA &stroke,
                            const double &fillOpacity, const double &strokeOpacity,
                            const double &strokeWidth) -> std::string
     {
 
-        return Image::SVG::polygon(Image::SVG::NormalShape(label,
+        return stbox::Image::SVG::polygon(stbox::Image::SVG::NormalShape(label,
                                              RGB2hex(fill.R, fill.G, fill.B),
                                              RGB2hex(stroke.R, stroke.G, stroke.B),
                                              strokeWidth,
@@ -133,17 +138,17 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto svgCircle(const Math::Ellipse &ellipse, const std::string &label) -> std::string
+    static auto svgCircle(const stbox::Math::Ellipse &ellipse, const std::string &label) -> std::string
     {
-        return Image::SVG::circle(circleShape(ellipse, label));
+        return stbox::Image::SVG::circle(circleShape(ellipse, label));
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto svgCircle(const Math::Ellipse &ellipse, const std::string &label,
-                          const Image::Color::RGBA &fill,
-                          const Image::Color::RGBA &stroke) -> std::string
+    static auto svgCircle(const stbox::Math::Ellipse &ellipse, const std::string &label,
+                          const stbox::Image::Color::RGBA &fill,
+                          const stbox::Image::Color::RGBA &stroke) -> std::string
     {
-        return Image::SVG::circle(Image::SVG::CircleShape(label,
+        return stbox::Image::SVG::circle(stbox::Image::SVG::CircleShape(label,
                                             RGB2hex(fill.R, fill.G, fill.B),
                                             RGB2hex(stroke.R, stroke.G, stroke.B),
                                             1.0,    // strokeWidth
@@ -155,8 +160,10 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto svgCircle(const Math::Ellipse &ellipse, const std::string &label, const Image::Color::RGBA &fill,
-                          const Image::Color::RGBA &stroke, const double &fillOpacity, const double &strokeOpacity) -> std::string
+    static auto svgCircle(const stbox::Math::Ellipse &ellipse, const std::string &label,
+                          const stbox::Image::Color::RGBA &fill,
+                          const stbox::Image::Color::RGBA &stroke, const double &fillOpacity,
+                          const double &strokeOpacity) -> std::string
     {
         return SVG::circle(SVG::CircleShape(label,
                                             RGB2hex(fill.R, fill.G, fill.B),
@@ -170,8 +177,10 @@ public:
     }
 
     // Return SVG::circle with Ellipse base.
-    static auto svgCircle(const Math::Ellipse &ellipse, const std::string &label, const Image::Color::RGBA &fill,
-                          const Image::Color::RGBA &stroke, const double &fillOpacity, const double &strokeOpacity,
+    static auto svgCircle(const stbox::Math::Ellipse &ellipse, const std::string &label,
+                          const stbox::Image::Color::RGBA &fill,
+                          const stbox::Image::Color::RGBA &stroke, const double &fillOpacity,
+                          const double &strokeOpacity,
                           const double &strokeWidth) -> std::string
     {
         return SVG::circle(SVG::CircleShape(label,
@@ -186,7 +195,7 @@ public:
     }
 
     // Returns SVG Elements.
-    static auto join(const std::vector<Math::Base> &bases, const std::string &label = "") -> std::string
+    static auto join(const std::vector<stbox::Math::Base> &bases, const std::string &label = "") -> std::string
     {
         std::string strShape{};
         for (const auto &item : bases) {
@@ -231,7 +240,7 @@ public:
         std::string bkp = line;
 
         // Prepare
-        line = Text::trim(line, SPACE); // Remove spaces from the ends.
+        line = stbox::Text::trim(line, SPACE); // Remove spaces from the ends.
         transform(line.begin(), line.end(), line.begin(), ::toupper); // Format.
 
         // Check command.
@@ -281,7 +290,7 @@ public:
         }
 
         // Reset
-        std::vector<Math::Point> points{};
+        std::vector<stbox::Math::Point> points{};
         double angle{0};
         double width{0};
         double height{0};
@@ -293,8 +302,8 @@ public:
         double strokeWidth{1.0};
         unsigned sides{0};
         std::string label{};
-        Image::Color::RGBA fillColor(255, 255, 255, 255);
-        Image::Color::RGBA strokeColor(0, 0, 0, 255);
+        stbox::Image::Color::RGBA fillColor(255, 255, 255, 255);
+        stbox::Image::Color::RGBA strokeColor(0, 0, 0, 255);
 
         // Check content between braces.
         // Expected: {(x0,y1)(xN,yN)}
@@ -310,14 +319,14 @@ public:
             line = line.substr(0, first) + line.substr(second + 1);
         }
         if (!content.empty()) {
-            content = Text::replace(content, SPACE, "");  // (x0, y0)( x1,y1) to (x0,y0)(x1,y1)
-            content = Text::replace(content, '(', " (");  // (x0,y0)(x1,y1) to (x0,y0) (x1,y1)
-            for (auto str : Text::split(content, SPACE)) {
-                str = Text::trim(str, SPACE);
+            content = stbox::Text::replace(content, SPACE, "");  // (x0, y0)( x1,y1) to (x0,y0)(x1,y1)
+            content = stbox::Text::replace(content, '(', " (");  // (x0,y0)(x1,y1) to (x0,y0) (x1,y1)
+            for (auto str : stbox::Text::split(content, SPACE)) {
+                str = stbox::Text::trim(str, SPACE);
                 if (str.starts_with('(') && str.ends_with(')')) { // (x,y)
-                    str = Text::trim(Text::trim(str, '('), ')');  //  x,y
+                    str = stbox::Text::trim(stbox::Text::trim(str, '('), ')');  //  x,y
                     try {
-                        auto values = Text::split(str, ',');      //  x y
+                        auto values = stbox::Text::split(str, ',');      //  x y
                         if (values.size() == 2) {
                             // Convert to Point.
                             points.emplace_back(stod(values[0]), stod(values[1]));
@@ -337,7 +346,7 @@ public:
         }
 
         // Check other arguments.
-        for (const auto &str : Text::split(line, SPACE)) {
+        for (const auto &str : stbox::Text::split(line, SPACE)) {
             std::vector<std::string> complements {
                 "ANGLE", "SIDES", "WIDTH", "HEIGHT", "LENGTH", "RADIUS", "HRADIUS", "VRADIUS",
                 "STROKEW"
@@ -395,8 +404,8 @@ public:
             arg = "FILL=";
             if (str.starts_with("FILL=")) {
                 try {
-                    auto numbers = Text::split(str.substr(arg.size()), ',');
-                    fillColor = Image::Color::RGBA(stoi(numbers[0]),
+                    auto numbers = stbox::Text::split(str.substr(arg.size()), ',');
+                    fillColor = stbox::Image::Color::RGBA(stoi(numbers[0]),
                                                    stoi(numbers[1]),
                                                    stoi(numbers[2]),
                                                    255);
@@ -409,8 +418,8 @@ public:
             arg = "STROKE=";
             if (str.starts_with(arg)) {
                 try {
-                    auto numbers = Text::split(str.substr(arg.size()), ',');
-                    strokeColor = Image::Color::RGBA(stoi(numbers[0]),
+                    auto numbers = stbox::Text::split(str.substr(arg.size()), ',');
+                    strokeColor = stbox::Image::Color::RGBA(stoi(numbers[0]),
                                                      stoi(numbers[1]),
                                                      stoi(numbers[2]),
                                                      255);
@@ -432,17 +441,17 @@ public:
                 return {};
             }
             if (points.size() > 1) {
-                result = Sketch::svgPolygon(Math::IrregularPolygon(points),
+                result = Sketch::svgPolygon(stbox::Math::IrregularPolygon(points),
                                             label, fillColor, strokeColor);
             }
             break;
         case LINE:
             if (points.size() == 1 && angle > 0 && length > 0) {
-                result = Sketch::svgPolygon(Math::Line(points.front(), angle, length),
+                result = Sketch::svgPolygon(stbox::Math::Line(points.front(), angle, length),
                                             label, fillColor, strokeColor);
             }
             else if (points.size() == 2) {
-                result = Sketch::svgPolygon(Math::IrregularPolygon(points),
+                result = Sketch::svgPolygon(stbox::Math::IrregularPolygon(points),
                                             label, fillColor, strokeColor);
             }
             else {
@@ -452,12 +461,12 @@ public:
             break;
         case TRIANGLE:
             if (points.size() == 2) {
-                result = Sketch::svgPolygon(Math::Triangle(points[0], points[1], height),
+                result = Sketch::svgPolygon(stbox::Math::Triangle(points[0], points[1], height),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
             }
             else if (points.size() == 3) {
-                result = Sketch::svgPolygon(Math::IrregularPolygon(points),
+                result = Sketch::svgPolygon(stbox::Math::IrregularPolygon(points),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
             }
@@ -468,12 +477,12 @@ public:
             break;
         case RECTANGLE:
             if (points.size() == 1 && width > 0 && height > 0) {
-                result = Sketch::svgPolygon(Math::Rectangle(points.front(), width, height),
+                result = Sketch::svgPolygon(stbox::Math::Rectangle(points.front(), width, height),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
             }
             else if (points.size() == 4) {
-                result = Sketch::svgPolygon(Math::IrregularPolygon(points),
+                result = Sketch::svgPolygon(stbox::Math::IrregularPolygon(points),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
             }
@@ -484,7 +493,7 @@ public:
             break;
         case CIRCLE:
             if (points.size() == 1 && horizontalRadius > 0) {
-                result = Sketch::svgCircle(Math::Circle(points.front(), horizontalRadius),
+                result = Sketch::svgCircle(stbox::Math::Circle(points.front(), horizontalRadius),
                                            label, fillColor, strokeColor,
                                            fillOpacity, strokeOpacity, strokeWidth);
             }
@@ -495,7 +504,7 @@ public:
             break;
         case ELLIPSE:
             if (points.size() == 1 && horizontalRadius > 0 && verticalRadius > 0) {
-                result = Sketch::svgCircle(Math::Ellipse(points.front(),
+                result = Sketch::svgCircle(stbox::Math::Ellipse(points.front(),
                                                    horizontalRadius,
                                                    verticalRadius),
                                            label, fillColor, strokeColor,
@@ -508,13 +517,13 @@ public:
             break;
         case POLYGON:
             if (points.size() == 1 && horizontalRadius > 0 && angle > 0 && sides > 2) {
-                result = Sketch::svgPolygon(Math::RegularPolygon(points.front(),
+                result = Sketch::svgPolygon(stbox::Math::RegularPolygon(points.front(),
                                             horizontalRadius, angle, sides),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity, strokeWidth);
             }
             else if (points.size() > 1) {
-                result = Sketch::svgPolygon(Math::IrregularPolygon(points),
+                result = Sketch::svgPolygon(stbox::Math::IrregularPolygon(points),
                                             label, fillColor, strokeColor,
                                             fillOpacity, strokeOpacity);
             }
@@ -534,7 +543,7 @@ public:
 
     auto load(const std::string &path, std::string &errors) -> std::string
     {
-        auto text = Sys::IO::load(path, ".txt");
+        auto text = stbox::Sys::IO::load(path, ".txt");
         if (text.empty()) {
             errors = path + ERROR + "[FILE EMPTY]\n";
             return {};
@@ -542,7 +551,7 @@ public:
 
         std::string result{};
         errors.clear();
-        auto lines = Text::split(text, '\n');
+        auto lines = stbox::Text::split(text, '\n');
         for (unsigned i = 0; i < lines.size(); i++) {
             auto line = lines[i];
             if (line.starts_with('#')) {
